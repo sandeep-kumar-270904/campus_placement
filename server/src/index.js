@@ -11,10 +11,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Routes
+const authRoutes = require('./routes/authRoutes');
+
 // Basic Route
 app.get('/', (req, res) => {
   res.send('PLACEearly API is running');
 });
+
+// API Routes
+app.use('/api/auth', authRoutes);
 
 // Database Connection
 const PORT = process.env.PORT || 5000;
