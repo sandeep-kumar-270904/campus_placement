@@ -164,19 +164,43 @@ const Register = () => {
         </motion.div>
       </div>
 
-      {/* Right Column: Cartoon Image */}
-      <div className="hidden lg:block relative w-0 flex-1 bg-[#001E2B] overflow-hidden">
-        <motion.img 
-          initial={{ opacity: 0, scale: 1.05 }}
+      {/* Right Column: Premium Combo Image */}
+      <div className="hidden lg:block relative w-0 flex-1 bg-[#001E2B] overflow-hidden group">
+        <motion.div
+          initial={{ opacity: 0, scale: 1.1 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.5, ease: "easeOut" }}
-          src="/student-cartoon.jpg" 
-          alt="Student Cartoon" 
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+          className="absolute inset-0 w-full h-full"
+        >
+          <img 
+            src="/register-combo.jpg" 
+            alt="Students and Startup Platform" 
+            className="w-full h-full object-cover transition-transform duration-[10s] group-hover:scale-105"
+          />
+        </motion.div>
         
-        {/* Gradient Overlay for Text Readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#001E2B] via-[#001E2B]/40 to-transparent"></div>
+        {/* Deep Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-[#001E2B] via-[#001E2B]/60 to-transparent mix-blend-multiply"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#001E2B] via-transparent to-transparent opacity-90"></div>
+
+        {/* Floating UI Elements over the Image */}
+        <div className="absolute inset-0 p-12 pointer-events-none">
+           <motion.div 
+             animate={{ y: [0, -15, 0] }}
+             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+             className="absolute top-[20%] right-[15%] bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl shadow-2xl"
+           >
+              <div className="flex items-center gap-3">
+                 <div className="w-10 h-10 rounded-full bg-mongo-green flex items-center justify-center font-bold text-mongo-dark">
+                   ✓
+                 </div>
+                 <div>
+                   <p className="text-white font-bold text-sm">Profile Verified</p>
+                   <p className="text-white/60 text-xs">Ready to apply</p>
+                 </div>
+              </div>
+           </motion.div>
+        </div>
 
         {/* Floating Text */}
         <div className="absolute bottom-12 left-12 right-12 z-30">
