@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, GraduationCap, MapPin, DollarSign, Calendar } from 'lucide-react';
+import { ArrowRight, GraduationCap } from 'lucide-react';
 
 const ForStudents = () => {
   return (

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, CheckCircle2, ChevronRight, GraduationCap, Briefcase, FileCheck, Building } from 'lucide-react';
+import { ArrowRight, ChevronRight, CheckCircle2 } from 'lucide-react';
 
 const Home = () => {
   return (

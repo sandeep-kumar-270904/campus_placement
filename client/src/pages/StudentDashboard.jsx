@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, UserCircle, Briefcase, FileText, Bell, Search, MapPin, DollarSign, Calendar, ChevronRight } from 'lucide-react';
+import { LogOut, UserCircle, Briefcase, FileText, Bell, Search, MapPin, DollarSign, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const StudentDashboard = () => {
