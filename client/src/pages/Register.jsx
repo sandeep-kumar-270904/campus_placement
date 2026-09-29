@@ -164,83 +164,38 @@ const Register = () => {
         </motion.div>
       </div>
 
-      {/* Right Column: Animated Picture / Graphic */}
+      {/* Right Column: Cartoon Image */}
       <div className="hidden lg:block relative w-0 flex-1 bg-[#001E2B] overflow-hidden">
-        {/* Animated Background Mesh */}
-        <motion.div 
-          animate={{ 
-            scale: [1, 1.2, 1],
-            rotate: [0, 90, 0],
-          }}
-          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-          className="absolute -bottom-[20%] -right-[10%] w-[900px] h-[900px] bg-purple-500/20 rounded-full blur-[120px]"
-        />
-        <motion.div 
-          animate={{ 
-            scale: [1, 1.3, 1],
-            x: [0, 100, 0],
-            y: [0, -100, 0]
-          }}
-          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[0%] left-[0%] w-[700px] h-[700px] bg-mongo-green/20 rounded-full blur-[100px]"
+        <motion.img 
+          initial={{ opacity: 0, scale: 1.05 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
+          src="/student-cartoon.jpg" 
+          alt="Student Cartoon" 
+          className="absolute inset-0 w-full h-full object-cover"
         />
         
-        {/* Abstract Isometric UI Illustration */}
-        <div className="absolute inset-0 flex items-center justify-center p-12">
-          <motion.div 
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.2 }}
-            className="relative w-full max-w-lg aspect-square"
-          >
-            {/* Glassmorphism Card 1 */}
-            <motion.div 
-              animate={{ y: [0, -20, 0] }}
-              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute bottom-[20%] right-[10%] w-64 h-32 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 shadow-2xl z-20"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-full bg-blue-400/50"></div>
-                <div className="h-3 w-20 bg-white/40 rounded"></div>
-              </div>
-              <div className="h-2 w-full bg-white/20 rounded mb-2"></div>
-              <div className="h-2 w-2/3 bg-white/20 rounded"></div>
-            </motion.div>
-
-            {/* Glassmorphism Card 2 (Main) */}
-            <motion.div 
-              animate={{ y: [0, 15, 0] }}
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-              className="absolute top-[20%] left-[10%] w-80 h-48 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[32px] p-8 shadow-2xl z-10"
-            >
-              <div className="h-4 w-32 bg-white/40 rounded mb-6"></div>
-              <div className="space-y-4">
-                <div className="h-10 w-full bg-white/10 rounded-xl border border-white/5"></div>
-                <div className="h-10 w-full bg-white/10 rounded-xl border border-white/5"></div>
-              </div>
-            </motion.div>
-
-            {/* Decorative Ring */}
-            <motion.div 
-              animate={{ rotate: -360 }}
-              transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
-              className="absolute top-[10%] left-[10%] w-96 h-96 border border-white/10 rounded-full border-dashed"
-            />
-          </motion.div>
-        </div>
+        {/* Gradient Overlay for Text Readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#001E2B] via-[#001E2B]/40 to-transparent"></div>
 
         {/* Floating Text */}
         <div className="absolute bottom-12 left-12 right-12 z-30">
-          <p className="text-white/80 font-display text-2xl font-light leading-relaxed">
-            "We saw a 40% increase in successful placements in our first year after migrating from spreadsheets to PLACEearly."
-          </p>
-          <div className="mt-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-500"></div>
-            <div>
-              <p className="text-white font-bold text-sm">Michael Chang</p>
-              <p className="text-white/50 text-xs">Director of Career Services, Global Engineering College</p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.5 }}
+          >
+            <p className="text-white font-display text-[28px] font-medium leading-tight mb-6">
+              "We saw a 40% increase in successful placements in our first year after migrating from spreadsheets to PLACEearly."
+            </p>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg border-2 border-white/20"></div>
+              <div>
+                <p className="text-white font-bold text-base">Michael Chang</p>
+                <p className="text-white/70 text-sm font-medium">Director of Career Services, Global Engineering College</p>
+              </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>
