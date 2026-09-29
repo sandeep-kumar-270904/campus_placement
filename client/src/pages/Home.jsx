@@ -34,7 +34,7 @@ const Home = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-[180px] pb-24 px-6 relative max-w-[1416px] mx-auto">
+      <section id="hero" className="pt-[180px] pb-24 px-6 relative max-w-[1416px] mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-7 z-10">
             <motion.div 
@@ -124,7 +124,7 @@ const Home = () => {
       </section>
 
       {/* Dark Inverse Section */}
-      <section className="bg-mongo-dark text-white py-32 px-6 relative overflow-hidden">
+      <section id="colleges" className="bg-mongo-dark text-white py-32 px-6 relative overflow-hidden">
         {/* Background accent */}
         <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/3 w-[800px] h-[800px] bg-mongo-green/10 rounded-full blur-[120px] pointer-events-none"></div>
         
@@ -192,7 +192,7 @@ const Home = () => {
       </section>
 
       {/* Grid Features */}
-      <section className="py-32 px-6 bg-[#F8F9FA] relative">
+      <section id="platform" className="py-32 px-6 bg-[#F8F9FA] relative">
         {/* Decorative background blurs */}
         <div className="absolute top-40 left-10 w-72 h-72 bg-blue-400/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute bottom-20 right-10 w-80 h-80 bg-mongo-green/10 rounded-full blur-3xl pointer-events-none"></div>
