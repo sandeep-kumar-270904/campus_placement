@@ -50,9 +50,8 @@ const Register = () => {
           alt="Campus and Startup" 
           className="w-full h-full object-cover"
         />
-        {/* Gradients to ensure the form is readable */}
-        <div className="absolute inset-0 bg-mongo-dark/40 backdrop-blur-[2px]"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-mongo-dark/80 via-mongo-dark/50 to-transparent"></div>
+        {/* Subtle gradient ONLY behind the form to keep text readable, no blur anywhere */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent"></div>
       </motion.div>
 
       {/* Main Content Area */}
@@ -62,10 +61,10 @@ const Register = () => {
           initial={{ opacity: 0, x: -40 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-          className="w-full max-w-md lg:w-[480px]"
+          className="w-full max-w-xl lg:w-[560px]"
         >
           {/* Frosted Glass Form Card */}
-          <div className="bg-white/95 backdrop-blur-xl p-8 sm:p-10 rounded-[32px] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] border border-white/20">
+          <div className="bg-white/95 backdrop-blur-3xl p-10 sm:p-12 rounded-[32px] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.7)] border border-white/40">
             <div className="mb-8">
               <Link to="/" className="flex items-center gap-2 mb-8 group w-max">
                 <div className="w-8 h-8 bg-mongo-dark rounded-md flex items-center justify-center transition-transform group-hover:scale-105">
