@@ -160,7 +160,7 @@ const Home = () => {
                 <code className="block mb-2 pl-4"><span className="text-purple-400">if</span> (student.cgpa {'<'} rule.minCgpa) {'{'}</code>
                 <code className="block mb-2 pl-8"><span className="text-purple-400">return</span> {'{'} </code>
                 <code className="block mb-2 pl-12 text-mongo-green">eligible: <span className="text-orange-400">false</span>,</code>
-                <code className="block mb-2 pl-12">reason: <span className="text-yellow-300">`CGPA ${student.cgpa} is below required ${rule.minCgpa}`</span></code>
+                <code className="block mb-2 pl-12">reason: <span className="text-yellow-300">`CGPA ${"{student.cgpa}"} is below required ${"{rule.minCgpa}"}`</span></code>
                 <code className="block mb-2 pl-8">{'}'}</code>
                 <code className="block mb-2 pl-4">{'}'}</code>
                 <code className="block mb-2 pl-4"><span className="text-purple-400">return</span> {'{'} <span className="text-mongo-green">eligible:</span> <span className="text-orange-400">true</span> {'}'}</code>
