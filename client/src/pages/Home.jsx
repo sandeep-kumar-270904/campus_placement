@@ -192,31 +192,70 @@ const Home = () => {
       </section>
 
       {/* Grid Features */}
-      <section className="py-32 px-6 bg-mongo-bg">
-        <div className="max-w-[1416px] mx-auto">
-          <div className="text-center mb-20">
+      <section className="py-32 px-6 bg-[#F8F9FA] relative">
+        {/* Decorative background blurs */}
+        <div className="absolute top-40 left-10 w-72 h-72 bg-blue-400/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-20 right-10 w-80 h-80 bg-mongo-green/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div className="max-w-[1416px] mx-auto relative z-10">
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.7 }}
+            className="text-center mb-20"
+          >
             <h2 className="text-[40px] md:text-[56px] font-display font-extrabold text-mongo-dark tracking-tight mb-6">Designed for Higher Education</h2>
             <p className="text-xl text-mongo-text/70 max-w-2xl mx-auto font-light">
               We replaced isolated portals with a single unified operating system tailored perfectly for students, coordinators, and placement officers.
             </p>
-          </div>
+          </motion.div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { icon: GraduationCap, title: 'Career Profiles', desc: 'Students build comprehensive, verified portfolios containing academic records, projects, and multiple resumes.' },
-              { icon: Briefcase, title: 'Unified Tracking', desc: 'Stop relying on personal notes. Track external internships and campus drives in one unified Kanban-style board.' },
-              { icon: FileCheck, title: 'TPO Verification', desc: 'Placement officers can verify student 10th, 12th, and UG marks, ensuring companies receive 100% accurate data.' }
+              { 
+                icon: GraduationCap, 
+                title: 'Career Profiles', 
+                desc: 'Students build comprehensive, verified portfolios containing academic records, projects, and multiple resumes.',
+                color: 'from-blue-500 to-cyan-400',
+                bg: 'bg-blue-50'
+              },
+              { 
+                icon: Briefcase, 
+                title: 'Unified Tracking', 
+                desc: 'Stop relying on personal notes. Track external internships and campus drives in one unified Kanban-style board.',
+                color: 'from-purple-500 to-pink-500',
+                bg: 'bg-purple-50'
+              },
+              { 
+                icon: FileCheck, 
+                title: 'TPO Verification', 
+                desc: 'Placement officers can verify student 10th, 12th, and UG marks, ensuring companies receive 100% accurate data.',
+                color: 'from-mongo-green-dark to-[#00ED64]',
+                bg: 'bg-green-50'
+              }
             ].map((feat, idx) => (
               <motion.div 
-                whileHover={{ y: -5 }}
-                className="bg-white p-10 rounded-2xl border border-mongo-gray/40 shadow-sm hover:shadow-xl transition-all duration-300" 
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.6, delay: idx * 0.2 }}
+                whileHover={{ y: -10 }}
+                className="group relative bg-white p-10 rounded-[32px] border border-gray-100 shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden" 
                 key={idx}
               >
-                <div className="w-14 h-14 bg-mongo-bg rounded-xl border border-mongo-gray/50 flex items-center justify-center mb-8">
-                  <feat.icon className="w-7 h-7 text-mongo-green-dark" />
+                {/* Hover gradient glow */}
+                <div className={`absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-500 bg-gradient-to-br ${"{feat.color}"}`}></div>
+                
+                <div className={`w-16 h-16 rounded-2xl ${"{feat.bg}"} flex items-center justify-center mb-8 relative z-10 group-hover:scale-110 transition-transform duration-500 shadow-inner`}>
+                  <div className={`absolute inset-0 opacity-20 rounded-2xl bg-gradient-to-br ${"{feat.color}"}`}></div>
+                  <feat.icon className="w-8 h-8 text-mongo-dark relative z-10" />
                 </div>
-                <h3 className="text-2xl font-display font-bold text-mongo-dark mb-4">{feat.title}</h3>
-                <p className="text-mongo-text/70 leading-relaxed font-light">{feat.desc}</p>
+                <h3 className="text-2xl font-display font-bold text-mongo-dark mb-4 relative z-10 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-gray-900 group-hover:to-gray-600 transition-colors duration-300">{feat.title}</h3>
+                <p className="text-mongo-text/70 leading-relaxed font-light relative z-10">{feat.desc}</p>
+                
+                {/* Decorative line */}
+                <div className={`absolute bottom-0 left-0 h-1 w-0 group-hover:w-full bg-gradient-to-r ${"{feat.color}"} transition-all duration-500 ease-out`}></div>
               </motion.div>
             ))}
           </div>
