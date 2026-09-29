@@ -1,7 +1,8 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { LogIn } from 'lucide-react';
+import { LogIn, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -26,55 +27,80 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-md">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to PLACEearly
+    <div className="min-h-screen flex items-center justify-center bg-mongo-bg py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Decorative Blur */}
+      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-mongo-green/20 rounded-full blur-[100px] pointer-events-none"></div>
+      
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-md w-full space-y-8 bg-white p-10 rounded-[32px] shadow-2xl border border-gray-100 relative z-10"
+      >
+        <div className="text-center">
+          <div className="mx-auto w-12 h-12 bg-mongo-dark rounded-xl flex items-center justify-center mb-6 shadow-md">
+            <span className="text-mongo-green font-bold text-2xl font-display">P</span>
+          </div>
+          <h2 className="text-3xl font-extrabold text-mongo-dark font-display tracking-tight">
+            Welcome back
           </h2>
+          <p className="mt-2 text-sm text-mongo-text/60">
+            Sign in to continue to PLACEearly
+          </p>
         </div>
+        
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && <div className="text-red-500 text-sm text-center">{error}</div>}
-          <div className="rounded-md shadow-sm -space-y-px">
+          {error && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-3 bg-red-50 text-red-600 text-sm text-center rounded-lg border border-red-100">
+              {error}
+            </motion.div>
+          )}
+          
+          <div className="space-y-4">
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
               <input
                 type="email"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
+                className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-mongo-green focus:border-transparent transition-all shadow-sm bg-gray-50/50"
+                placeholder="you@university.edu"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
               <input
                 type="password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
+                className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-mongo-green focus:border-transparent transition-all shadow-sm bg-gray-50/50"
+                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
           </div>
+
           <div>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-mongo-dark bg-mongo-green hover:bg-[#00E05B] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-mongo-green shadow-lg shadow-mongo-green/20 transition-all duration-300"
             >
-              <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-                <LogIn className="h-5 w-5 text-blue-500 group-hover:text-blue-400" aria-hidden="true" />
-              </span>
-              Sign in
+              Sign In
+              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
         </form>
-        <div className="text-center text-sm">
-          <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
-            Don't have an account? Register here
-          </Link>
+        
+        <div className="text-center text-sm mt-6">
+          <p className="text-gray-500">
+            Don't have an account?{' '}
+            <Link to="/register" className="font-semibold text-mongo-green-dark hover:text-mongo-green transition-colors">
+              Create one now
+            </Link>
+          </p>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
