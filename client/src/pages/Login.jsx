@@ -41,8 +41,21 @@ const Login = () => {
           <div className="mx-auto w-12 h-12 bg-mongo-dark rounded-xl flex items-center justify-center mb-6 shadow-md">
             <span className="text-mongo-green font-bold text-2xl font-display">P</span>
           </div>
-          <h2 className="text-3xl font-extrabold text-mongo-dark font-display tracking-tight">
+          <h2 className="text-3xl font-extrabold text-mongo-dark font-display tracking-tight flex items-center justify-center gap-2">
             Welcome back
+            <motion.span
+              animate={{ rotate: [0, 14, -8, 14, -4, 10, 0, 0] }}
+              transition={{
+                duration: 2.5,
+                repeat: Infinity,
+                repeatType: "loop",
+                ease: "easeInOut",
+                repeatDelay: 1
+              }}
+              className="inline-block origin-[70%_70%]"
+            >
+              👋
+            </motion.span>
           </h2>
           <p className="mt-2 text-sm text-mongo-text/60">
             Sign in to continue to PLACEearly

@@ -50,8 +50,21 @@ const Register = () => {
           <div className="mx-auto w-12 h-12 bg-mongo-dark rounded-xl flex items-center justify-center mb-6 shadow-md">
             <span className="text-mongo-green font-bold text-2xl font-display">P</span>
           </div>
-          <h2 className="text-3xl font-extrabold text-mongo-dark font-display tracking-tight">
+          <h2 className="text-3xl font-extrabold text-mongo-dark font-display tracking-tight flex items-center justify-center gap-2">
             Create an account
+            <motion.span
+              animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                repeatType: "loop",
+                ease: "easeInOut",
+                repeatDelay: 1.5
+              }}
+              className="inline-block"
+            >
+              ✨
+            </motion.span>
           </h2>
           <p className="mt-2 text-sm text-mongo-text/60">
             Join PLACEearly to streamline your placements
