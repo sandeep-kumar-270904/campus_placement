@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, CheckCircle2, ChevronRight, Globe, Layers, ShieldCheck, Zap } from 'lucide-react';
+import { ArrowRight, CheckCircle2, ChevronRight, GraduationCap, Briefcase, FileCheck, Building } from 'lucide-react';
 
 const Home = () => {
   return (
@@ -17,9 +17,9 @@ const Home = () => {
               <span className="text-xl font-bold tracking-tight text-mongo-dark">PLACEearly</span>
             </Link>
             <div className="hidden lg:flex items-center gap-8">
-              <a href="#platform" className="text-[15px] font-medium text-mongo-text hover:text-mongo-green-dark transition-colors">Platform</a>
-              <a href="#solutions" className="text-[15px] font-medium text-mongo-text hover:text-mongo-green-dark transition-colors">Solutions</a>
-              <a href="#resources" className="text-[15px] font-medium text-mongo-text hover:text-mongo-green-dark transition-colors">Resources</a>
+              <a href="#platform" className="text-[15px] font-medium text-mongo-text hover:text-mongo-green-dark transition-colors">For Students</a>
+              <a href="#solutions" className="text-[15px] font-medium text-mongo-text hover:text-mongo-green-dark transition-colors">For Colleges</a>
+              <a href="#resources" className="text-[15px] font-medium text-mongo-text hover:text-mongo-green-dark transition-colors">How it Works</a>
             </div>
           </div>
           <div className="flex items-center gap-6">
@@ -27,7 +27,7 @@ const Home = () => {
               Sign In
             </Link>
             <Link to="/register" className="text-[15px] font-medium bg-mongo-dark text-white px-6 py-3 rounded-full hover:bg-gray-800 transition-colors">
-              Try Free
+              Get Started
             </Link>
           </div>
         </div>
@@ -44,28 +44,28 @@ const Home = () => {
             >
               <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full border border-mongo-gray bg-white mb-8 shadow-sm">
                 <span className="flex h-2 w-2 rounded-full bg-mongo-green animate-pulse"></span>
-                <span className="text-xs font-semibold uppercase tracking-widest text-mongo-green-dark">New Release</span>
+                <span className="text-xs font-semibold uppercase tracking-widest text-mongo-green-dark">Platform Update</span>
                 <span className="text-sm font-medium text-mongo-text flex items-center cursor-pointer hover:underline">
-                  Eligibility Engine 2.0 <ChevronRight className="w-4 h-4 ml-1" />
+                  Auto-Eligibility is live <ChevronRight className="w-4 h-4 ml-1" />
                 </span>
               </div>
               
               <h1 className="text-[56px] leading-[1.05] md:text-[80px] font-bold text-mongo-dark tracking-[-0.02em] mb-8">
-                The Campus <br /> Placement Platform
+                The Campus <br /> Placement OS
               </h1>
               
               <p className="text-xl md:text-[22px] leading-relaxed text-mongo-text/80 max-w-[600px] mb-10 font-light">
-                Get your students placed faster with a flexible, intelligent platform. 
-                PLACEearly makes managing profiles, tracking applications, and defining eligibility rules effortless.
+                Unify your entire placement lifecycle. 
+                PLACEearly bridges the gap between student career prep and institutional hiring operations in one powerful workspace.
               </p>
               
               <div className="flex flex-col sm:flex-row items-center gap-4">
                 <Link to="/register" className="w-full sm:w-auto flex items-center justify-center gap-2 bg-mongo-green text-mongo-dark px-8 py-4 rounded-full text-lg font-semibold hover:bg-[#00E05B] transition-colors border border-transparent shadow-[0_4px_14px_0_rgba(0,237,100,0.39)]">
-                  Start Building Free
+                  Create Account
                   <ArrowRight className="w-5 h-5" />
                 </Link>
-                <Link to="/contact" className="w-full sm:w-auto flex items-center justify-center px-8 py-4 rounded-full text-lg font-medium text-mongo-dark border border-mongo-gray hover:border-mongo-dark transition-colors bg-transparent">
-                  Contact Sales
+                <Link to="/login" className="w-full sm:w-auto flex items-center justify-center px-8 py-4 rounded-full text-lg font-medium text-mongo-dark border border-mongo-gray hover:border-mongo-dark transition-colors bg-transparent">
+                  Access Dashboard
                 </Link>
               </div>
             </motion.div>
@@ -78,27 +78,43 @@ const Home = () => {
               transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
               className="relative rounded-2xl overflow-hidden shadow-2xl border border-mongo-gray/50 bg-white"
             >
-              {/* Mockup UI */}
-              <div className="h-10 bg-mongo-dark flex items-center px-4 gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
-                <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
-                <div className="w-3 h-3 rounded-full bg-mongo-green/80"></div>
+              {/* Application Tracker UI Mockup */}
+              <div className="h-10 bg-mongo-dark flex items-center px-4 justify-between">
+                <div className="flex gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
+                  <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                  <div className="w-3 h-3 rounded-full bg-mongo-green/80"></div>
+                </div>
+                <div className="text-xs text-gray-400 font-mono">PLACEearly Application Pipeline</div>
               </div>
               <div className="p-6 bg-[#F8F9FA] min-h-[400px]">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="h-6 w-32 bg-gray-200 rounded animate-pulse"></div>
-                  <div className="h-8 w-24 bg-mongo-green/20 rounded text-mongo-green-dark text-xs font-bold flex items-center justify-center border border-mongo-green/30">ELIGIBLE</div>
-                </div>
-                <div className="space-y-4">
-                  <div className="h-24 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-                     <div className="h-4 w-1/3 bg-gray-200 rounded mb-4"></div>
-                     <div className="h-3 w-full bg-gray-100 rounded mb-2"></div>
-                     <div className="h-3 w-2/3 bg-gray-100 rounded"></div>
+                <div className="flex items-center justify-between mb-6 border-b border-gray-200 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">G</div>
+                    <div>
+                      <div className="text-sm font-bold text-gray-900">Software Engineering Intern</div>
+                      <div className="text-xs text-gray-500">Google • Campus Drive</div>
+                    </div>
                   </div>
-                  <div className="h-24 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-                     <div className="h-4 w-1/2 bg-gray-200 rounded mb-4"></div>
-                     <div className="h-3 w-full bg-gray-100 rounded mb-2"></div>
-                     <div className="h-3 w-3/4 bg-gray-100 rounded"></div>
+                  <div className="h-8 px-3 bg-mongo-green/20 rounded text-mongo-green-dark text-xs font-bold flex items-center border border-mongo-green/30">APPLIED</div>
+                </div>
+                
+                {/* Timeline UI */}
+                <div className="relative pl-4 space-y-6 border-l-2 border-gray-200 ml-2 mt-8">
+                  <div className="relative">
+                    <div className="absolute -left-[21px] top-1 w-4 h-4 rounded-full bg-mongo-green border-4 border-[#F8F9FA]"></div>
+                    <p className="text-sm font-bold text-gray-900">Eligibility Verified</p>
+                    <p className="text-xs text-gray-500 mt-1">CGPA & Backlogs criteria met automatically.</p>
+                  </div>
+                  <div className="relative">
+                    <div className="absolute -left-[21px] top-1 w-4 h-4 rounded-full bg-blue-500 border-4 border-[#F8F9FA]"></div>
+                    <p className="text-sm font-bold text-gray-900">Aptitude Test Passed</p>
+                    <p className="text-xs text-gray-500 mt-1">Score updated by TPO.</p>
+                  </div>
+                  <div className="relative">
+                    <div className="absolute -left-[21px] top-1 w-4 h-4 rounded-full bg-gray-300 border-4 border-[#F8F9FA]"></div>
+                    <p className="text-sm font-medium text-gray-500">Technical Interview</p>
+                    <p className="text-xs text-gray-400 mt-1">Pending schedule.</p>
                   </div>
                 </div>
               </div>
@@ -107,7 +123,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Dark Inverse Section (MongoDB style) */}
+      {/* Dark Inverse Section */}
       <section className="bg-mongo-dark text-white py-32 px-6 relative overflow-hidden">
         {/* Background accent */}
         <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/3 w-[800px] h-[800px] bg-mongo-green/10 rounded-full blur-[120px] pointer-events-none"></div>
@@ -116,18 +132,18 @@ const Home = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
             <div>
               <h2 className="text-[40px] md:text-[56px] font-bold leading-tight mb-6 tracking-tight">
-                Data-driven <br/>
-                <span className="text-mongo-green">placement operations.</span>
+                Automate your <br/>
+                <span className="text-mongo-green">placement funnel.</span>
               </h2>
               <p className="text-xl text-gray-400 font-light mb-10 max-w-[500px]">
-                Eliminate spreadsheets. Our Eligibility Engine evaluates student profiles against company criteria instantly, providing clear reasons for disqualification and streamlining the funnel.
+                Say goodbye to scattered Google Forms and Excel sheets. Define rules, evaluate hundreds of students instantly, and manage recruitment rounds natively.
               </p>
               
               <ul className="space-y-6">
                 {[
-                  { title: 'Unified Profiles', desc: 'One verified profile for campus and external opportunities.' },
-                  { title: 'Automated Eligibility', desc: 'Define rules for CGPA, backlogs, and branches. We handle the math.' },
-                  { title: 'Real-time Analytics', desc: 'Track funnel conversions and generate historical placement reports instantly.' }
+                  { title: 'Centralized Opportunity Hub', desc: 'Publish both campus and off-campus drives directly to student dashboards.' },
+                  { title: 'The Eligibility Engine', desc: 'Automatically cross-reference company criteria with verified academic profiles.' },
+                  { title: 'Real-time Dashboards', desc: 'Monitor branch-wise analytics, application pipelines, and offer rates.' }
                 ].map((item, idx) => (
                   <motion.li 
                     initial={{ opacity: 0, x: -20 }}
@@ -149,21 +165,25 @@ const Home = () => {
               </ul>
             </div>
             
-            {/* Abstract Code/Data UI element */}
+            {/* Engine Abstract UI */}
             <div className="bg-[#00141D] border border-gray-800 rounded-2xl p-8 shadow-2xl relative">
               <div className="absolute -top-4 -left-4 bg-mongo-green text-mongo-dark font-bold text-xs uppercase tracking-widest py-2 px-4 rounded-full shadow-lg">
-                Engine Active
+                Engine Logic
               </div>
               <pre className="text-sm font-mono text-gray-300 overflow-x-auto">
-                <code className="block mb-2"><span className="text-purple-400">const</span> <span className="text-blue-400">checkEligibility</span> = (student, rule) {'=>'} {'{'}</code>
-                <code className="block mb-2 pl-4"><span className="text-gray-500">// Evaluating CGPA criteria</span></code>
-                <code className="block mb-2 pl-4"><span className="text-purple-400">if</span> (student.cgpa {'<'} rule.minCgpa) {'{'}</code>
+                <code className="block mb-2"><span className="text-purple-400">const</span> <span className="text-blue-400">evaluateStudent</span> = (profile, company) {'=>'} {'{'}</code>
+                <code className="block mb-2 pl-4"><span className="text-gray-500">// Check active backlogs constraint</span></code>
+                <code className="block mb-2 pl-4"><span className="text-purple-400">if</span> (profile.activeBacklogs {'>'} company.maxBacklogs) {'{'}</code>
                 <code className="block mb-2 pl-8"><span className="text-purple-400">return</span> {'{'} </code>
-                <code className="block mb-2 pl-12 text-mongo-green">eligible: <span className="text-orange-400">false</span>,</code>
-                <code className="block mb-2 pl-12">reason: <span className="text-yellow-300">`CGPA ${"{student.cgpa}"} is below required ${"{rule.minCgpa}"}`</span></code>
+                <code className="block mb-2 pl-12 text-mongo-green">status: <span className="text-orange-400">"REJECTED"</span>,</code>
+                <code className="block mb-2 pl-12">reason: <span className="text-yellow-300">`Backlog limit exceeded.`</span></code>
                 <code className="block mb-2 pl-8">{'}'}</code>
                 <code className="block mb-2 pl-4">{'}'}</code>
-                <code className="block mb-2 pl-4"><span className="text-purple-400">return</span> {'{'} <span className="text-mongo-green">eligible:</span> <span className="text-orange-400">true</span> {'}'}</code>
+                <code className="block mb-2 pl-4"><span className="text-gray-500">// Verify branch eligibility</span></code>
+                <code className="block mb-2 pl-4"><span className="text-purple-400">if</span> (!company.allowedBranches.includes(profile.branch)) {'{'}</code>
+                <code className="block mb-2 pl-8"><span className="text-purple-400">return</span> {'{'} <span className="text-mongo-green">status:</span> <span className="text-orange-400">"NOT_ELIGIBLE"</span> {'}'}</code>
+                <code className="block mb-2 pl-4">{'}'}</code>
+                <code className="block mb-2 pl-4"><span className="text-purple-400">return</span> {'{'} <span className="text-mongo-green">status:</span> <span className="text-orange-400">"APPROVED"</span> {'}'}</code>
                 <code className="block">{'}'}</code>
               </pre>
             </div>
@@ -175,17 +195,17 @@ const Home = () => {
       <section className="py-32 px-6 bg-mongo-bg">
         <div className="max-w-[1416px] mx-auto">
           <div className="text-center mb-20">
-            <h2 className="text-[40px] md:text-[56px] font-bold text-mongo-dark tracking-tight mb-6">Designed for scale</h2>
+            <h2 className="text-[40px] md:text-[56px] font-bold text-mongo-dark tracking-tight mb-6">Designed for Higher Education</h2>
             <p className="text-xl text-mongo-text/70 max-w-2xl mx-auto font-light">
-              Built on a robust, modular architecture to handle the complexities of thousands of students, companies, and concurrent applications.
+              We replaced isolated portals with a single unified operating system tailored perfectly for students, coordinators, and placement officers.
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { icon: Globe, title: 'Centralized Hub', desc: 'A single destination for students to discover jobs, internships, and track applications without juggling portals.' },
-              { icon: Layers, title: 'Document Management', desc: 'Securely manage multiple resume versions, transcripts, and ID documents directly on the platform.' },
-              { icon: ShieldCheck, title: 'Audit & Compliance', desc: 'Maintain historical records, TPO verifications, and access logs to ensure transparent placement processes.' }
+              { icon: GraduationCap, title: 'Career Profiles', desc: 'Students build comprehensive, verified portfolios containing academic records, projects, and multiple resumes.' },
+              { icon: Briefcase, title: 'Unified Tracking', desc: 'Stop relying on personal notes. Track external internships and campus drives in one unified Kanban-style board.' },
+              { icon: FileCheck, title: 'TPO Verification', desc: 'Placement officers can verify student 10th, 12th, and UG marks, ensuring companies receive 100% accurate data.' }
             ].map((feat, idx) => (
               <motion.div 
                 whileHover={{ y: -5 }}
@@ -215,24 +235,24 @@ const Home = () => {
                 <span className="text-2xl font-bold tracking-tight text-mongo-dark">PLACEearly</span>
               </Link>
               <p className="text-mongo-text/60 max-w-sm mb-6">
-                The world's leading modern platform for campus placements, career tracking, and hiring operations.
+                The centralized operating system bridging the gap between student career goals and college placement operations.
               </p>
             </div>
             <div>
-              <h4 className="font-bold text-mongo-dark mb-6">Product</h4>
+              <h4 className="font-bold text-mongo-dark mb-6">Platform</h4>
               <ul className="space-y-4">
                 <li><a href="#" className="text-mongo-text/70 hover:text-mongo-green-dark transition-colors">Opportunity Hub</a></li>
                 <li><a href="#" className="text-mongo-text/70 hover:text-mongo-green-dark transition-colors">Eligibility Engine</a></li>
-                <li><a href="#" className="text-mongo-text/70 hover:text-mongo-green-dark transition-colors">Analytics</a></li>
-                <li><a href="#" className="text-mongo-text/70 hover:text-mongo-green-dark transition-colors">Security</a></li>
+                <li><a href="#" className="text-mongo-text/70 hover:text-mongo-green-dark transition-colors">Student Profiles</a></li>
+                <li><a href="#" className="text-mongo-text/70 hover:text-mongo-green-dark transition-colors">Analytics Reports</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-bold text-mongo-dark mb-6">Company</h4>
+              <h4 className="font-bold text-mongo-dark mb-6">Resources</h4>
               <ul className="space-y-4">
-                <li><a href="#" className="text-mongo-text/70 hover:text-mongo-green-dark transition-colors">About Us</a></li>
-                <li><a href="#" className="text-mongo-text/70 hover:text-mongo-green-dark transition-colors">Careers</a></li>
-                <li><a href="#" className="text-mongo-text/70 hover:text-mongo-green-dark transition-colors">Contact</a></li>
+                <li><a href="#" className="text-mongo-text/70 hover:text-mongo-green-dark transition-colors">Preparation Hub</a></li>
+                <li><a href="#" className="text-mongo-text/70 hover:text-mongo-green-dark transition-colors">Help Center</a></li>
+                <li><a href="#" className="text-mongo-text/70 hover:text-mongo-green-dark transition-colors">Contact Support</a></li>
               </ul>
             </div>
           </div>
