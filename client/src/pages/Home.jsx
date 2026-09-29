@@ -17,9 +17,9 @@ const Home = () => {
               <span className="text-xl font-display font-bold tracking-tight text-mongo-dark">PLACEearly</span>
             </Link>
             <div className="hidden lg:flex items-center gap-8">
-              <a href="#platform" className="text-[15px] font-medium text-mongo-text hover:text-mongo-green-dark transition-colors">For Students</a>
-              <a href="#solutions" className="text-[15px] font-medium text-mongo-text hover:text-mongo-green-dark transition-colors">For Colleges</a>
-              <a href="#resources" className="text-[15px] font-medium text-mongo-text hover:text-mongo-green-dark transition-colors">How it Works</a>
+              <Link to="/for-students" className="text-[15px] font-medium text-mongo-text hover:text-mongo-green-dark transition-colors">For Students</Link>
+              <Link to="/for-colleges" className="text-[15px] font-medium text-mongo-text hover:text-mongo-green-dark transition-colors">For Colleges</Link>
+              <Link to="/how-it-works" className="text-[15px] font-medium text-mongo-text hover:text-mongo-green-dark transition-colors">How it Works</Link>
             </div>
           </div>
           <div className="flex items-center gap-6">
