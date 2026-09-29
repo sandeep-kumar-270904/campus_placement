@@ -6,20 +6,7 @@ import StudentDashboard from './pages/StudentDashboard';
 import TpoDashboard from './pages/TpoDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 
-function Home() {
-  return (
-    <div className="p-8 text-center min-h-screen flex flex-col items-center justify-center bg-gray-50">
-      <h1 className="text-5xl font-bold text-blue-600 mb-4">PLACEearly</h1>
-      <p className="text-xl text-gray-600 mb-8 max-w-2xl">
-        The centralized platform for managing student careers, internships, jobs, and college placement activities.
-      </p>
-      <div className="flex space-x-4">
-        <Link to="/login" className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition">Login</Link>
-        <Link to="/register" className="px-8 py-3 bg-white text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 font-medium transition">Register</Link>
-      </div>
-    </div>
-  );
-}
+import Home from './pages/Home';
 
 function Unauthorized() {
   return <div className="p-8 text-center text-red-600"><h2 className="text-2xl font-bold">Unauthorized Access</h2></div>;
