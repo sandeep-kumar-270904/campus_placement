@@ -14,7 +14,7 @@ const Home = () => {
               <div className="w-8 h-8 bg-mongo-dark rounded-md flex items-center justify-center transition-transform group-hover:scale-105">
                 <span className="text-mongo-green font-bold text-xl">P</span>
               </div>
-              <span className="text-xl font-bold tracking-tight text-mongo-dark">PLACEearly</span>
+              <span className="text-xl font-display font-bold tracking-tight text-mongo-dark">PLACEearly</span>
             </Link>
             <div className="hidden lg:flex items-center gap-8">
               <a href="#platform" className="text-[15px] font-medium text-mongo-text hover:text-mongo-green-dark transition-colors">For Students</a>
@@ -50,7 +50,7 @@ const Home = () => {
                 </span>
               </div>
               
-              <h1 className="text-[56px] leading-[1.05] md:text-[80px] font-bold text-mongo-dark tracking-[-0.02em] mb-8">
+              <h1 className="text-[56px] leading-[1.05] md:text-[80px] font-display font-extrabold text-mongo-dark tracking-[-0.02em] mb-8">
                 The Campus <br /> Placement OS
               </h1>
               
@@ -131,7 +131,7 @@ const Home = () => {
         <div className="max-w-[1416px] mx-auto relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-[40px] md:text-[56px] font-bold leading-tight mb-6 tracking-tight">
+              <h2 className="text-[40px] md:text-[56px] font-display font-extrabold leading-tight mb-6 tracking-tight">
                 Automate your <br/>
                 <span className="text-mongo-green">placement funnel.</span>
               </h2>
@@ -195,7 +195,7 @@ const Home = () => {
       <section className="py-32 px-6 bg-mongo-bg">
         <div className="max-w-[1416px] mx-auto">
           <div className="text-center mb-20">
-            <h2 className="text-[40px] md:text-[56px] font-bold text-mongo-dark tracking-tight mb-6">Designed for Higher Education</h2>
+            <h2 className="text-[40px] md:text-[56px] font-display font-extrabold text-mongo-dark tracking-tight mb-6">Designed for Higher Education</h2>
             <p className="text-xl text-mongo-text/70 max-w-2xl mx-auto font-light">
               We replaced isolated portals with a single unified operating system tailored perfectly for students, coordinators, and placement officers.
             </p>
@@ -215,7 +215,7 @@ const Home = () => {
                 <div className="w-14 h-14 bg-mongo-bg rounded-xl border border-mongo-gray/50 flex items-center justify-center mb-8">
                   <feat.icon className="w-7 h-7 text-mongo-green-dark" />
                 </div>
-                <h3 className="text-2xl font-bold text-mongo-dark mb-4">{feat.title}</h3>
+                <h3 className="text-2xl font-display font-bold text-mongo-dark mb-4">{feat.title}</h3>
                 <p className="text-mongo-text/70 leading-relaxed font-light">{feat.desc}</p>
               </motion.div>
             ))}
