@@ -13,6 +13,8 @@ app.use(express.json());
 
 // Routes
 const authRoutes = require('./routes/authRoutes');
+const opportunityRoutes = require('./routes/opportunityRoutes');
+const profileRoutes = require('./routes/profileRoutes');
 
 // Basic Route
 app.get('/', (req, res) => {
@@ -21,6 +23,8 @@ app.get('/', (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/opportunities', opportunityRoutes);
+app.use('/api/profile', profileRoutes);
 
 // Database Connection
 const PORT = process.env.PORT || 5000;
