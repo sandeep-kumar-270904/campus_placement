@@ -96,3 +96,49 @@ exports.getMyApplications = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
+
+// @desc    Get all applications for a drive (TPO)
+// @route   GET /api/opportunities/:id/applications
+exports.getOpportunityApplications = async (req, res) => {
+  try {
+    const applications = await Application.find({ opportunityId: req.params.id })
+                                          .populate('studentId', ['firstName', 'lastName', 'email'])
+                                          .populate('opportunityId')
+                                          .sort({ createdAt: -1 });
+    res.status(200).json(applications);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+// @desc    Get all applications across drives (TPO)
+// @route   GET /api/opportunities/applications/all
+exports.getAllApplications = async (req, res) => {
+  try {
+    const applications = await Application.find()
+                                          .populate('studentId', ['firstName', 'lastName', 'email'])
+                                          .populate('opportunityId')
+                                          .sort({ createdAt: -1 });
+    res.status(200).json(applications);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+// @desc    Update application status (TPO)
+// @route   PUT /api/opportunities/applications/:id/status
+exports.updateApplicationStatus = async (req, res) => {
+  try {
+    const { status, currentRound } = req.body;
+    const application = await Application.findById(req.params.id);
+    if (!application) return res.status(404).json({ message: 'Application not found' });
+
+    if (status) application.status = status;
+    if (currentRound) application.currentRound = currentRound;
+    await application.save();
+
+    res.status(200).json({ message: 'Application status updated', application });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};

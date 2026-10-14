@@ -51,3 +51,31 @@ exports.upsertProfile = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
+
+// @desc    Get all student profiles (TPO only)
+// @route   GET /api/profile/all
+exports.getAllProfiles = async (req, res) => {
+  try {
+    const profiles = await StudentProfile.find().populate('userId', ['firstName', 'lastName', 'email']);
+    res.status(200).json(profiles);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+// @desc    Verify or reject a student profile (TPO only)
+// @route   PUT /api/profile/:id/verify
+exports.verifyProfile = async (req, res) => {
+  try {
+    const { isVerified } = req.body;
+    const profile = await StudentProfile.findById(req.params.id);
+    if (!profile) return res.status(404).json({ message: 'Profile not found' });
+
+    profile.isVerified = isVerified;
+    await profile.save();
+
+    res.status(200).json({ message: `Profile verification updated to ${isVerified}`, profile });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};

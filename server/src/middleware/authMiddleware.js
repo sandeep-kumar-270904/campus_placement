@@ -10,15 +10,19 @@ const protect = async (req, res, next) => {
     try {
       token = req.headers.authorization.split(' ')[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
-      req.user = decoded;
+      req.user = {
+        ...decoded,
+        id: decoded.id || decoded.userId,
+        userId: decoded.id || decoded.userId
+      };
       next();
     } catch (error) {
-      res.status(401).json({ message: 'Not authorized, token failed' });
+      return res.status(401).json({ message: 'Not authorized, token failed' });
     }
   }
 
   if (!token) {
-    res.status(401).json({ message: 'Not authorized, no token' });
+    return res.status(401).json({ message: 'Not authorized, no token' });
   }
 };
 
@@ -31,4 +35,9 @@ const authorize = (...roles) => {
   };
 };
 
-module.exports = { protect, authorize };
+module.exports = {
+  protect,
+  authorize,
+  verifyToken: protect,
+  authorizeRoles: (...roles) => authorize(...roles)
+};
