@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --test tests/**/*.test.js",
     "dev": "nodemon src/index.js",
     "start": "node src/index.js"
   },
@@ -18,10 +18,12 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.9.4"
+    "mongoose": "^9.9.4",
+    "multer": "^2.4.0"
   },
   "devDependencies": {
     "eslint": "^10.9.1",
+    "jest": "^30.5.2",
     "nodemon": "^3.1.14",
     "prettier": "^3.9.6"
   }

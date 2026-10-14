@@ -3,8 +3,8 @@ import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { 
   LogOut, Users, Building, ShieldCheck, PieChart, Bell, Search, 
-  Settings, ChevronRight, Plus, CheckCircle2, Download,
-  ExternalLink, X
+  Plus, Download, ExternalLink, X,
+  Calendar, FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -32,8 +32,22 @@ const TpoDashboard = () => {
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  // Modal State
+  // Modals
   const [isNewDriveModalOpen, setIsNewDriveModalOpen] = useState(false);
+  const [previewResumeUrl, setPreviewResumeUrl] = useState(null);
+  const [scheduleModalApplicant, setScheduleModalApplicant] = useState(null);
+  const [scheduleForm, setScheduleForm] = useState({
+    roundName: 'Technical Interview 1',
+    date: '2026-10-30',
+    time: '14:00',
+    venue: 'Google Meet (https://meet.google.com/abc-defg-hij)',
+    instructions: 'Please be ready with your coding IDE and camera turned on.'
+  });
+
+  // Bulk Selection
+  const [selectedAppIds, setSelectedAppIds] = useState([]);
+
+  // New Drive Form
   const [newDriveForm, setNewDriveForm] = useState({
     title: '',
     companyName: '',
@@ -51,6 +65,8 @@ const TpoDashboard = () => {
   // Search & Filter States
   const [verificationSearch, setVerificationSearch] = useState('');
   const [verificationFilter, setVerificationFilter] = useState('All');
+  const [pipelineSearch, setPipelineSearch] = useState('');
+  const [pipelineDriveFilter, setPipelineDriveFilter] = useState('All');
 
   // Refresh from store
   const refreshData = () => {
@@ -85,6 +101,33 @@ const TpoDashboard = () => {
   // Update applicant recruitment stage
   const handleAdvanceApplicant = (appId, newStatus, currentRound) => {
     updateApplicationStatus(appId, newStatus, currentRound);
+    refreshData();
+  };
+
+  // Schedule Interview Round Submit
+  const handleScheduleSubmit = (e) => {
+    e.preventDefault();
+    if (!scheduleModalApplicant) return;
+
+    updateApplicationStatus(
+      scheduleModalApplicant.id, 
+      'Shortlisted', 
+      `${scheduleForm.roundName} (${scheduleForm.date} ${scheduleForm.time})`
+    );
+
+    alert(`✅ Interview scheduled for ${scheduleModalApplicant.studentName}!\nRound: ${scheduleForm.roundName}\nVenue: ${scheduleForm.venue}`);
+    setScheduleModalApplicant(null);
+    refreshData();
+  };
+
+  // Bulk Status Update
+  const handleBulkAdvance = (targetStatus, targetRound) => {
+    if (selectedAppIds.length === 0) return;
+    selectedAppIds.forEach(id => {
+      updateApplicationStatus(id, targetStatus, targetRound);
+    });
+    alert(`🎉 Successfully updated ${selectedAppIds.length} candidate(s) to "${targetStatus}"!`);
+    setSelectedAppIds([]);
     refreshData();
   };
 
@@ -159,6 +202,15 @@ const TpoDashboard = () => {
       (verificationFilter === 'Pending' && !s.isVerified) ||
       (verificationFilter === 'Verified' && s.isVerified);
     return matchesSearch && matchesFilter;
+  });
+
+  // Filtered Pipeline Applications
+  const filteredPipeline = applications.filter(app => {
+    const matchesSearch = app.studentName.toLowerCase().includes(pipelineSearch.toLowerCase()) ||
+                          app.studentRollNo.toLowerCase().includes(pipelineSearch.toLowerCase()) ||
+                          (app.opportunity?.companyName || '').toLowerCase().includes(pipelineSearch.toLowerCase());
+    const matchesDrive = pipelineDriveFilter === 'All' || app.opportunityId === pipelineDriveFilter;
+    return matchesSearch && matchesDrive;
   });
 
   const pendingCount = students.filter(s => !s.isVerified).length;
@@ -504,14 +556,12 @@ const TpoDashboard = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             {student.resumeUrl ? (
-                              <a 
-                                href={student.resumeUrl} 
-                                target="_blank" 
-                                rel="noreferrer"
-                                className="inline-flex items-center text-xs font-bold text-blue-600 hover:text-blue-800 gap-1 bg-blue-50 px-2.5 py-1 rounded-lg"
+                              <button 
+                                onClick={() => setPreviewResumeUrl(student.resumeUrl)}
+                                className="inline-flex items-center text-xs font-bold text-blue-600 hover:text-blue-800 gap-1 bg-blue-50 px-2.5 py-1 rounded-lg cursor-pointer"
                               >
                                 View Resume <ExternalLink className="w-3 h-3" />
-                              </a>
+                              </button>
                             ) : (
                               <span className="text-xs text-gray-400">Not Uploaded</span>
                             )}
@@ -634,13 +684,61 @@ const TpoDashboard = () => {
                   <p className="text-sm text-gray-500 mt-1">Review candidates, progress recruitment stages, and export reports.</p>
                 </div>
 
-                <button 
-                  onClick={handleExportCSV}
-                  className="bg-mongo-dark text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-800 shadow-sm flex items-center gap-2 w-max"
-                >
-                  <Download className="w-4 h-4 text-mongo-green" />
-                  Export Candidates to CSV
-                </button>
+                <div className="flex flex-wrap gap-2">
+                  {selectedAppIds.length > 0 && (
+                    <div className="flex items-center gap-2 bg-mongo-dark text-white px-3 py-1.5 rounded-xl text-xs font-bold">
+                      <span>{selectedAppIds.length} Selected:</span>
+                      <button 
+                        onClick={() => handleBulkAdvance('Shortlisted', 'Technical Round 1')}
+                        className="bg-purple-600 hover:bg-purple-700 px-2.5 py-1 rounded-lg"
+                      >
+                        Shortlist All
+                      </button>
+                      <button 
+                        onClick={() => handleBulkAdvance('Offer Extended', 'Final Placed')}
+                        className="bg-mongo-green text-mongo-dark hover:bg-[#00E05B] px-2.5 py-1 rounded-lg"
+                      >
+                        Extend Offer to All
+                      </button>
+                    </div>
+                  )}
+
+                  <button 
+                    onClick={handleExportCSV}
+                    className="bg-mongo-dark text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-800 shadow-sm flex items-center gap-2 w-max"
+                  >
+                    <Download className="w-4 h-4 text-mongo-green" />
+                    Export CSV
+                  </button>
+                </div>
+              </div>
+
+              {/* Filters for Pipeline */}
+              <div className="mb-4 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-gray-200">
+                <div className="relative w-full sm:w-72">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input 
+                    type="text"
+                    value={pipelineSearch}
+                    onChange={(e) => setPipelineSearch(e.target.value)}
+                    placeholder="Search candidate or company..."
+                    className="w-full pl-9 pr-3 py-1.5 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-mongo-green"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <span className="text-xs text-gray-500 font-semibold">Filter Drive:</span>
+                  <select 
+                    value={pipelineDriveFilter}
+                    onChange={(e) => setPipelineDriveFilter(e.target.value)}
+                    className="text-xs font-semibold bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-mongo-green"
+                  >
+                    <option value="All">All Drives</option>
+                    {opportunities.map(o => (
+                      <option key={o.id} value={o.id}>{o.companyName} - {o.title}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
@@ -648,17 +746,39 @@ const TpoDashboard = () => {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
+                        <th className="px-4 py-3 text-center">
+                          <input 
+                            type="checkbox"
+                            checked={selectedAppIds.length === filteredPipeline.length && filteredPipeline.length > 0}
+                            onChange={(e) => {
+                              if (e.target.checked) setSelectedAppIds(filteredPipeline.map(a => a.id));
+                              else setSelectedAppIds([]);
+                            }}
+                            className="rounded text-mongo-green focus:ring-mongo-green"
+                          />
+                        </th>
                         <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Candidate</th>
                         <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Applied Drive</th>
                         <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">CGPA / Branch</th>
                         <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Current Round</th>
                         <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Application Status</th>
-                        <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Advance Stage</th>
+                        <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-100">
-                      {applications.map(app => (
+                      {filteredPipeline.map(app => (
                         <tr key={app.id} className="hover:bg-gray-50/70 transition-colors">
+                          <td className="px-4 py-3 text-center">
+                            <input 
+                              type="checkbox"
+                              checked={selectedAppIds.includes(app.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) setSelectedAppIds([...selectedAppIds, app.id]);
+                                else setSelectedAppIds(selectedAppIds.filter(id => id !== app.id));
+                              }}
+                              className="rounded text-mongo-green focus:ring-mongo-green"
+                            />
+                          </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <p className="text-sm font-bold text-gray-900">{app.studentName}</p>
                             <p className="text-xs text-gray-500">{app.studentRollNo}</p>
@@ -686,22 +806,29 @@ const TpoDashboard = () => {
                               {app.status}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <td className="px-6 py-4 whitespace-nowrap text-right space-x-2">
+                            <button 
+                              onClick={() => setScheduleModalApplicant(app)}
+                              className="text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-2.5 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1"
+                            >
+                              <Calendar className="w-3.5 h-3.5" /> Schedule
+                            </button>
+
                             <select 
                               value={app.status}
                               onChange={(e) => {
                                 const newStat = e.target.value;
                                 let newRound = app.currentRound;
                                 if (newStat === 'Shortlisted') newRound = 'Technical Round 1';
-                                if (newStat === 'Offer Extended') newRound = 'Final Offer';
+                                if (newStat === 'Offer Extended') newRound = 'Final Offer Placed';
                                 if (newStat === 'Rejected') newRound = 'Archived';
                                 handleAdvanceApplicant(app.id, newStat, newRound);
                               }}
-                              className="text-xs font-bold bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-mongo-green cursor-pointer"
+                              className="text-xs font-bold bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-mongo-green cursor-pointer"
                             >
                               <option value="Under Review">Under Review</option>
-                              <option value="Shortlisted">Shortlist (Tech Round)</option>
-                              <option value="Offer Extended">Extend Offer (Placed!)</option>
+                              <option value="Shortlisted">Shortlist</option>
+                              <option value="Offer Extended">Offer (Placed!)</option>
                               <option value="Rejected">Reject</option>
                             </select>
                           </td>
@@ -716,6 +843,148 @@ const TpoDashboard = () => {
 
         </main>
       </div>
+
+      {/* SCHEDULE INTERVIEW ROUND MODAL */}
+      <AnimatePresence>
+        {scheduleModalApplicant && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-gray-200"
+            >
+              <div className="flex items-center justify-between pb-4 border-b border-gray-100 mb-5">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 font-display">Schedule Recruitment Round</h3>
+                  <p className="text-xs text-gray-500">Candidate: {scheduleModalApplicant.studentName} ({scheduleModalApplicant.studentRollNo})</p>
+                </div>
+                <button onClick={() => setScheduleModalApplicant(null)} className="p-1.5 text-gray-400 hover:text-gray-600 rounded-full">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleScheduleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Round Name</label>
+                  <select 
+                    value={scheduleForm.roundName}
+                    onChange={(e) => setScheduleForm({ ...scheduleForm, roundName: e.target.value })}
+                    className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-mongo-green"
+                  >
+                    <option value="Online Assessment">Online Assessment</option>
+                    <option value="Technical Interview 1">Technical Interview 1</option>
+                    <option value="Technical Interview 2">Technical Interview 2 (System Design)</option>
+                    <option value="HR & Culture Fit Round">HR & Culture Fit Round</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Date</label>
+                    <input 
+                      type="date"
+                      required
+                      value={scheduleForm.date}
+                      onChange={(e) => setScheduleForm({ ...scheduleForm, date: e.target.value })}
+                      className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-mongo-green focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Time</label>
+                    <input 
+                      type="time"
+                      required
+                      value={scheduleForm.time}
+                      onChange={(e) => setScheduleForm({ ...scheduleForm, time: e.target.value })}
+                      className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-mongo-green focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Meeting Link or Room Venue</label>
+                  <input 
+                    type="text"
+                    required
+                    value={scheduleForm.venue}
+                    onChange={(e) => setScheduleForm({ ...scheduleForm, venue: e.target.value })}
+                    className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-mongo-green focus:outline-none font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Instructions for Student</label>
+                  <textarea 
+                    rows="2"
+                    value={scheduleForm.instructions}
+                    onChange={(e) => setScheduleForm({ ...scheduleForm, instructions: e.target.value })}
+                    className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-mongo-green focus:outline-none"
+                  ></textarea>
+                </div>
+
+                <div className="pt-3 border-t border-gray-100 flex justify-end gap-2">
+                  <button 
+                    type="button" 
+                    onClick={() => setScheduleModalApplicant(null)}
+                    className="px-4 py-2 text-xs font-semibold border border-gray-200 rounded-xl text-gray-700"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="px-5 py-2 text-xs font-bold bg-mongo-green text-mongo-dark rounded-xl shadow-xs hover:bg-[#00E05B]"
+                  >
+                    Notify & Confirm Schedule
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* RESUME PREVIEW MODAL */}
+      <AnimatePresence>
+        {previewResumeUrl && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-3xl max-w-3xl w-full p-6 shadow-2xl border border-gray-200 flex flex-col h-[80vh]"
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-4">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-mongo-green-dark" />
+                  <h3 className="font-bold text-gray-900 text-sm">Resume Document Preview</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  <a 
+                    href={previewResumeUrl} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1"
+                  >
+                    Open in New Tab <ExternalLink className="w-3 h-3" />
+                  </a>
+                  <button onClick={() => setPreviewResumeUrl(null)} className="p-1.5 text-gray-400 hover:text-gray-600 rounded-full">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex-1 bg-gray-100 rounded-2xl overflow-hidden border border-gray-200 flex items-center justify-center">
+                <iframe 
+                  src={previewResumeUrl} 
+                  title="Resume Viewer" 
+                  className="w-full h-full border-none"
+                />
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* CREATE NEW PLACEMENT DRIVE MODAL */}
       <AnimatePresence>

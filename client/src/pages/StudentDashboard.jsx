@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { 
   LogOut, UserCircle, Briefcase, FileText, Bell, Search, MapPin, 
   DollarSign, Calendar, CheckCircle2, AlertCircle, X, ChevronRight,
-  Sparkles, Building, Filter, Clock, ShieldCheck
+  Sparkles, Building, Filter, Clock, ShieldCheck, BookOpen, UploadCloud,
+  FileCode, CheckSquare, ArrowUpRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -17,6 +18,7 @@ import {
   getNotifications,
   markNotificationsAsRead
 } from '../services/placementStore';
+import { uploadResume } from '../services/documentService';
 
 const StudentDashboard = () => {
   const { user, logout } = useContext(AuthContext);
@@ -29,11 +31,15 @@ const StudentDashboard = () => {
   const [selectedOpportunity, setSelectedOpportunity] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [uploadingResume, setUploadingResume] = useState(false);
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('All');
   const [eligibilityFilter, setEligibilityFilter] = useState('All');
+
+  // Preparation Hub filter
+  const [prepCategory, setPrepCategory] = useState('all');
 
   // Profile Form State
   const [profileFormData, setProfileFormData] = useState({
@@ -97,6 +103,23 @@ const StudentDashboard = () => {
     }
   };
 
+  const handleResumeFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploadingResume(true);
+    try {
+      const url = await uploadResume(file);
+      setProfileFormData(prev => ({ ...prev, resumeUrl: url }));
+      setProfileSaveMessage(`Resume "${file.name}" uploaded successfully!`);
+      setTimeout(() => setProfileSaveMessage(''), 4000);
+    } catch {
+      alert('Error uploading resume file');
+    } finally {
+      setUploadingResume(false);
+    }
+  };
+
   const handleProfileSubmit = (e) => {
     e.preventDefault();
     const updated = updateStudentProfile(user, {
@@ -105,7 +128,7 @@ const StudentDashboard = () => {
       backlogs: parseInt(profileFormData.backlogs, 10),
       gradYear: parseInt(profileFormData.gradYear, 10),
       skills: profileFormData.skills.split(',').map(s => s.trim()).filter(Boolean),
-      isVerified: true // Set verified for seamless demo interaction
+      isVerified: true
     });
     setProfile(updated);
     setProfileSaveMessage('Profile saved and verified successfully!');
@@ -249,6 +272,21 @@ const StudentDashboard = () => {
               My Applications
               <span className={`ml-auto text-xs px-2 py-0.5 rounded-full ${activeTab === 'applications' ? 'bg-mongo-green text-mongo-dark' : 'bg-gray-200 text-gray-700'}`}>
                 {applications.length}
+              </span>
+            </button>
+
+            <button 
+              onClick={() => setActiveTab('preparation')}
+              className={`w-full group flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition-all ${
+                activeTab === 'preparation' 
+                  ? 'bg-mongo-dark text-white shadow-md' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <BookOpen className={`${activeTab === 'preparation' ? 'text-mongo-green' : 'text-gray-400 group-hover:text-gray-600'} mr-3 flex-shrink-0 h-5 w-5`} />
+              Preparation Hub
+              <span className="ml-auto text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">
+                PRO
               </span>
             </button>
 
@@ -505,7 +543,102 @@ const StudentDashboard = () => {
             </motion.div>
           )}
 
-          {/* TAB 3: MY PROFILE */}
+          {/* TAB 3: PREPARATION HUB (MODULE 8) */}
+          {activeTab === 'preparation' && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+              <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h1 className="text-2xl font-display font-bold text-gray-900">Placement Preparation Hub</h1>
+                  <p className="text-sm text-gray-500 mt-1">Curated roadmaps, company patterns, and technical cheat sheets.</p>
+                </div>
+                
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => setPrepCategory('all')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${prepCategory === 'all' ? 'bg-mongo-dark text-white' : 'bg-white border border-gray-200 text-gray-700'}`}
+                  >
+                    All Materials
+                  </button>
+                  <button 
+                    onClick={() => setPrepCategory('dsa')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${prepCategory === 'dsa' ? 'bg-mongo-dark text-white' : 'bg-white border border-gray-200 text-gray-700'}`}
+                  >
+                    DSA & LeetCode
+                  </button>
+                  <button 
+                    onClick={() => setPrepCategory('company')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${prepCategory === 'company' ? 'bg-mongo-dark text-white' : 'bg-white border border-gray-200 text-gray-700'}`}
+                  >
+                    Company Guides
+                  </button>
+                </div>
+              </div>
+
+              {/* Prep Modules Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {/* Track 1 */}
+                <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-xs hover:shadow-md transition-shadow">
+                  <div className="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold mb-4">
+                    <FileCode className="w-6 h-6" />
+                  </div>
+                  <h3 className="font-bold text-gray-900 text-lg mb-1">DSA Top 75 Interview Patterns</h3>
+                  <p className="text-xs text-gray-500 mb-4">Master Sliding Window, Two Pointers, Dynamic Programming, and Graph BFS/DFS.</p>
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                    <span className="text-xs font-semibold text-gray-500">75 Problems • High Yield</span>
+                    <a href="https://leetcode.com/discuss/general-discussion/460599/blind-75-leetcode-questions" target="_blank" rel="noreferrer" className="text-xs font-bold text-mongo-green-dark flex items-center gap-1 hover:underline">
+                      Open Guide <ArrowUpRight className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                </div>
+
+                {/* Track 2 */}
+                <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-xs hover:shadow-md transition-shadow">
+                  <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold mb-4">
+                    <Building className="w-6 h-6" />
+                  </div>
+                  <h3 className="font-bold text-gray-900 text-lg mb-1">Google & Microsoft Guide</h3>
+                  <p className="text-xs text-gray-500 mb-4">Online assessment test formats, past interview questions, and Googliness/HR rounds.</p>
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                    <span className="text-xs font-semibold text-gray-500">FAANG Archives</span>
+                    <span className="text-xs font-bold text-mongo-green-dark bg-mongo-green/10 px-2 py-0.5 rounded">Verified 2026</span>
+                  </div>
+                </div>
+
+                {/* Track 3 */}
+                <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-xs hover:shadow-md transition-shadow">
+                  <div className="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center font-bold mb-4">
+                    <CheckSquare className="w-6 h-6" />
+                  </div>
+                  <h3 className="font-bold text-gray-900 text-lg mb-1">STAR Method Behavioral Bank</h3>
+                  <p className="text-xs text-gray-500 mb-4">Top 30 HR behavioral questions with structured Situation, Task, Action, Result answers.</p>
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                    <span className="text-xs font-semibold text-gray-500">30 Scenarios</span>
+                    <span className="text-xs font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded">HR Round</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Core CS Subject Refresher */}
+              <div className="bg-mongo-dark text-white rounded-3xl p-8 shadow-xl relative overflow-hidden">
+                <div className="relative z-10 max-w-xl">
+                  <span className="text-xs font-bold uppercase tracking-wider text-mongo-green bg-mongo-green/20 px-3 py-1 rounded-full mb-4 inline-block">
+                    Computer Science Fundamentals
+                  </span>
+                  <h3 className="text-2xl font-display font-bold text-white mb-2">Operating Systems, DBMS & Computer Networks</h3>
+                  <p className="text-sm text-gray-300 leading-relaxed mb-6">
+                    Placement interviewers at Amazon, Microsoft, and Google test deep fundamentals: Threads vs Processes, Virtual Memory, ACID properties, Indexing (B+ Trees), and TCP 3-way handshake.
+                  </p>
+                  <div className="flex flex-wrap gap-3">
+                    <span className="text-xs bg-white/10 px-3 py-1.5 rounded-lg border border-white/20">OS: Deadlocks & Semaphores</span>
+                    <span className="text-xs bg-white/10 px-3 py-1.5 rounded-lg border border-white/20">DBMS: Normalization & Indexing</span>
+                    <span className="text-xs bg-white/10 px-3 py-1.5 rounded-lg border border-white/20">Networks: HTTP/2 vs HTTP/3</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* TAB 4: MY PROFILE */}
           {activeTab === 'profile' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
               <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -624,15 +757,42 @@ const StudentDashboard = () => {
                       />
                     </div>
 
-                    <div className="sm:col-span-2 lg:col-span-3">
-                      <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Resume Document URL (Google Drive / Cloud)</label>
-                      <input 
-                        type="url" 
-                        value={profileFormData.resumeUrl}
-                        onChange={(e) => setProfileFormData({ ...profileFormData, resumeUrl: e.target.value })}
-                        placeholder="https://drive.google.com/..."
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-mongo-green focus:outline-none"
-                      />
+                    {/* Resume Upload File Picker */}
+                    <div className="sm:col-span-2 lg:col-span-3 bg-gray-50 p-5 rounded-2xl border border-gray-200">
+                      <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Resume Document</label>
+                      <div className="flex flex-col sm:flex-row items-center gap-4">
+                        <label className="flex items-center justify-center gap-2 px-5 py-2.5 bg-mongo-dark text-white rounded-xl text-xs font-bold hover:bg-gray-800 transition-colors cursor-pointer shadow-xs">
+                          <UploadCloud className="w-4 h-4 text-mongo-green" />
+                          {uploadingResume ? 'Uploading File...' : 'Upload PDF / Doc'}
+                          <input 
+                            type="file" 
+                            accept=".pdf,.doc,.docx"
+                            onChange={handleResumeFileUpload}
+                            className="hidden" 
+                          />
+                        </label>
+                        
+                        <div className="flex-1 w-full">
+                          <input 
+                            type="url" 
+                            value={profileFormData.resumeUrl}
+                            onChange={(e) => setProfileFormData({ ...profileFormData, resumeUrl: e.target.value })}
+                            placeholder="Or paste cloud drive URL (Google Drive / Dropbox)..."
+                            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-mongo-green focus:outline-none"
+                          />
+                        </div>
+
+                        {profileFormData.resumeUrl && (
+                          <a 
+                            href={profileFormData.resumeUrl} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-2 rounded-xl hover:underline flex items-center gap-1"
+                          >
+                            Preview <ArrowUpRight className="w-3.5 h-3.5" />
+                          </a>
+                        )}
+                      </div>
                     </div>
 
                     <div className="sm:col-span-2 lg:col-span-3">

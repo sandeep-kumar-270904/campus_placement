@@ -11,10 +11,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const path = require('path');
+
+// Static uploads directory
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
 // Routes
 const authRoutes = require('./routes/authRoutes');
 const opportunityRoutes = require('./routes/opportunityRoutes');
 const profileRoutes = require('./routes/profileRoutes');
+const documentRoutes = require('./routes/documentRoutes');
 
 // Basic Route
 app.get('/', (req, res) => {
@@ -25,6 +31,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/opportunities', opportunityRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/documents', documentRoutes);
 
 // Database Connection
 const PORT = process.env.PORT || 5000;
