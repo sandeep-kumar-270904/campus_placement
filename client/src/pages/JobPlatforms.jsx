@@ -105,6 +105,90 @@ const PlatformLogo = ({ id, name }) => {
           MLH
         </div>
       );
+    case 'foundit':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#6D28D9] flex items-center justify-center text-white shadow-xs font-bold text-base flex-shrink-0">
+          fi
+        </div>
+      );
+    case 'herkey':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#BE185D] flex items-center justify-center text-white shadow-xs font-bold text-base flex-shrink-0">
+          HK
+        </div>
+      );
+    case 'shine':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#EA580C] flex items-center justify-center text-white shadow-xs font-bold text-lg flex-shrink-0 font-display">
+          S
+        </div>
+      );
+    case 'google-jobs':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#4285F4] flex items-center justify-center text-white shadow-xs font-bold text-xl flex-shrink-0 font-display">
+          G
+        </div>
+      );
+    case 'glassdoor':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#0CAA41] flex items-center justify-center text-white shadow-xs font-bold text-base flex-shrink-0">
+          GD
+        </div>
+      );
+    case 'hirect':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#06B6D4] flex items-center justify-center text-white shadow-xs font-bold text-lg flex-shrink-0 font-display">
+          H
+        </div>
+      );
+    case 'freshersworld':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#4F46E5] flex items-center justify-center text-white shadow-xs font-bold text-sm flex-shrink-0">
+          FW
+        </div>
+      );
+    case 'letsintern':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#F43F5E] flex items-center justify-center text-white shadow-xs font-bold text-base flex-shrink-0">
+          LI
+        </div>
+      );
+    case 'apna':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#15803D] flex items-center justify-center text-white shadow-xs font-bold text-sm flex-shrink-0">
+          apna
+        </div>
+      );
+    case 'workindia':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#1D4ED8] flex items-center justify-center text-white shadow-xs font-bold text-sm flex-shrink-0">
+          WI
+        </div>
+      );
+    case 'timesjobs':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#DC2626] flex items-center justify-center text-white shadow-xs font-bold text-sm flex-shrink-0">
+          TJ
+        </div>
+      );
+    case 'jobsora':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#0284C7] flex items-center justify-center text-white shadow-xs font-bold text-sm flex-shrink-0">
+          JS
+        </div>
+      );
+    case 'quikrjobs':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#EAB308] flex items-center justify-center text-slate-900 shadow-xs font-bold text-lg flex-shrink-0 font-display">
+          Q
+        </div>
+      );
+    case 'jooble':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#7C3AED] flex items-center justify-center text-white shadow-xs font-bold text-sm flex-shrink-0">
+          jb
+        </div>
+      );
     default:
       return (
         <div className="w-11 h-11 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-xs font-bold text-base flex-shrink-0">
