@@ -19,6 +19,7 @@ import {
   markNotificationsAsRead
 } from '../services/placementStore';
 import { uploadResume } from '../services/documentService';
+import AtsMatcherModal from '../components/AtsMatcherModal';
 
 const StudentDashboard = () => {
   const { user, logout } = useContext(AuthContext);
@@ -32,6 +33,7 @@ const StudentDashboard = () => {
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [uploadingResume, setUploadingResume] = useState(false);
+  const [isAtsModalOpen, setIsAtsModalOpen] = useState(false);
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('');
@@ -367,6 +369,14 @@ const StudentDashboard = () => {
                       <option value="NotEligible">Ineligible</option>
                     </select>
                   </div>
+
+                  <button 
+                    onClick={() => setIsAtsModalOpen(true)}
+                    className="flex items-center gap-2 bg-mongo-green/20 text-mongo-green-dark border border-mongo-green/30 px-3.5 py-2 rounded-xl text-xs font-bold hover:bg-mongo-green/30 transition-all cursor-pointer shadow-xs"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-mongo-green-dark" />
+                    AI ATS Matcher
+                  </button>
                 </div>
               </div>
 
@@ -647,10 +657,20 @@ const StudentDashboard = () => {
                   <p className="text-sm text-gray-500 mt-1">Manage verified academic credentials and career documentation.</p>
                 </div>
                 {profile?.isVerified ? (
-                  <span className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold bg-green-100 text-green-800 border border-green-200 w-max">
-                    <CheckCircle2 className="w-4 h-4 mr-1.5 text-green-600" />
-                    Verified by Placement Cell
-                  </span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold bg-green-100 text-green-800 border border-green-200 w-max">
+                      <CheckCircle2 className="w-4 h-4 mr-1.5 text-green-600" />
+                      Verified by Placement Cell
+                    </span>
+                    <button 
+                      type="button"
+                      onClick={() => window.open(`/verify/${profile?.rollNo || 'CS2026-08'}`, '_blank')}
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-mongo-dark bg-mongo-green/20 hover:bg-mongo-green/30 border border-mongo-green/30 px-3 py-1.5 rounded-full transition-colors cursor-pointer"
+                    >
+                      <ArrowUpRight className="w-3.5 h-3.5 text-mongo-green-dark" />
+                      View Shareable Portfolio
+                    </button>
+                  </div>
                 ) : (
                   <span className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800 border border-yellow-200 w-max">
                     <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2 animate-ping"></span>
@@ -956,6 +976,14 @@ const StudentDashboard = () => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* AI ATS MATCHER MODAL */}
+      <AtsMatcherModal 
+        isOpen={isAtsModalOpen}
+        onClose={() => setIsAtsModalOpen(false)}
+        studentProfile={profile}
+        opportunities={opportunities}
+      />
     </div>
   );
 };

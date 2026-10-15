@@ -8,6 +8,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ForStudents from './pages/ForStudents';
 import ForColleges from './pages/ForColleges';
 import HowItWorks from './pages/HowItWorks';
+import PublicPortfolio from './pages/PublicPortfolio';
 
 import Home from './pages/Home';
 
@@ -25,6 +26,7 @@ function App() {
             <Route path="/for-students" element={<ForStudents />} />
             <Route path="/for-colleges" element={<ForColleges />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
+            <Route path="/verify/:rollNo" element={<PublicPortfolio />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/unauthorized" element={<Unauthorized />} />

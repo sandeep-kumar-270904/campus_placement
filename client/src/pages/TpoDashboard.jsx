@@ -4,8 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { 
   LogOut, Users, Building, ShieldCheck, PieChart, Bell, Search, 
   Plus, Download, ExternalLink, X,
-  Calendar, FileText
+  Calendar, FileText, Columns3, List, ArrowRight, TrendingUp, CheckCircle2
 } from 'lucide-react';
+import { 
+  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, 
+  CartesianGrid, PieChart as RechartsPie, Pie, Cell, Legend
+} from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   getOpportunities,
@@ -19,6 +23,100 @@ import {
   getNotifications,
   markNotificationsAsRead
 } from '../services/placementStore';
+
+// Mock Recharts Datasets for Institutional Analytics
+const branchPlacementData = [
+  { branch: 'CSE', rate: 94, placed: 112, total: 120 },
+  { branch: 'IT', rate: 89, placed: 80, total: 90 },
+  { branch: 'ECE', rate: 82, placed: 65, total: 80 },
+  { branch: 'Mech', rate: 74, placed: 44, total: 60 },
+  { branch: 'EEE', rate: 71, placed: 35, total: 50 },
+];
+
+const ctcTierData = [
+  { tier: '>30 LPA', count: 28, label: 'Super Dream' },
+  { tier: '15-30 LPA', count: 64, label: 'Dream' },
+  { tier: '8-15 LPA', count: 86, label: 'Core' },
+  { tier: '<8 LPA', count: 24, label: 'Standard' },
+];
+
+const companyShareData = [
+  { name: 'Google', value: 14, color: '#4285F4' },
+  { name: 'Microsoft', value: 18, color: '#00A4EF' },
+  { name: 'Amazon', value: 24, color: '#FF9900' },
+  { name: 'Atlassian', value: 12, color: '#0052CC' },
+  { name: 'Vercel', value: 16, color: '#171717' },
+  { name: 'Others', value: 38, color: '#00ED64' },
+];
+
+const KANBAN_STAGES = [
+  {
+    key: 'review',
+    title: 'Under Review',
+    dotColor: 'bg-amber-400',
+    badgeColor: 'bg-amber-100 text-amber-800',
+    headerBg: 'bg-amber-50/70',
+    nextStage: 'assessment',
+    nextStatus: 'Under Review',
+    nextRound: 'Online Coding Assessment',
+    nextTitle: 'Online Assessment'
+  },
+  {
+    key: 'assessment',
+    title: 'Online Assessment',
+    dotColor: 'bg-blue-500',
+    badgeColor: 'bg-blue-100 text-blue-800',
+    headerBg: 'bg-blue-50/70',
+    nextStage: 'technical',
+    nextStatus: 'Shortlisted',
+    nextRound: 'Technical Interview 1',
+    nextTitle: 'Technical Round'
+  },
+  {
+    key: 'technical',
+    title: 'Technical Round',
+    dotColor: 'bg-purple-500',
+    badgeColor: 'bg-purple-100 text-purple-800',
+    headerBg: 'bg-purple-50/70',
+    nextStage: 'hr',
+    nextStatus: 'Shortlisted',
+    nextRound: 'HR Final Round',
+    nextTitle: 'HR Round'
+  },
+  {
+    key: 'hr',
+    title: 'HR Final Round',
+    dotColor: 'bg-indigo-500',
+    badgeColor: 'bg-indigo-100 text-indigo-800',
+    headerBg: 'bg-indigo-50/70',
+    nextStage: 'offer',
+    nextStatus: 'Offer Extended',
+    nextRound: 'Final Placement Offer',
+    nextTitle: 'Offer Extended'
+  },
+  {
+    key: 'offer',
+    title: 'Offer Extended',
+    dotColor: 'bg-emerald-500',
+    badgeColor: 'bg-emerald-100 text-emerald-800',
+    headerBg: 'bg-emerald-50/70',
+    nextStage: null,
+    nextStatus: 'Offer Extended',
+    nextRound: 'Placed',
+    nextTitle: 'Placed'
+  }
+];
+
+const getKanbanStage = (app) => {
+  const round = (app.currentRound || '').toLowerCase();
+  const status = (app.status || '').toLowerCase();
+
+  if (status.includes('offer') || status.includes('place')) return 'offer';
+  if (round.includes('hr') || round.includes('behavioral') || round.includes('leadership')) return 'hr';
+  if (round.includes('tech') || status === 'shortlisted') return 'technical';
+  if (round.includes('coding') || round.includes('assess') || round.includes('oa') || round.includes('test')) return 'assessment';
+  return 'review';
+};
 
 const TpoDashboard = () => {
   const { user, logout } = useContext(AuthContext);
@@ -67,6 +165,7 @@ const TpoDashboard = () => {
   const [verificationFilter, setVerificationFilter] = useState('All');
   const [pipelineSearch, setPipelineSearch] = useState('');
   const [pipelineDriveFilter, setPipelineDriveFilter] = useState('All');
+  const [pipelineView, setPipelineView] = useState('kanban'); // 'kanban' or 'table'
 
   // Refresh from store
   const refreshData = () => {
@@ -427,34 +526,39 @@ const TpoDashboard = () => {
                 </div>
               </div>
 
-              {/* Chart & Quick Action */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Interactive Visual Analytics Suite (Recharts) */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                {/* Branch Placement Chart */}
                 <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 shadow-xs p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-bold text-mongo-dark">Recruitment Pipeline Conversion</h3>
-                    <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-lg">2026 Batch</span>
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-lg font-bold text-mongo-dark flex items-center gap-2">
+                        <TrendingUp className="w-5 h-5 text-mongo-green-dark" />
+                        Branch-Wise Placement Conversion
+                      </h3>
+                      <p className="text-xs text-gray-500 mt-0.5">Placement percentage and student offers by engineering branch.</p>
+                    </div>
+                    <span className="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-xl">2026 Batch</span>
                   </div>
-                  <div className="h-64 flex items-end justify-between gap-3 mt-8 pt-4 border-b border-gray-100">
-                    {[
-                      { label: 'Registered', h: '95%', val: '124' },
-                      { label: 'Eligible', h: '80%', val: '98' },
-                      { label: 'OA / Tested', h: '65%', val: '74' },
-                      { label: 'Interviewed', h: '45%', val: '46' },
-                      { label: 'Placed / Offered', h: '35%', val: '38' },
-                    ].map((bar, i) => (
-                      <div key={i} className="flex flex-col items-center flex-1 group">
-                        <span className="text-xs font-bold text-gray-500 mb-2">{bar.val}</span>
-                        <div 
-                          className="w-full bg-mongo-dark rounded-t-xl transition-all duration-500 group-hover:bg-mongo-green group-hover:shadow-md" 
-                          style={{ height: bar.h }}
-                        ></div>
-                        <span className="text-xs font-semibold text-gray-600 mt-3 text-center">{bar.label}</span>
-                      </div>
-                    ))}
+
+                  <div className="h-64 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={branchPlacementData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
+                        <XAxis dataKey="branch" tick={{ fontSize: 12, fill: '#6B7280' }} axisLine={false} tickLine={false} />
+                        <YAxis domain={[0, 100]} unit="%" tick={{ fontSize: 12, fill: '#6B7280' }} axisLine={false} tickLine={false} />
+                        <Tooltip 
+                          formatter={(value) => [`${value}% Placement Rate`, 'Conversion']}
+                          contentStyle={{ backgroundColor: '#001E2B', borderRadius: '12px', color: '#fff', border: 'none', fontSize: '12px' }}
+                        />
+                        <Bar dataKey="rate" fill="#001E2B" radius={[8, 8, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
-                  <div className="mt-4 flex items-center justify-between text-xs text-gray-500 font-medium">
-                    <span>Highest Package: <strong className="text-mongo-dark font-bold">{analytics.highestPackage}</strong></span>
-                    <span>Average CTC: <strong className="text-mongo-dark font-bold">{analytics.averagePackage}</strong></span>
+
+                  <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500 font-medium">
+                    <span>Highest Conversion: <strong className="text-mongo-dark font-bold">CSE (94%)</strong></span>
+                    <span>Average Batch Placement: <strong className="text-mongo-dark font-bold">{analytics.placementPercentage || '86%'}</strong></span>
                   </div>
                 </div>
 
@@ -479,10 +583,67 @@ const TpoDashboard = () => {
 
                   <button 
                     onClick={() => setActiveTab('verifications')}
-                    className="w-full mt-6 text-sm font-bold text-mongo-dark py-2.5 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors text-center"
+                    className="w-full mt-6 text-sm font-bold text-mongo-dark py-2.5 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors text-center cursor-pointer"
                   >
                     Go to Verification Center ({pendingCount} pending)
                   </button>
+                </div>
+              </div>
+
+              {/* Second Row: CTC Breakdown & Top Companies */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* CTC Tier Distribution */}
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-bold text-gray-900 text-sm">Package Tier Distribution (CTC)</h4>
+                    <span className="text-xs text-gray-400 font-medium">Offers Count</span>
+                  </div>
+                  <div className="h-56 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={ctcTierData} layout="vertical" margin={{ top: 0, right: 20, left: 20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#F3F4F6" />
+                        <XAxis type="number" tick={{ fontSize: 11, fill: '#6B7280' }} axisLine={false} tickLine={false} />
+                        <YAxis dataKey="tier" type="category" tick={{ fontSize: 11, fill: '#374151' }} width={80} axisLine={false} tickLine={false} />
+                        <Tooltip 
+                          formatter={(value, name, item) => [`${value} Offers (${item.payload.label})`, 'Volume']}
+                          contentStyle={{ backgroundColor: '#001E2B', borderRadius: '12px', color: '#fff', border: 'none', fontSize: '12px' }}
+                        />
+                        <Bar dataKey="count" fill="#00ED64" radius={[0, 8, 8, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Top Recruiting Partners Share */}
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-bold text-gray-900 text-sm">Hiring Volume by Corporate Partner</h4>
+                    <span className="text-xs text-gray-400 font-medium">2026 Season</span>
+                  </div>
+                  <div className="h-56 w-full flex items-center justify-center">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RechartsPie>
+                        <Pie
+                          data={companyShareData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={50}
+                          outerRadius={75}
+                          paddingAngle={3}
+                          dataKey="value"
+                        >
+                          {companyShareData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          formatter={(val) => [`${val} Offers Extended`, 'Hired']}
+                          contentStyle={{ backgroundColor: '#001E2B', borderRadius: '12px', color: '#fff', border: 'none', fontSize: '12px' }}
+                        />
+                        <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                      </RechartsPie>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -684,8 +845,36 @@ const TpoDashboard = () => {
                   <p className="text-sm text-gray-500 mt-1">Review candidates, progress recruitment stages, and export reports.</p>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
-                  {selectedAppIds.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* View Switcher */}
+                  <div className="flex items-center bg-gray-200/80 p-1 rounded-xl border border-gray-300/60 shadow-inner">
+                    <button
+                      type="button"
+                      onClick={() => setPipelineView('kanban')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                        pipelineView === 'kanban'
+                          ? 'bg-white text-mongo-dark shadow-xs'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      <Columns3 className="w-3.5 h-3.5 text-mongo-green-dark" />
+                      Kanban Board
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPipelineView('table')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                        pipelineView === 'table'
+                          ? 'bg-white text-mongo-dark shadow-xs'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      <List className="w-3.5 h-3.5 text-mongo-green-dark" />
+                      Table View
+                    </button>
+                  </div>
+
+                  {selectedAppIds.length > 0 && pipelineView === 'table' && (
                     <div className="flex items-center gap-2 bg-mongo-dark text-white px-3 py-1.5 rounded-xl text-xs font-bold">
                       <span>{selectedAppIds.length} Selected:</span>
                       <button 
@@ -714,7 +903,7 @@ const TpoDashboard = () => {
               </div>
 
               {/* Filters for Pipeline */}
-              <div className="mb-4 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-gray-200">
+              <div className="mb-6 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-gray-200">
                 <div className="relative w-full sm:w-72">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input 
@@ -741,103 +930,228 @@ const TpoDashboard = () => {
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-3 text-center">
-                          <input 
-                            type="checkbox"
-                            checked={selectedAppIds.length === filteredPipeline.length && filteredPipeline.length > 0}
-                            onChange={(e) => {
-                              if (e.target.checked) setSelectedAppIds(filteredPipeline.map(a => a.id));
-                              else setSelectedAppIds([]);
-                            }}
-                            className="rounded text-mongo-green focus:ring-mongo-green"
-                          />
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Candidate</th>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Applied Drive</th>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">CGPA / Branch</th>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Current Round</th>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Application Status</th>
-                        <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-100">
-                      {filteredPipeline.map(app => (
-                        <tr key={app.id} className="hover:bg-gray-50/70 transition-colors">
-                          <td className="px-4 py-3 text-center">
+              {/* KANBAN BOARD VIEW */}
+              {pipelineView === 'kanban' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-start">
+                  {KANBAN_STAGES.map((col) => {
+                    const stageApps = filteredPipeline.filter(app => getKanbanStage(app) === col.key);
+                    return (
+                      <div 
+                        key={col.key}
+                        className="bg-white rounded-2xl border border-gray-200 shadow-xs flex flex-col min-h-[580px] overflow-hidden"
+                      >
+                        {/* Stage Column Header */}
+                        <div className={`p-3.5 border-b border-gray-100 flex items-center justify-between ${col.headerBg}`}>
+                          <div className="flex items-center gap-2">
+                            <span className={`w-2.5 h-2.5 rounded-full ${col.dotColor}`}></span>
+                            <h3 className="font-bold text-xs text-gray-900 tracking-tight">{col.title}</h3>
+                          </div>
+                          <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${col.badgeColor}`}>
+                            {stageApps.length}
+                          </span>
+                        </div>
+
+                        {/* Candidate Cards Stream */}
+                        <div className="p-3 flex-1 space-y-3 overflow-y-auto">
+                          {stageApps.length === 0 ? (
+                            <div className="h-44 flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-xl p-4 text-center">
+                              <p className="text-xs text-gray-400 font-medium">No candidates in this stage</p>
+                            </div>
+                          ) : (
+                            stageApps.map((app) => (
+                              <div 
+                                key={app.id} 
+                                className="bg-gray-50/80 hover:bg-white rounded-xl p-3 border border-gray-200 shadow-xs hover:shadow-md transition-all group"
+                              >
+                                <div className="flex items-start justify-between gap-2 mb-2">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-7 h-7 rounded-full bg-mongo-dark text-mongo-green flex items-center justify-center text-xs font-bold font-display">
+                                      {app.studentName.charAt(0)}
+                                    </div>
+                                    <div>
+                                      <h4 className="text-xs font-bold text-gray-900 leading-tight group-hover:text-mongo-green-dark transition-colors">
+                                        {app.studentName}
+                                      </h4>
+                                      <p className="text-[10px] text-gray-400 font-medium">{app.studentRollNo}</p>
+                                    </div>
+                                  </div>
+                                  <span className="text-[10px] font-bold bg-white border border-gray-200 text-gray-700 px-1.5 py-0.5 rounded">
+                                    {app.cgpa} CGPA
+                                  </span>
+                                </div>
+
+                                <div className="bg-white rounded-lg p-2.5 border border-gray-100 mb-2.5 text-[11px] space-y-1">
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-semibold text-gray-800 truncate">{app.opportunity?.companyName}</span>
+                                    <span className="text-[10px] text-mongo-green-dark font-bold">{app.opportunity?.salary || 'N/A'}</span>
+                                  </div>
+                                  <p className="text-[10px] text-gray-500 truncate">{app.opportunity?.title}</p>
+                                  <div className="pt-1.5 border-t border-gray-100 flex items-center justify-between text-[10px] text-gray-500">
+                                    <span>{app.branch}</span>
+                                    <span className="font-medium text-blue-700 truncate max-w-[110px]" title={app.currentRound}>
+                                      {app.currentRound}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Action Bar */}
+                                <div className="flex items-center gap-1.5 pt-1">
+                                  <button
+                                    onClick={() => setScheduleModalApplicant(app)}
+                                    title="Schedule Interview Round"
+                                    className="flex-1 py-1.5 px-2 text-[10px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors flex items-center justify-center gap-1"
+                                  >
+                                    <Calendar className="w-3 h-3" />
+                                    Schedule
+                                  </button>
+
+                                  {col.nextStage ? (
+                                    <button
+                                      onClick={() => handleAdvanceApplicant(app.id, col.nextStatus, col.nextRound)}
+                                      title={`Advance to ${col.nextTitle}`}
+                                      className="flex-1 py-1.5 px-2 text-[10px] font-bold text-mongo-dark bg-mongo-green hover:bg-[#00E05B] rounded-lg transition-colors flex items-center justify-center gap-1 shadow-xs"
+                                    >
+                                      Advance <ArrowRight className="w-3 h-3" />
+                                    </button>
+                                  ) : (
+                                    <span className="flex-1 py-1.5 px-2 text-[10px] font-bold text-emerald-800 bg-emerald-100/70 rounded-lg flex items-center justify-center gap-1">
+                                      <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Placed
+                                    </span>
+                                  )}
+
+                                  <a
+                                    href={`/verify/${app.studentRollNo}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title="View Verified Student Portfolio"
+                                    className="p-1.5 text-gray-400 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                                  >
+                                    <ExternalLink className="w-3 h-3" />
+                                  </a>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* TABLE LIST VIEW */}
+              {pipelineView === 'table' && (
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-4 py-3 text-center">
                             <input 
                               type="checkbox"
-                              checked={selectedAppIds.includes(app.id)}
+                              checked={selectedAppIds.length === filteredPipeline.length && filteredPipeline.length > 0}
                               onChange={(e) => {
-                                if (e.target.checked) setSelectedAppIds([...selectedAppIds, app.id]);
-                                else setSelectedAppIds(selectedAppIds.filter(id => id !== app.id));
+                                if (e.target.checked) setSelectedAppIds(filteredPipeline.map(a => a.id));
+                                else setSelectedAppIds([]);
                               }}
                               className="rounded text-mongo-green focus:ring-mongo-green"
                             />
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <p className="text-sm font-bold text-gray-900">{app.studentName}</p>
-                            <p className="text-xs text-gray-500">{app.studentRollNo}</p>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <p className="text-sm font-bold text-gray-900">{app.opportunity?.companyName}</p>
-                            <p className="text-xs text-gray-500">{app.opportunity?.title}</p>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-xs font-medium text-gray-600">
-                            <span className="font-bold text-gray-900">{app.cgpa} CGPA</span> • {app.branch}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-xs font-bold text-blue-700">
-                            {app.currentRound}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${
-                              app.status === 'Offer Extended' || app.status === 'Placed'
-                                ? 'bg-green-100 text-green-800'
-                                : app.status === 'Shortlisted'
-                                ? 'bg-purple-100 text-purple-800'
-                                : app.status === 'Rejected'
-                                ? 'bg-red-100 text-red-800'
-                                : 'bg-yellow-100 text-yellow-800'
-                            }`}>
-                              {app.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right space-x-2">
-                            <button 
-                              onClick={() => setScheduleModalApplicant(app)}
-                              className="text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-2.5 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1"
-                            >
-                              <Calendar className="w-3.5 h-3.5" /> Schedule
-                            </button>
-
-                            <select 
-                              value={app.status}
-                              onChange={(e) => {
-                                const newStat = e.target.value;
-                                let newRound = app.currentRound;
-                                if (newStat === 'Shortlisted') newRound = 'Technical Round 1';
-                                if (newStat === 'Offer Extended') newRound = 'Final Offer Placed';
-                                if (newStat === 'Rejected') newRound = 'Archived';
-                                handleAdvanceApplicant(app.id, newStat, newRound);
-                              }}
-                              className="text-xs font-bold bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-mongo-green cursor-pointer"
-                            >
-                              <option value="Under Review">Under Review</option>
-                              <option value="Shortlisted">Shortlist</option>
-                              <option value="Offer Extended">Offer (Placed!)</option>
-                              <option value="Rejected">Reject</option>
-                            </select>
-                          </td>
+                          </th>
+                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Candidate</th>
+                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Applied Drive</th>
+                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">CGPA / Branch</th>
+                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Current Round</th>
+                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Application Status</th>
+                          <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-100">
+                        {filteredPipeline.map(app => (
+                          <tr key={app.id} className="hover:bg-gray-50/70 transition-colors">
+                            <td className="px-4 py-3 text-center">
+                              <input 
+                                type="checkbox"
+                                checked={selectedAppIds.includes(app.id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) setSelectedAppIds([...selectedAppIds, app.id]);
+                                  else setSelectedAppIds(selectedAppIds.filter(id => id !== app.id));
+                                }}
+                                className="rounded text-mongo-green focus:ring-mongo-green"
+                              />
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center gap-2">
+                                <div>
+                                  <p className="text-sm font-bold text-gray-900">{app.studentName}</p>
+                                  <p className="text-xs text-gray-500">{app.studentRollNo}</p>
+                                </div>
+                                <a 
+                                  href={`/verify/${app.studentRollNo}`} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  title="View Public Verified Credential"
+                                  className="text-gray-400 hover:text-mongo-green-dark"
+                                >
+                                  <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <p className="text-sm font-bold text-gray-900">{app.opportunity?.companyName}</p>
+                              <p className="text-xs text-gray-500">{app.opportunity?.title}</p>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-xs font-medium text-gray-600">
+                              <span className="font-bold text-gray-900">{app.cgpa} CGPA</span> • {app.branch}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-xs font-bold text-blue-700">
+                              {app.currentRound}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${
+                                app.status === 'Offer Extended' || app.status === 'Placed'
+                                  ? 'bg-green-100 text-green-800'
+                                  : app.status === 'Shortlisted'
+                                  ? 'bg-purple-100 text-purple-800'
+                                  : app.status === 'Rejected'
+                                  ? 'bg-red-100 text-red-800'
+                                  : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {app.status}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-right space-x-2">
+                              <button 
+                                onClick={() => setScheduleModalApplicant(app)}
+                                className="text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-2.5 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1"
+                              >
+                                <Calendar className="w-3.5 h-3.5" /> Schedule
+                              </button>
+
+                              <select 
+                                value={app.status}
+                                onChange={(e) => {
+                                  const newStat = e.target.value;
+                                  let newRound = app.currentRound;
+                                  if (newStat === 'Shortlisted') newRound = 'Technical Round 1';
+                                  if (newStat === 'Offer Extended') newRound = 'Final Offer Placed';
+                                  if (newStat === 'Rejected') newRound = 'Archived';
+                                  handleAdvanceApplicant(app.id, newStat, newRound);
+                                }}
+                                className="text-xs font-bold bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-mongo-green cursor-pointer"
+                              >
+                                <option value="Under Review">Under Review</option>
+                                <option value="Shortlisted">Shortlist</option>
+                                <option value="Offer Extended">Offer (Placed!)</option>
+                                <option value="Rejected">Reject</option>
+                              </select>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
+              )}
             </motion.div>
           )}
 
