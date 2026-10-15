@@ -10,6 +10,7 @@ import ForColleges from './pages/ForColleges';
 import HowItWorks from './pages/HowItWorks';
 import PublicPortfolio from './pages/PublicPortfolio';
 import JobPlatforms from './pages/JobPlatforms';
+import LearningPlatforms from './pages/LearningPlatforms';
 
 import Home from './pages/Home';
 
@@ -28,6 +29,7 @@ function App() {
             <Route path="/for-colleges" element={<ForColleges />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/job-platforms" element={<JobPlatforms />} />
+            <Route path="/learning-platforms" element={<LearningPlatforms />} />
             <Route path="/verify/:rollNo" element={<PublicPortfolio />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />

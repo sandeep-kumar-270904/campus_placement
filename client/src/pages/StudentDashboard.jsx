@@ -182,6 +182,15 @@ const StudentDashboard = () => {
           </div>
 
           <div className="flex items-center gap-4">
+            <Link to="/job-platforms" className="hidden lg:flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 px-2.5 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+              <Briefcase className="w-3.5 h-3.5 text-mongo-green" />
+              Job Platforms
+            </Link>
+            <Link to="/learning-platforms" className="hidden lg:flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 px-2.5 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+              <BookOpen className="w-3.5 h-3.5 text-blue-500" />
+              Learning Hub
+            </Link>
+
             {/* Notification Trigger */}
             <div className="relative">
               <button 

@@ -441,6 +441,9 @@ const JobPlatforms = () => {
                 <span className="w-2 h-2 rounded-full bg-mongo-green"></span>
                 Job Platforms
               </Link>
+              <Link to="/learning-platforms" className="text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors">
+                Learning Platforms
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-3">

@@ -21,6 +21,7 @@ const ForStudents = () => {
             <Link to="/for-colleges" className="text-[15px] font-medium text-mongo-text hover:text-mongo-green-dark transition-colors">For Colleges</Link>
             <Link to="/how-it-works" className="text-[15px] font-medium text-mongo-text hover:text-mongo-green-dark transition-colors">How it Works</Link>
             <Link to="/job-platforms" className="text-[15px] font-medium text-mongo-text hover:text-mongo-green-dark transition-colors">Job Platforms</Link>
+            <Link to="/learning-platforms" className="text-[15px] font-medium text-mongo-text hover:text-mongo-green-dark transition-colors">Learning</Link>
           </div>
           <div className="flex items-center gap-6">
             <Link to="/login" className="text-[15px] font-medium text-mongo-text hover:text-mongo-green-dark transition-colors hidden sm:block">Sign In</Link>
