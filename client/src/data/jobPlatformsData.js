@@ -1033,7 +1033,7 @@ export const JOB_PLATFORMS_DATA = [
     id: 'contra',
     name: 'Contra',
     category: 'Freelance & Gigs',
-    tagline: 'Modern commission-free platform for digital freelancers to showcase rich portfolios and manage contracts.',
+    tagline: 'Modern commission-free platform for digital freelancers to showcase portfolios and manage contracts.',
     url: 'https://contra.com/',
     color: '#FF5964',
     tags: ['0% Commission', 'Modern Portfolios', 'Direct Invoicing'],
