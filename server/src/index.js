@@ -7,6 +7,8 @@ dotenv.config();
 
 const app = express();
 
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -46,6 +48,10 @@ mongoose
     console.warn('MongoDB connection failed (offline/pending). Server running in resilient mode.', err.message);
   });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+module.exports = app;

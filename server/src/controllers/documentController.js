@@ -9,8 +9,8 @@ exports.uploadDocument = async (req, res) => {
       return res.status(400).json({ message: 'No file provided. Please upload a PDF or document.' });
     }
 
-    const host = req.get('host') || 'localhost:5000';
-    const protocol = req.protocol || 'http';
+    const host = req.headers['x-forwarded-host'] || req.get('host') || 'localhost:5000';
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
     const fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
 
     // If student is logged in, optionally link to their profile
