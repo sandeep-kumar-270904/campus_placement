@@ -1,11 +1,11 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { 
   LogOut, UserCircle, Briefcase, FileText, Bell, Search, MapPin, 
   DollarSign, Calendar, CheckCircle2, AlertCircle, X, ChevronRight,
   Sparkles, Building, Filter, Clock, ShieldCheck, BookOpen, UploadCloud,
-  FileCode, CheckSquare, ArrowUpRight
+  FileCode, CheckSquare, ArrowUpRight, Globe, ExternalLink
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -308,6 +308,19 @@ const StudentDashboard = () => {
                 <span className="ml-auto w-2 h-2 rounded-full bg-yellow-500"></span>
               )}
             </button>
+
+            <Link 
+              to="/job-platforms"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full group flex items-center px-4 py-3 text-sm font-semibold rounded-xl text-gray-700 hover:bg-gray-100 transition-all justify-between"
+            >
+              <div className="flex items-center">
+                <Globe className="text-gray-400 group-hover:text-mongo-green-dark mr-3 flex-shrink-0 h-5 w-5" />
+                Job Platforms
+              </div>
+              <ExternalLink className="w-3.5 h-3.5 text-gray-400 group-hover:text-gray-600" />
+            </Link>
           </nav>
           
           <div className="mt-auto pt-6 border-t border-gray-200 space-y-3">
@@ -377,6 +390,17 @@ const StudentDashboard = () => {
                     <Sparkles className="w-3.5 h-3.5 text-mongo-green-dark" />
                     AI ATS Matcher
                   </button>
+
+                  <Link 
+                    to="/job-platforms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 bg-white text-gray-800 border border-gray-200 px-3.5 py-2 rounded-xl text-xs font-bold hover:bg-gray-50 hover:border-gray-300 transition-all cursor-pointer shadow-xs"
+                  >
+                    <Globe className="w-3.5 h-3.5 text-blue-600" />
+                    Off-Campus Portals
+                    <ExternalLink className="w-3 h-3 text-gray-400" />
+                  </Link>
                 </div>
               </div>
 
