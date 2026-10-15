@@ -321,6 +321,98 @@ export const JOB_PLATFORMS_DATA = [
     atsGuide: 'Highlight academic projects, extracurricular leadership, and willingness to learn quickly.'
   },
 
+  // Handshake
+  {
+    id: 'handshake',
+    name: 'Handshake',
+    category: 'Freshers & Internships',
+    tagline: 'Connects university students and recent alumni directly with college-accredited campus recruiters.',
+    url: 'https://joinhandshake.com/',
+    color: '#D32F2F',
+    tags: ['College Accredited', 'University Network', 'Early Career'],
+    features: [
+      'Official campus recruitment partner for over 1,400+ colleges and universities',
+      'Direct invitations to virtual career fairs and on-campus interview sessions',
+      'Pre-filtered early-career listings verified by institutional career centers'
+    ],
+    bestFor: 'College students, final year candidates, and recent alumni seeking accredited campus hiring.',
+    deepLinks: [
+      { label: 'Entry Level Jobs', url: 'https://joinhandshake.com/' },
+      { label: 'Campus Internships', url: 'https://joinhandshake.com/' },
+      { label: 'Virtual Career Fairs', url: 'https://joinhandshake.com/' }
+    ],
+    atsGuide: 'Ensure university affiliation, major, and graduation year are verified with your student email.'
+  },
+
+  // Naukri Campus / FirstNaukri
+  {
+    id: 'firstnaukri',
+    name: 'Naukri Campus / FirstNaukri',
+    category: 'Freshers & Internships',
+    tagline: 'Dedicated entry-level branch of Naukri focused exclusively on recent graduates and fresher hiring drives.',
+    url: 'https://www.firstnaukri.com/',
+    color: '#0084FF',
+    tags: ['0-1 Yrs Exp', 'Campus Placement', 'MNC Off-Campus'],
+    features: [
+      'Strictly dedicated to fresh college graduates with 0 to 1 years of experience',
+      'Direct campus recruitment drives, test alerts, and off-campus walk-in dates',
+      'Aptitude tests, company interview papers, and practice assessments'
+    ],
+    bestFor: 'Fresh engineering, management, and science graduates entering the corporate workforce.',
+    deepLinks: [
+      { label: 'Engineering Freshers', url: 'https://www.firstnaukri.com/engineering-jobs' },
+      { label: 'Off-Campus Drives', url: 'https://www.firstnaukri.com/fresher-jobs' },
+      { label: 'MNC Walk-ins', url: 'https://www.firstnaukri.com/walkin-jobs' }
+    ],
+    atsGuide: 'Highlight final year capstone projects, coding language fundamentals, and overall CGPA/percentage.'
+  },
+
+  // WayUp
+  {
+    id: 'wayup',
+    name: 'WayUp',
+    category: 'Freshers & Internships',
+    tagline: 'Curated platform for college students and recent grads seeking early-career roles and corporate training schemes.',
+    url: 'https://www.wayup.com/',
+    color: '#1E88E5',
+    tags: ['Early Career', 'Fortune 500 Training', 'Verified Roles'],
+    features: [
+      'Curated early-career roles across top tech companies, finance, and consumer brands',
+      'Rotational corporate training schemes and leadership development programs',
+      'Verified recruiter reviews and direct application feedback'
+    ],
+    bestFor: 'College students and recent graduates targeting structured corporate training programs.',
+    deepLinks: [
+      { label: 'Software Engineering', url: 'https://www.wayup.com/s/software-engineering-jobs/' },
+      { label: 'Tech Internships', url: 'https://www.wayup.com/s/internships/' },
+      { label: 'Rotational Programs', url: 'https://www.wayup.com/' }
+    ],
+    atsGuide: 'Showcase project initiatives, student leadership roles, and quantitative results on your resume.'
+  },
+
+  // Gradcracker
+  {
+    id: 'gradcracker',
+    name: 'Gradcracker',
+    category: 'Freshers & Internships',
+    tagline: 'Specialized careers portal dedicated strictly to STEM (Science, Technology, Engineering, and Maths) university students.',
+    url: 'https://www.gradcracker.com/',
+    color: '#E65100',
+    tags: ['100% STEM Focus', 'Graduate Schemes', 'Work Placements'],
+    features: [
+      'The premier careers hub specifically built for STEM disciplines',
+      'Over 250+ premier employers advertising graduate schemes and work placements',
+      'Webinars, employer hubs, and detailed technology engineering roadmaps'
+    ],
+    bestFor: 'STEM university students seeking structured engineering and technical graduate programs.',
+    deepLinks: [
+      { label: 'Computing & IT', url: 'https://www.gradcracker.com/search/computing-technology/jobs' },
+      { label: 'Engineering Schemes', url: 'https://www.gradcracker.com/search/engineering/jobs' },
+      { label: 'Work Placements', url: 'https://www.gradcracker.com/search/all-disciplines/work-placements' }
+    ],
+    atsGuide: 'Detail specific STEM modules, practical lab/programming coursework, and engineering tool proficiencies.'
+  },
+
   // 15. Apna
   {
     id: 'apna',

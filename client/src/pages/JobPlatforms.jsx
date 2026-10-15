@@ -189,6 +189,30 @@ const PlatformLogo = ({ id, name }) => {
           jb
         </div>
       );
+    case 'handshake':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#D32F2F] flex items-center justify-center text-white shadow-xs font-bold text-xl flex-shrink-0 font-display">
+          H
+        </div>
+      );
+    case 'firstnaukri':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#0084FF] flex items-center justify-center text-white shadow-xs font-bold text-xs flex-shrink-0">
+          1N
+        </div>
+      );
+    case 'wayup':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#1E88E5] flex items-center justify-center text-white shadow-xs font-bold text-xs flex-shrink-0">
+          WU
+        </div>
+      );
+    case 'gradcracker':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#E65100] flex items-center justify-center text-white shadow-xs font-bold text-xs flex-shrink-0 font-mono">
+          GC
+        </div>
+      );
     default:
       return (
         <div className="w-11 h-11 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-xs font-bold text-base flex-shrink-0">
