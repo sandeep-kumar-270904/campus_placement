@@ -213,6 +213,160 @@ const PlatformLogo = ({ id, name }) => {
           GC
         </div>
       );
+    case 'ziprecruiter':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#00843D] flex items-center justify-center text-white shadow-xs font-bold text-sm flex-shrink-0">
+          ZR
+        </div>
+      );
+    case 'careerbuilder':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#F97316] flex items-center justify-center text-white shadow-xs font-bold text-sm flex-shrink-0">
+          CB
+        </div>
+      );
+    case 'simplyhired':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#2563EB] flex items-center justify-center text-white shadow-xs font-bold text-sm flex-shrink-0">
+          SH
+        </div>
+      );
+    case 'execunet':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#0F172A] flex items-center justify-center text-amber-400 shadow-xs font-extrabold text-sm flex-shrink-0">
+          EN
+        </div>
+      );
+    case 'bluesteps':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#004B87] flex items-center justify-center text-white shadow-xs font-bold text-sm flex-shrink-0">
+          BS
+        </div>
+      );
+    case 'theladders':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#1E293B] flex items-center justify-center text-emerald-400 shadow-xs font-bold text-sm flex-shrink-0 font-mono">
+          $L
+        </div>
+      );
+    case 'experteer':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#1A365D] flex items-center justify-center text-white shadow-xs font-bold text-sm flex-shrink-0">
+          XP
+        </div>
+      );
+    case 'flexjobs':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#0D9488] flex items-center justify-center text-white shadow-xs font-bold text-sm flex-shrink-0">
+          FJ
+        </div>
+      );
+    case 'himalayas':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#0284C7] flex items-center justify-center text-white shadow-xs font-bold text-sm flex-shrink-0">
+          HM
+        </div>
+      );
+    case 'jobspresso':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#7C3AED] flex items-center justify-center text-white shadow-xs font-bold text-sm flex-shrink-0">
+          JP
+        </div>
+      );
+    case 'dynamitejobs':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#EF4444] flex items-center justify-center text-white shadow-xs font-bold text-sm flex-shrink-0">
+          DJ
+        </div>
+      );
+    case 'workingnomads':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#10B981] flex items-center justify-center text-white shadow-xs font-bold text-sm flex-shrink-0">
+          WN
+        </div>
+      );
+    case 'upwork':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#14A800] flex items-center justify-center text-white shadow-xs font-extrabold text-base flex-shrink-0">
+          up
+        </div>
+      );
+    case 'fiverr':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#1DBF73] flex items-center justify-center text-white shadow-xs font-extrabold text-base flex-shrink-0">
+          fi
+        </div>
+      );
+    case 'toptal':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#204ECF] flex items-center justify-center text-white shadow-xs font-bold text-sm flex-shrink-0">
+          TT
+        </div>
+      );
+    case 'freelancer':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#29B2FE] flex items-center justify-center text-white shadow-xs font-bold text-sm flex-shrink-0">
+          fl
+        </div>
+      );
+    case 'contra':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#FF5964] flex items-center justify-center text-white shadow-xs font-bold text-sm flex-shrink-0">
+          co
+        </div>
+      );
+    case 'guru':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#4B9CD3] flex items-center justify-center text-white shadow-xs font-bold text-base flex-shrink-0">
+          G
+        </div>
+      );
+    case 'peopleperhour':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#F36E21] flex items-center justify-center text-white shadow-xs font-bold text-xs flex-shrink-0">
+          PPH
+        </div>
+      );
+    case 'dice':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#CC0000] flex items-center justify-center text-white shadow-xs font-extrabold text-xs tracking-tight flex-shrink-0">
+          DICE
+        </div>
+      );
+    case 'github-ecosystem':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#24292F] flex items-center justify-center text-white shadow-xs flex-shrink-0">
+          <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+            <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+          </svg>
+        </div>
+      );
+    case 'offerzen-honeypot':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#2563EB] flex items-center justify-center text-white shadow-xs font-bold text-xs flex-shrink-0">
+          OZ
+        </div>
+      );
+    case 'dribbble-jobs':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#EA4C89] flex items-center justify-center text-white shadow-xs flex-shrink-0">
+          <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c5.51 0 10-4.48 10-10A10 10 0 0 0 12 2zm6.605 4.61a8.502 8.502 0 0 1 1.93 5.314c-.235-.045-2.613-.508-5.074.453-.102-.227-.21-.453-.324-.678a19.78 19.78 0 0 0-1.89-3.238c3.08-1.258 5.09-1.851 5.358-1.851zm-7.07-1.974c1.666 0 3.2.535 4.45 1.442-.25.02-.99.095-2.613.676-1.55-2.58-1.837-2.118-1.837-2.118zm-2.38.74c.03.045.54 1.026 2.073 3.61a15.82 15.82 0 0 1-7.234 2.11 8.528 8.528 0 0 1 5.161-5.72zm-5.74 7.625c.07-.008 1.74-.216 4.717-.985a21.464 21.464 0 0 1 1.748 3.518c-3.792 1.135-6.273 4.195-6.465 4.444A8.47 8.47 0 0 1 3.415 13zm8.384 7.558a8.558 8.558 0 0 1-3.69-.854c.14-.236 1.96-3.277 5.753-4.453.84 2.17 1.25 4.42 1.28 4.63a8.502 8.502 0 0 1-3.343.677zm4.72-2.022a18.258 18.258 0 0 0-1.19-4.274c2.25-.975 4.41-.53 4.65-.48a8.55 8.55 0 0 1-3.46 4.754z"/>
+          </svg>
+        </div>
+      );
+    case 'behance-jobs':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#0057FF] flex items-center justify-center text-white shadow-xs font-bold text-base flex-shrink-0 font-serif">
+          Bē
+        </div>
+      );
+    case 'problogger':
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-[#00A86B] flex items-center justify-center text-white shadow-xs font-bold text-sm flex-shrink-0">
+          PB
+        </div>
+      );
     default:
       return (
         <div className="w-11 h-11 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-xs font-bold text-base flex-shrink-0">
@@ -271,7 +425,7 @@ const JobPlatforms = () => {
       
       {/* Top Navbar - Full Screen Width */}
       <header className="fixed top-0 inset-x-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
-        <div className="w-full max-w-[1650px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 h-16 flex items-center justify-between">
+        <div className="w-full max-w-[1750px] 2xl:max-w-[1850px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <Link to="/" className="flex items-center gap-2.5 group">
               <div className="w-8 h-8 bg-slate-900 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 shadow-xs">
@@ -306,7 +460,7 @@ const JobPlatforms = () => {
         {/* Subtle Ambient Radial Highlight */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-emerald-500/10 via-transparent to-transparent pointer-events-none"></div>
 
-        <div className="w-full max-w-[1650px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 relative z-10">
+        <div className="w-full max-w-[1750px] 2xl:max-w-[1850px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 relative z-10">
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
             
             {/* Split Header: Left Heading + Right Quick Signals */}
@@ -401,8 +555,8 @@ const JobPlatforms = () => {
         </div>
       </section>
 
-      {/* Main Content Area - 4 Columns Across Full Screen Width */}
-      <main className="flex-1 w-full max-w-[1650px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 py-8">
+      {/* Main Content Area - 4 to 5 Columns Across Full Screen Width */}
+      <main className="flex-1 w-full max-w-[1750px] 2xl:max-w-[1850px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 py-8">
         
         {/* Results Counter Bar */}
         <div className="flex items-center justify-between mb-5 px-1">
@@ -419,7 +573,7 @@ const JobPlatforms = () => {
           )}
         </div>
 
-        {/* 4-Column High-Fidelity Cards Grid */}
+        {/* 4 to 5 Column High-Fidelity Cards Grid */}
         {filteredPlatforms.length === 0 ? (
           <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-md mx-auto my-8 shadow-xs">
             <Compass className="w-8 h-8 text-slate-300 mx-auto mb-3" />
@@ -433,7 +587,7 @@ const JobPlatforms = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 items-stretch">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 items-stretch">
             {filteredPlatforms.map((platform) => {
               const isBookmarked = bookmarkedIds.includes(platform.id);
               return (
