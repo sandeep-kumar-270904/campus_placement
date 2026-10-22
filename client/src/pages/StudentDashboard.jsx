@@ -20,9 +20,12 @@ import {
 } from '../services/placementStore';
 import { uploadResume } from '../services/documentService';
 import AtsMatcherModal from '../components/AtsMatcherModal';
+import TenantBrandingHeader from '../components/TenantBrandingHeader';
+import { useTenant } from '../context/TenantContext';
 
 const StudentDashboard = () => {
   const { user, logout } = useContext(AuthContext);
+  const { branding, isFeatureEnabled, formatGrade } = useTenant();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState('opportunities');
@@ -158,6 +161,7 @@ const StudentDashboard = () => {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] font-sans flex flex-col">
+      <TenantBrandingHeader />
       {/* Top Navbar */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">

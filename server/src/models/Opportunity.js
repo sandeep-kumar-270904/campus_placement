@@ -1,62 +1,78 @@
 const mongoose = require('mongoose');
+const tenantPlugin = require('../plugins/tenantPlugin');
 
 const opportunitySchema = new mongoose.Schema({
+  collegeId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'College',
+    required: true,
+    index: true,
+  },
   title: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
   },
   companyName: {
     type: String,
     required: true,
   },
   companyLogo: {
-    type: String, // URL
+    type: String,
+    default: '',
   },
   type: {
     type: String,
     enum: ['Job', 'Internship'],
-    required: true
+    required: true,
   },
   location: {
     type: String,
-    required: true
+    required: true,
   },
   salary: {
-    type: String, // e.g. "24 LPA"
-    required: true
+    type: String,
+    required: true,
   },
   description: {
     type: String,
-    required: true
+    required: true,
   },
   eligibilityRules: {
     minCgpa: {
       type: Number,
-      default: 0
+      default: 0,
     },
     maxBacklogs: {
       type: Number,
-      default: 0
+      default: 0,
     },
     allowedBranches: [{
-      type: String
-    }]
+      type: String,
+    }],
   },
   deadline: {
     type: Date,
-    required: true
+    required: true,
   },
   status: {
     type: String,
     enum: ['Open', 'Closed'],
-    default: 'Open'
+    default: 'Open',
+    index: true,
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true // TPO who created it
-  }
+    required: true,
+  },
 }, { timestamps: true });
+
+// Compound indexes for tenant-scoped opportunity queries
+opportunitySchema.index({ collegeId: 1, status: 1, deadline: 1 });
+opportunitySchema.index({ collegeId: 1, createdAt: -1 });
+
+// Apply tenant plugin
+opportunitySchema.plugin(tenantPlugin, { required: true });
 
 module.exports = mongoose.model('Opportunity', opportunitySchema);

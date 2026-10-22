@@ -11,13 +11,17 @@ export const AuthProvider = ({ children }) => {
     // Check if user is logged in
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (err) {
+        console.error('Failed to parse stored user:', err);
+      }
     }
     setLoading(false);
   }, []);
 
-  const login = async (email, password) => {
-    const data = await authService.login({ email, password });
+  const login = async (email, password, collegeCode) => {
+    const data = await authService.login({ email, password, collegeCode });
     setUser(data);
     return data;
   };
@@ -30,6 +34,8 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     authService.logout();
+    localStorage.removeItem('active_college');
+    localStorage.removeItem('selectedCollegeId');
     setUser(null);
   };
 

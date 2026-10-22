@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const { tenantContextMiddleware } = require('./middleware/tenantContext');
 
 dotenv.config();
 
@@ -9,31 +10,45 @@ const app = express();
 
 app.set('trust proxy', 1);
 
-// Middleware
+// Standard Middleware
 app.use(cors());
 app.use(express.json());
 
-const path = require('path');
-
-// Static uploads directory
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+// Global Tenant Context Middleware
+app.use(tenantContextMiddleware);
 
 // Routes
 const authRoutes = require('./routes/authRoutes');
 const opportunityRoutes = require('./routes/opportunityRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 const documentRoutes = require('./routes/documentRoutes');
+const collegeRoutes = require('./routes/collegeRoutes');
+const verifyRoutes = require('./routes/verifyRoutes');
 
-// Basic Route
+// Basic Health Route
 app.get('/', (req, res) => {
-  res.send('PLACEearly API is running');
+  res.send('PLACEearly Multi-Tenant Placement OS API is running');
 });
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/colleges', collegeRoutes);
 app.use('/api/opportunities', opportunityRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/documents', documentRoutes);
+app.use('/api/verify', verifyRoutes);
+
+// Central Error Handler
+app.use((err, req, res, next) => {
+  console.error('Unhandled API Error:', err);
+  const status = err.status || 500;
+  res.status(status).json({
+    error: {
+      code: err.code || 'SERVER_ERROR',
+      message: err.message || 'An unexpected internal server error occurred',
+    },
+  });
+});
 
 // Database Connection
 const PORT = process.env.PORT || 5000;

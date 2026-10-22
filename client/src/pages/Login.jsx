@@ -7,34 +7,44 @@ import { motion } from 'framer-motion';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [collegeCode, setCollegeCode] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
     try {
-      const user = await login(email, password);
-      if (user.role === 'tpo') {
+      const user = await login(email, password, collegeCode ? collegeCode.trim().toUpperCase() : undefined);
+      if (user.role === 'superadmin') {
+        navigate('/superadmin');
+      } else if (user.role === 'tpo') {
         navigate('/tpo/dashboard');
       } else {
         navigate('/student/dashboard');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+      setError(
+        err.response?.data?.error?.message ||
+        err.response?.data?.message ||
+        'Login failed. Please check your credentials.'
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen flex bg-white font-sans overflow-hidden">
-      
       {/* Left Column: Form */}
       <div className="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-20 xl:px-24 relative z-10">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
           className="mx-auto w-full max-w-sm lg:w-96"
         >
           <div>
@@ -44,24 +54,28 @@ const Login = () => {
               </div>
               <span className="text-xl font-display font-bold tracking-tight text-mongo-dark">PLACEearly</span>
             </Link>
-            
+
             <h2 className="text-[32px] font-extrabold text-mongo-dark font-display tracking-tight leading-tight mb-2">
               Welcome back
             </h2>
             <p className="text-base text-gray-500 font-light">
-              Sign in to manage your campus placements.
+              Sign in to your campus placement workspace.
             </p>
           </div>
 
           <div className="mt-10">
-            <form className="space-y-6" onSubmit={handleSubmit}>
+            <form className="space-y-5" onSubmit={handleSubmit}>
               {error && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-4 bg-red-50/80 text-red-600 text-sm rounded-xl border border-red-100">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="p-4 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100"
+                >
                   {error}
                 </motion.div>
               )}
-              
-              <div className="space-y-5">
+
+              <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-1.5">Email Address</label>
                   <input
@@ -73,6 +87,7 @@ const Login = () => {
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
+
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-1.5">Password</label>
                   <input
@@ -84,32 +99,58 @@ const Login = () => {
                     onChange={(e) => setPassword(e.target.value)}
                   />
                 </div>
+
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      College Code (Optional)
+                    </label>
+                    <span className="text-[11px] text-gray-400">e.g. ANITS, IITB</span>
+                  </div>
+                  <input
+                    type="text"
+                    className="appearance-none block w-full px-4 py-2.5 border border-gray-200 rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-mongo-green focus:border-transparent transition-all shadow-sm bg-white font-mono uppercase text-xs"
+                    placeholder="Leave blank to auto-detect"
+                    value={collegeCode}
+                    onChange={(e) => setCollegeCode(e.target.value.toUpperCase())}
+                  />
+                </div>
               </div>
 
               <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
-                  <input id="remember-me" name="remember-me" type="checkbox" className="h-4 w-4 text-mongo-green focus:ring-mongo-green border-gray-300 rounded" />
-                  <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">Remember me</label>
+                  <input
+                    id="remember-me"
+                    name="remember-me"
+                    type="checkbox"
+                    className="h-4 w-4 text-mongo-green focus:ring-mongo-green border-gray-300 rounded"
+                  />
+                  <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+                    Remember me
+                  </label>
                 </div>
                 <div className="text-sm">
-                  <a href="#" className="font-semibold text-mongo-green-dark hover:text-mongo-green transition-colors">Forgot password?</a>
+                  <a href="#" className="font-semibold text-mongo-green-dark hover:text-mongo-green transition-colors">
+                    Forgot password?
+                  </a>
                 </div>
               </div>
 
               <div>
                 <button
                   type="submit"
-                  className="group relative w-full flex justify-center py-3.5 px-4 border border-transparent text-sm font-bold rounded-xl text-mongo-dark bg-mongo-green hover:bg-[#00E05B] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-mongo-green shadow-lg shadow-mongo-green/20 transition-all duration-300"
+                  disabled={loading}
+                  className="group relative w-full flex justify-center py-3.5 px-4 border border-transparent text-sm font-bold rounded-xl text-mongo-dark bg-mongo-green hover:bg-[#00E05B] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-mongo-green shadow-lg shadow-mongo-green/20 transition-all duration-300 cursor-pointer disabled:opacity-50"
                 >
-                  Sign In
+                  {loading ? 'Signing in...' : 'Sign In'}
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
               </div>
             </form>
-            
+
             <div className="mt-8 pt-6 border-t border-gray-100 text-center">
               <p className="text-gray-500 text-sm">
-                Don't have an account?{' '}
+                Don&apos;t have an account?{' '}
                 <Link to="/register" className="font-bold text-mongo-dark hover:text-mongo-green-dark transition-colors">
                   Create one now
                 </Link>
@@ -121,19 +162,17 @@ const Login = () => {
 
       {/* Right Column: Cartoon Image */}
       <div className="hidden lg:block relative w-0 flex-1 bg-[#001E2B] overflow-hidden">
-        <motion.img 
+        <motion.img
           initial={{ opacity: 0, scale: 1.05 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.5, ease: "easeOut" }}
-          src="/student-cartoon.jpg" 
-          alt="Student Cartoon" 
+          transition={{ duration: 1.5, ease: 'easeOut' }}
+          src="/student-cartoon.jpg"
+          alt="Student Cartoon"
           className="absolute inset-0 w-full h-full object-cover"
         />
-        
-        {/* Gradient Overlay for Text Readability */}
+
         <div className="absolute inset-0 bg-gradient-to-t from-[#001E2B] via-[#001E2B]/40 to-transparent"></div>
 
-        {/* Floating Text */}
         <div className="absolute bottom-12 left-12 right-12 z-30">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -141,7 +180,7 @@ const Login = () => {
             transition={{ duration: 0.8, delay: 0.5 }}
           >
             <p className="text-white font-display text-[28px] font-medium leading-tight mb-6">
-              "PLACEearly completely transformed how we manage campus hiring. It’s seamlessly automated our entire funnel."
+              &quot;PLACEearly completely transformed how we manage campus hiring across departments and branches.&quot;
             </p>
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-mongo-green to-blue-500 shadow-lg border-2 border-white/20"></div>

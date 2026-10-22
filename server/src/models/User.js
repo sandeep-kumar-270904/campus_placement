@@ -1,42 +1,55 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const tenantPlugin = require('../plugins/tenantPlugin');
 
 const userSchema = new mongoose.Schema({
+  collegeId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'College',
+    index: true,
+    default: null, // null only for global superadmin
+  },
   email: {
     type: String,
     required: true,
-    unique: true,
     lowercase: true,
-    trim: true
+    trim: true,
   },
   password: {
     type: String,
     required: true,
-    minlength: 6
+    minlength: 6,
   },
   role: {
     type: String,
-    enum: ['student', 'tpo', 'coordinator', 'superadmin'],
-    default: 'student'
+    enum: ['student', 'tpo', 'coordinator', 'recruiter', 'admin', 'superadmin'],
+    default: 'student',
+    index: true,
   },
   isVerified: {
     type: Boolean,
-    default: false
+    default: false,
   },
   firstName: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
   },
   lastName: {
     type: String,
     required: true,
-    trim: true
-  }
+    trim: true,
+  },
 }, { timestamps: true });
 
+// Enforce email uniqueness per college
+userSchema.index({ collegeId: 1, email: 1 }, { unique: true });
+
+// Apply tenant scoping plugin (optional for users to allow global superadmin)
+userSchema.plugin(tenantPlugin, { required: false });
+
 // Hash password before saving
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
@@ -44,7 +57,7 @@ userSchema.pre('save', async function(next) {
 });
 
 // Compare password method
-userSchema.methods.matchPassword = async function(enteredPassword) {
+userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 

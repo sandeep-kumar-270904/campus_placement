@@ -1,6 +1,8 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import TenantBrandingHeader from '../components/TenantBrandingHeader';
+import { useTenant } from '../context/TenantContext';
 import { 
   LogOut, Users, Building, ShieldCheck, PieChart, Bell, Search, 
   Plus, Download, ExternalLink, X,
@@ -317,6 +319,7 @@ const TpoDashboard = () => {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] font-sans flex flex-col">
+      <TenantBrandingHeader />
       {/* Top Header */}
       <header className="bg-mongo-dark border-b border-gray-800 sticky top-0 z-30 shadow-md">
         <div className="max-w-[1416px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -465,9 +468,17 @@ const TpoDashboard = () => {
               Post Placement Drive
             </button>
 
+            <Link
+              to="/college/settings"
+              className="text-gray-700 hover:bg-gray-100 group flex items-center px-3 py-2.5 text-sm font-semibold rounded-xl transition-colors w-full"
+            >
+              <Building className="text-gray-500 group-hover:text-gray-700 mr-3 flex-shrink-0 h-5 w-5" />
+              College Settings
+            </Link>
+
             <button 
               onClick={handleLogout}
-              className="text-red-600 hover:bg-red-50 group flex items-center px-3 py-2.5 text-sm font-semibold rounded-xl transition-colors w-full"
+              className="text-red-600 hover:bg-red-50 group flex items-center px-3 py-2.5 text-sm font-semibold rounded-xl transition-colors w-full cursor-pointer"
             >
               <LogOut className="text-red-500 mr-3 flex-shrink-0 h-5 w-5" />
               Sign Out

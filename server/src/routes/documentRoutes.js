@@ -1,39 +1,33 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const path = require('path');
-const { uploadDocument } = require('../controllers/documentController');
+const {
+  uploadDocument,
+  getSignedUrlForDocument,
+  serveRawLocalFile,
+  getMyDocuments,
+} = require('../controllers/documentController');
 const { verifyToken } = require('../middleware/authMiddleware');
 
-// Multer Storage Configuration
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, '../../uploads'));
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    cb(null, 'doc-' + uniqueSuffix + ext);
-  }
-});
-
-// File filter (PDF, DOC, DOCX, Images)
-const fileFilter = (req, file, cb) => {
-  const allowedExtensions = ['.pdf', '.doc', '.docx', '.png', '.jpg', '.jpeg'];
-  const ext = path.extname(file.originalname).toLowerCase();
-  if (allowedExtensions.includes(ext)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only PDF, DOC, DOCX, and images are permitted.'), false);
-  }
-};
-
+// Multer memory storage configured with 5 MB maximum file limit
 const upload = multer({
-  storage: storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
-  fileFilter: fileFilter
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5 MB
+  },
 });
 
+// Upload document (PDF, PNG, JPG, DOCX validated by magic bytes)
 router.post('/upload', verifyToken, upload.single('document'), uploadDocument);
+
+// Get a 5-minute signed download URL with per-role access validation
+router.get('/:id/signed-url', verifyToken, getSignedUrlForDocument);
+
+// Serve local raw file (protected by signed HMAC token and 5-minute expiration)
+router.get('/raw/{*key}', serveRawLocalFile);
+router.get('/raw', serveRawLocalFile);
+
+// List authenticated user documents
+router.get('/', verifyToken, getMyDocuments);
 
 module.exports = router;
