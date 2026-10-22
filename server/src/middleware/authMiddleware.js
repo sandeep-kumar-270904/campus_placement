@@ -21,6 +21,7 @@ const protect = async (req, res, next) => {
         id: decoded.id || decoded.userId,
         userId: decoded.id || decoded.userId,
         collegeId: decoded.collegeId || null,
+        companyId: decoded.companyId || null,
       };
 
       // Wrap downstream route handling in tenant context

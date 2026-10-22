@@ -33,6 +33,7 @@ const {
   previewEligibility,
   updateDriveStatus,
   duplicateDrive,
+  reviewProposedJd,
 } = require('../controllers/tpoDriveController');
 const {
   getDriveWorkspace,
@@ -41,6 +42,7 @@ const {
   uploadShortlist,
   submitFeedback,
   extendOffer,
+  reviewProposedOffer,
 } = require('../controllers/tpoDriveWorkspaceController');
 
 // 1. Dashboard Summary
@@ -66,6 +68,7 @@ router.put('/drives/:id', updateDrive);
 router.post('/drives/preview-eligibility', previewEligibility);
 router.patch('/drives/:id/status', updateDriveStatus);
 router.post('/drives/:id/duplicate', duplicateDrive);
+router.patch('/drives/:id/review-proposed-jd', reviewProposedJd);
 
 // 5. Drive Workspace, Pipeline Kanban, Shortlist Upload, Feedback & Offers
 router.get('/drives/:id/workspace', getDriveWorkspace);
@@ -74,6 +77,7 @@ router.patch('/drives/:id/applicants/advance', advanceApplicants);
 router.post('/drives/:id/shortlist-upload', upload.single('file'), uploadShortlist);
 router.post('/drives/:id/applicants/:appId/feedback', submitFeedback);
 router.post('/drives/:id/applicants/:appId/offer', extendOffer);
+router.patch('/applications/:appId/review-proposed-offer', reviewProposedOffer);
 
 const {
   getScheduleSlots,

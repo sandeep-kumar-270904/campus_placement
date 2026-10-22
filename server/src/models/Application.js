@@ -23,7 +23,7 @@ const feedbackSchema = new mongoose.Schema({
 const offerSchema = new mongoose.Schema({
   status: {
     type: String,
-    enum: ['None', 'Pending', 'Accepted', 'Declined'],
+    enum: ['None', 'Proposed_By_Recruiter', 'Pending', 'Accepted', 'Declined', 'Rejected_By_TPO'],
     default: 'None',
   },
   role: { type: String, default: '' },
@@ -34,6 +34,10 @@ const offerSchema = new mongoose.Schema({
   offerLetterUrl: { type: String, default: '' },
   decisionDate: { type: Date },
   remarks: { type: String, default: '' },
+  proposedByRecruiterId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  proposedAt: { type: Date },
+  tpoApprovedAt: { type: Date },
+  tpoApprovedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { _id: false });
 
 const applicationSchema = new mongoose.Schema({
@@ -58,10 +62,12 @@ const applicationSchema = new mongoose.Schema({
     enum: [
       'Applied',
       'In Review',
-      'Online Assessment',
       'Shortlisted',
+      'Hold',
+      'Online Assessment',
       'Technical Round',
       'HR Round',
+      'Offer Proposed',
       'Offer Extended',
       'Hired',
       'Placed',

@@ -501,3 +501,74 @@ exports.duplicateDrive = async (req, res) => {
     return res.status(500).json({ error: { message: err.message } });
   }
 };
+
+/**
+ * @desc    Approve or reject recruiter's proposed JD updates
+ * @route   PATCH /api/tpo/drives/:id/review-proposed-jd
+ * @access  Private (TPO / Admin)
+ */
+exports.reviewProposedJd = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { decision, tpoRemarks = '' } = req.body; // 'Approved' | 'Rejected'
+    const collegeId = req.tenant?.collegeId || req.user.collegeId;
+    const tpoId = req.user.userId || req.user.id;
+
+    if (!['Approved', 'Rejected'].includes(decision)) {
+      return res.status(400).json({ error: { message: "Decision must be 'Approved' or 'Rejected'." } });
+    }
+
+    const drive = await Opportunity.findOne({
+      _id: id,
+      ...(collegeId ? { collegeId } : {}),
+    });
+
+    if (!drive) {
+      return res.status(404).json({ error: { message: 'Drive not found.' } });
+    }
+
+    if (!drive.proposedJd || drive.proposedJd.status !== 'Pending_Approval') {
+      return res.status(400).json({ error: { message: 'No pending JD proposal for this drive.' } });
+    }
+
+    drive.proposedJd.status = decision;
+    drive.proposedJd.tpoRemarks = tpoRemarks.trim();
+    drive.proposedJd.reviewedAt = new Date();
+
+    if (decision === 'Approved') {
+      if (drive.proposedJd.title) drive.title = drive.proposedJd.title;
+      if (drive.proposedJd.description) drive.description = drive.proposedJd.description;
+      if (drive.proposedJd.salary) drive.salary = drive.proposedJd.salary;
+      if (drive.proposedJd.ctc) drive.ctc = drive.proposedJd.ctc;
+      if (drive.proposedJd.rounds && drive.proposedJd.rounds.length > 0) drive.rounds = drive.proposedJd.rounds;
+      if (drive.proposedJd.eligibilityRules) {
+        drive.eligibilityRules = {
+          ...drive.eligibilityRules,
+          ...drive.proposedJd.eligibilityRules,
+        };
+      }
+    }
+
+    await drive.save();
+
+    await AuditLog.create({
+      collegeId: drive.collegeId,
+      performedBy: tpoId,
+      action: decision === 'Approved' ? 'RECRUITER_JD_APPROVED' : 'RECRUITER_JD_REJECTED',
+      targetModel: 'Opportunity',
+      targetId: drive._id,
+      details: {
+        decision,
+        tpoRemarks,
+      },
+    });
+
+    res.json({
+      success: true,
+      message: `Recruiter JD proposal has been ${decision.toLowerCase()}.`,
+      drive,
+    });
+  } catch (err) {
+    res.status(500).json({ error: { message: err.message } });
+  }
+};

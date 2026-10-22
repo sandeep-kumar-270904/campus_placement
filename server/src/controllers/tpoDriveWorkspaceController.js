@@ -453,3 +453,94 @@ exports.extendOffer = async (req, res) => {
     return res.status(500).json({ error: { message: err.message } });
   }
 };
+
+/**
+ * @desc    Approve or reject recruiter's proposed offer
+ * @route   PATCH /api/tpo/applications/:appId/review-proposed-offer
+ * @access  Private (TPO / Admin)
+ */
+exports.reviewProposedOffer = async (req, res) => {
+  try {
+    const { appId } = req.params;
+    const { decision, tpoRemarks = '' } = req.body; // 'Approved' | 'Rejected'
+    const collegeId = req.tenant?.collegeId || req.user?.collegeId;
+    const tpoId = req.user?.userId || req.user?.id;
+
+    if (!['Approved', 'Rejected'].includes(decision)) {
+      return res.status(400).json({ error: { message: "Decision must be 'Approved' or 'Rejected'." } });
+    }
+
+    const application = await Application.findOne({
+      _id: appId,
+      ...(collegeId ? { collegeId } : {}),
+    }).populate('opportunityId');
+
+    if (!application) {
+      return res.status(404).json({ error: { message: 'Application not found.' } });
+    }
+
+    if (!application.offer || application.offer.status !== 'Proposed_By_Recruiter') {
+      return res.status(400).json({ error: { message: 'No proposed recruiter offer found for this candidate.' } });
+    }
+
+    if (decision === 'Approved') {
+      application.offer.status = 'Pending';
+      application.offer.tpoApprovedAt = new Date();
+      application.offer.tpoApprovedBy = tpoId;
+      application.status = 'Offer Extended';
+
+      application.roundHistory.push({
+        roundName: 'Offer Approved',
+        status: 'Offer Extended to Student',
+        movedAt: new Date(),
+        movedBy: tpoId,
+        notes: tpoRemarks || `TPO endorsed and extended offer of ${application.offer.ctc} LPA to candidate.`,
+      });
+
+      await application.save();
+
+      // Emit event so student is notified
+      try {
+        const { eventBus, DOMAIN_EVENTS } = require('../services/notifications/events/EventBus');
+        const studentUser = await User.findById(application.studentId).lean();
+        if (studentUser) {
+          await eventBus.emitAsync(DOMAIN_EVENTS.OFFER_EXTENDED, {
+            application,
+            studentUser,
+            drive: application.opportunityId,
+            offerDetails: { ctcTotal: application.offer.ctc },
+            collegeId,
+          });
+        }
+      } catch (e) {
+        console.warn('Failed to emit OFFER_EXTENDED on approval:', e);
+      }
+    } else {
+      application.offer.status = 'Rejected_By_TPO';
+      application.offer.remarks = tpoRemarks || 'Offer proposal rejected by TPO.';
+      await application.save();
+    }
+
+    await AuditLog.create({
+      collegeId: application.collegeId,
+      performedBy: tpoId,
+      action: decision === 'Approved' ? 'RECRUITER_OFFER_APPROVED' : 'RECRUITER_OFFER_REJECTED',
+      targetModel: 'Application',
+      targetId: application._id,
+      details: {
+        decision,
+        tpoRemarks,
+        ctc: application.offer.ctc,
+      },
+    });
+
+    res.json({
+      success: true,
+      message: `Recruiter offer proposal has been ${decision.toLowerCase()}.`,
+      offer: application.offer,
+      applicationStatus: application.status,
+    });
+  } catch (err) {
+    res.status(500).json({ error: { message: err.message } });
+  }
+};

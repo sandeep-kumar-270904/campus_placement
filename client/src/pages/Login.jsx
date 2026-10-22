@@ -21,8 +21,10 @@ const Login = () => {
       const user = await login(email, password, collegeCode ? collegeCode.trim().toUpperCase() : undefined);
       if (user.role === 'superadmin') {
         navigate('/superadmin');
-      } else if (user.role === 'tpo') {
+      } else if (user.role === 'tpo' || user.role === 'admin') {
         navigate('/tpo/dashboard');
+      } else if (user.role === 'recruiter') {
+        navigate('/recruiter/drives');
       } else {
         navigate('/student/dashboard');
       }

@@ -27,6 +27,13 @@ import TpoDeliveryReport from './pages/tpo/TpoDeliveryReport';
 import NotificationPreferences from './pages/NotificationPreferences';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import CollegeSettings from './pages/CollegeSettings';
+import RecruiterLayout from './components/RecruiterLayout';
+import RecruiterDrives from './pages/recruiter/RecruiterDrives';
+import RecruiterDriveCandidates from './pages/recruiter/RecruiterDriveCandidates';
+import RecruiterJdEditor from './pages/recruiter/RecruiterJdEditor';
+import RecruiterScheduleSlots from './pages/recruiter/RecruiterScheduleSlots';
+import RecruiterDriveFunnel from './pages/recruiter/RecruiterDriveFunnel';
+import RecruiterAcceptInvite from './pages/recruiter/RecruiterAcceptInvite';
 import ProtectedRoute from './components/ProtectedRoute';
 import ForStudents from './pages/ForStudents';
 import ForColleges from './pages/ForColleges';
@@ -76,7 +83,20 @@ function App() {
               <Route path="/portfolio/:rollNo" element={<PublicPortfolio />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/recruiter/accept-invite" element={<RecruiterAcceptInvite />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
+
+              {/* Recruiter Routes */}
+              <Route element={<ProtectedRoute allowedRoles={['recruiter', 'admin', 'superadmin']} />}>
+                <Route path="/recruiter" element={<RecruiterLayout />}>
+                  <Route index element={<Navigate to="/recruiter/drives" replace />} />
+                  <Route path="drives" element={<RecruiterDrives />} />
+                  <Route path="drives/:driveId/candidates" element={<RecruiterDriveCandidates />} />
+                  <Route path="drives/:driveId/jd-editor" element={<RecruiterJdEditor />} />
+                  <Route path="drives/:driveId/schedule" element={<RecruiterScheduleSlots />} />
+                  <Route path="drives/:driveId/funnel" element={<RecruiterDriveFunnel />} />
+                </Route>
+              </Route>
 
               {/* Student Routes */}
               <Route element={<ProtectedRoute allowedRoles={['student']} />}>

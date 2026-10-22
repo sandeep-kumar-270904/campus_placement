@@ -40,6 +40,30 @@ const userSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  companyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Company',
+    index: true,
+    default: null,
+  },
+  companyName: {
+    type: String,
+    trim: true,
+    default: '',
+  },
+  inviteToken: {
+    type: String,
+    index: true,
+    default: null,
+  },
+  inviteExpiresAt: {
+    type: Date,
+    default: null,
+  },
+  isInvited: {
+    type: Boolean,
+    default: false,
+  },
 }, { timestamps: true });
 
 // Enforce email uniqueness per college
