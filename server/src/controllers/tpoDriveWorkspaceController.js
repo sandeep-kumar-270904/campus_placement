@@ -199,6 +199,28 @@ exports.advanceApplicants = async (req, res) => {
       },
     });
 
+    try {
+      const { eventBus, DOMAIN_EVENTS } = require('../services/notifications/events/EventBus');
+      const drive = await Opportunity.findById(id).lean();
+      const updatedApps = await Application.find({ _id: { $in: applicationIds } })
+        .populate('studentId')
+        .lean();
+
+      for (const a of updatedApps) {
+        if (a.studentId) {
+          await eventBus.emitAsync(DOMAIN_EVENTS.APPLICATION_STATUS_CHANGED, {
+            application: a,
+            studentUser: a.studentId,
+            drive,
+            newStatus: targetStatus,
+            collegeId,
+          });
+        }
+      }
+    } catch (eventErr) {
+      console.error('Failed to emit APPLICATION_STATUS_CHANGED:', eventErr);
+    }
+
     return res.json({
       success: true,
       message: `Successfully advanced ${modifiedCount} candidate(s) to '${targetStatus}'.`,
@@ -404,6 +426,22 @@ exports.extendOffer = async (req, res) => {
         ctc,
       },
     });
+
+    try {
+      const { eventBus, DOMAIN_EVENTS } = require('../services/notifications/events/EventBus');
+      const studentUser = await User.findById(application.studentId).lean();
+      if (studentUser) {
+        await eventBus.emitAsync(DOMAIN_EVENTS.OFFER_EXTENDED, {
+          application,
+          studentUser,
+          drive,
+          offerDetails: { ctcTotal: application.offer.ctc },
+          collegeId,
+        });
+      }
+    } catch (eventErr) {
+      console.error('Failed to emit OFFER_EXTENDED event:', eventErr);
+    }
 
     return res.json({
       success: true,

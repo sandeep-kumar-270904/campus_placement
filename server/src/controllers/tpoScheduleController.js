@@ -305,6 +305,32 @@ exports.bulkGenerateSlots = async (req, res) => {
       },
     });
 
+    // Emit INTERVIEW_SCHEDULED for assigned students
+    try {
+      const { eventBus, DOMAIN_EVENTS } = require('../services/notifications/events/EventBus');
+      const assignedSlots = finalSlots.filter((s) => s.studentId);
+      if (assignedSlots.length > 0) {
+        const studentIdsToFetch = assignedSlots.map((s) => s.studentId);
+        const users = await User.find({ _id: { $in: studentIdsToFetch } }).lean();
+        const userMap = {};
+        users.forEach((u) => { userMap[u._id.toString()] = u; });
+
+        for (const slot of assignedSlots) {
+          const studentUser = userMap[slot.studentId.toString()];
+          if (studentUser) {
+            await eventBus.emitAsync(DOMAIN_EVENTS.INTERVIEW_SCHEDULED, {
+              slot,
+              studentUser,
+              drive,
+              collegeId,
+            });
+          }
+        }
+      }
+    } catch (eventErr) {
+      console.error('Failed to emit INTERVIEW_SCHEDULED in bulkGenerateSlots:', eventErr);
+    }
+
     res.status(201).json({
       success: true,
       message: `Successfully generated ${finalSlots.length} interview slots across ${panels.length} panel(s).`,
@@ -383,6 +409,21 @@ exports.updateScheduleSlot = async (req, res) => {
       .populate('studentId', 'firstName lastName email')
       .populate('opportunityId', 'title companyName')
       .lean();
+
+    // Emit INTERVIEW_SCHEDULED if assigned or rescheduled with active status
+    if (populated && populated.studentId && populated.status === 'Scheduled') {
+      try {
+        const { eventBus, DOMAIN_EVENTS } = require('../services/notifications/events/EventBus');
+        await eventBus.emitAsync(DOMAIN_EVENTS.INTERVIEW_SCHEDULED, {
+          slot: populated,
+          studentUser: populated.studentId,
+          drive: populated.opportunityId,
+          collegeId,
+        });
+      } catch (eventErr) {
+        console.error('Failed to emit INTERVIEW_SCHEDULED in updateScheduleSlot:', eventErr);
+      }
+    }
 
     res.json({
       success: true,

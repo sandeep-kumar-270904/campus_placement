@@ -183,6 +183,20 @@ exports.sendAnnouncement = async (req, res) => {
       },
     });
 
+    if (!isScheduled && recipients.length > 0) {
+      try {
+        const { eventBus, DOMAIN_EVENTS } = require('../services/notifications/events/EventBus');
+        const recipientUserIds = recipients.map((r) => r.userId).filter(Boolean);
+        await eventBus.emitAsync(DOMAIN_EVENTS.ANNOUNCEMENT_SENT, {
+          announcement,
+          recipientUserIds,
+          collegeId,
+        });
+      } catch (eventErr) {
+        console.error('Failed to emit ANNOUNCEMENT_SENT event:', eventErr);
+      }
+    }
+
     const populated = await Announcement.findById(announcement._id)
       .populate('sentBy', 'firstName lastName email')
       .populate('segments.driveId', 'title companyName')

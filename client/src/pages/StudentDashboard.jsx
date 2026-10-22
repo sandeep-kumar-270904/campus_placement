@@ -21,6 +21,7 @@ import {
 import { uploadResume } from '../services/documentService';
 import AtsMatcherModal from '../components/AtsMatcherModal';
 import TenantBrandingHeader from '../components/TenantBrandingHeader';
+import NotificationCenter from '../components/NotificationCenter';
 import { useTenant } from '../context/TenantContext';
 
 const StudentDashboard = () => {
@@ -195,50 +196,8 @@ const StudentDashboard = () => {
               Learning Hub
             </Link>
 
-            {/* Notification Trigger */}
-            <div className="relative">
-              <button 
-                onClick={() => {
-                  setShowNotifications(!showNotifications);
-                  if (!showNotifications) markNotificationsAsRead();
-                }}
-                className="p-2 text-gray-500 hover:text-gray-900 rounded-xl hover:bg-gray-100 relative transition-colors"
-              >
-                <Bell className="w-5 h-5" />
-                {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
-                )}
-              </button>
-
-              {/* Notification Dropdown */}
-              <AnimatePresence>
-                {showNotifications && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border border-gray-100 p-4 z-50"
-                  >
-                    <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-                      <h4 className="font-bold text-gray-900 text-sm">Placement Alerts</h4>
-                      <span className="text-xs text-mongo-green-dark font-semibold">Live Feed</span>
-                    </div>
-                    <div className="divide-y divide-gray-100 max-h-80 overflow-y-auto mt-2">
-                      {notifications.map(n => (
-                        <div key={n.id} className="py-3 flex gap-3 text-left">
-                          <div className="w-2 h-2 rounded-full bg-mongo-green mt-1.5 flex-shrink-0"></div>
-                          <div>
-                            <p className="text-xs font-bold text-gray-900">{n.title}</p>
-                            <p className="text-xs text-gray-600 mt-0.5">{n.message}</p>
-                            <span className="text-[10px] text-gray-400 mt-1 block">{n.time}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            {/* Notification Center */}
+            <NotificationCenter isDark={false} preferencesLink="/student/notifications/preferences" />
 
             <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
               <div className="text-sm text-right hidden sm:block">

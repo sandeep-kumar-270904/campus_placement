@@ -25,6 +25,10 @@ const documentRoutes = require('./routes/documentRoutes');
 const collegeRoutes = require('./routes/collegeRoutes');
 const verifyRoutes = require('./routes/verifyRoutes');
 const tpoRoutes = require('./routes/tpoRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+
+// Initialize event-driven notification subscribers
+require('./services/notifications');
 
 // Basic Health Route
 app.get('/', (req, res) => {
@@ -39,6 +43,7 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/verify', verifyRoutes);
 app.use('/api/tpo', tpoRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Central Error Handler
 app.use((err, req, res, next) => {

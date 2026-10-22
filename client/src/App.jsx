@@ -16,6 +16,8 @@ import TpoAnnouncements from './pages/tpo/TpoAnnouncements';
 import TpoAnalytics from './pages/tpo/TpoAnalytics';
 import TpoReports from './pages/tpo/TpoReports';
 import TpoSettings from './pages/tpo/TpoSettings';
+import TpoDeliveryReport from './pages/tpo/TpoDeliveryReport';
+import NotificationPreferences from './pages/NotificationPreferences';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import CollegeSettings from './pages/CollegeSettings';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -72,6 +74,7 @@ function App() {
               {/* Student Routes */}
               <Route element={<ProtectedRoute allowedRoles={['student']} />}>
                 <Route path="/student/dashboard" element={<StudentDashboard />} />
+                <Route path="/student/notifications/preferences" element={<NotificationPreferences />} />
               </Route>
 
               {/* TPO Routes */}
@@ -86,6 +89,7 @@ function App() {
                   <Route path="schedule" element={<TpoSchedule />} />
                   <Route path="companies" element={<TpoCompanies />} />
                   <Route path="announcements" element={<TpoAnnouncements />} />
+                  <Route path="notifications/tracking" element={<TpoDeliveryReport />} />
                   <Route path="analytics" element={<TpoAnalytics />} />
                   <Route path="reports" element={<TpoReports />} />
                   <Route path="settings" element={<TpoSettings />} />

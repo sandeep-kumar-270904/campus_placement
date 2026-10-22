@@ -24,6 +24,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import tpoService from '../services/tpoService';
+import NotificationCenter from './NotificationCenter';
 
 const NAV_ITEMS = [
   { path: '/tpo/dashboard', label: 'Command Center', icon: LayoutDashboard },
@@ -33,6 +34,7 @@ const NAV_ITEMS = [
   { path: '/tpo/schedule', label: 'Recruitment Schedule', icon: Calendar },
   { path: '/tpo/companies', label: 'Company CRM', icon: Building2 },
   { path: '/tpo/announcements', label: 'Broadcasts', icon: Megaphone },
+  { path: '/tpo/notifications/tracking', label: 'Delivery Reports', icon: Bell },
   { path: '/tpo/analytics', label: 'Institutional Analytics', icon: BarChart3 },
   { path: '/tpo/reports', label: 'Reports & Exports', icon: FileSpreadsheet },
   { path: '/tpo/settings', label: 'Placement Policies', icon: Settings },
@@ -184,6 +186,9 @@ export default function TpoLayout() {
                 </span>
               </button>
             )}
+
+            {/* Notification Center */}
+            <NotificationCenter isDark={true} preferencesLink="/tpo/settings" />
 
             {/* User Profile & Logout */}
             <div className="flex items-center gap-2 pl-2 sm:pl-3 border-l border-slate-800">

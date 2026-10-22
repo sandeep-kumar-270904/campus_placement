@@ -201,6 +201,25 @@ exports.actionVerification = async (req, res) => {
       },
     });
 
+    try {
+      const { eventBus, DOMAIN_EVENTS } = require('../services/notifications/events/EventBus');
+      if (action === 'approve') {
+        await eventBus.emitAsync(DOMAIN_EVENTS.VERIFICATION_APPROVED, {
+          studentUser: profile.user,
+          verificationCode: seal?.verificationCode,
+          collegeId,
+        });
+      } else {
+        await eventBus.emitAsync(DOMAIN_EVENTS.VERIFICATION_REJECTED, {
+          studentUser: profile.user,
+          rejectionReason: reason,
+          collegeId,
+        });
+      }
+    } catch (eventErr) {
+      console.error('Failed to emit VERIFICATION event:', eventErr);
+    }
+
     return res.json({
       success: true,
       action,

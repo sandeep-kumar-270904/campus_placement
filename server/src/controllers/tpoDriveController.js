@@ -293,6 +293,34 @@ exports.createDrive = async (req, res) => {
       metadata: { driveId: drive._id, title: drive.title, company: drive.companyName, status },
     });
 
+    if (drive.status === 'Open') {
+      try {
+        const { eventBus, DOMAIN_EVENTS } = require('../services/notifications/events/EventBus');
+        const eligibleQuery = {
+          ...(collegeId ? { collegeId } : {}),
+        };
+        if (drive.eligibilityRules?.allowedBranches?.length > 0) {
+          eligibleQuery.branch = { $in: drive.eligibilityRules.allowedBranches };
+        }
+        if (drive.eligibilityRules?.minCgpa) {
+          eligibleQuery.cgpa = { $gte: drive.eligibilityRules.minCgpa };
+        }
+        if (drive.eligibilityRules?.maxBacklogs !== undefined) {
+          eligibleQuery.backlogs = { $lte: drive.eligibilityRules.maxBacklogs };
+        }
+        const eligibleProfiles = await StudentProfile.find(eligibleQuery).select('user').lean();
+        const eligibleUserIds = eligibleProfiles.map((p) => p.user).filter(Boolean);
+
+        await eventBus.emitAsync(DOMAIN_EVENTS.DRIVE_PUBLISHED, {
+          drive,
+          eligibleStudentUserIds: eligibleUserIds,
+          collegeId,
+        });
+      } catch (eventErr) {
+        console.error('Failed to emit DRIVE_PUBLISHED event:', eventErr);
+      }
+    }
+
     return res.status(201).json({
       success: true,
       message: `Drive '${drive.title}' created successfully in ${status} mode.`,
@@ -387,6 +415,34 @@ exports.updateDriveStatus = async (req, res) => {
       resource: 'Opportunity',
       metadata: { driveId: drive._id, prevStatus, newStatus: status },
     });
+
+    if (status === 'Open' && prevStatus !== 'Open') {
+      try {
+        const { eventBus, DOMAIN_EVENTS } = require('../services/notifications/events/EventBus');
+        const eligibleQuery = {
+          ...(collegeId ? { collegeId } : {}),
+        };
+        if (drive.eligibilityRules?.allowedBranches?.length > 0) {
+          eligibleQuery.branch = { $in: drive.eligibilityRules.allowedBranches };
+        }
+        if (drive.eligibilityRules?.minCgpa) {
+          eligibleQuery.cgpa = { $gte: drive.eligibilityRules.minCgpa };
+        }
+        if (drive.eligibilityRules?.maxBacklogs !== undefined) {
+          eligibleQuery.backlogs = { $lte: drive.eligibilityRules.maxBacklogs };
+        }
+        const eligibleProfiles = await StudentProfile.find(eligibleQuery).select('user').lean();
+        const eligibleUserIds = eligibleProfiles.map((p) => p.user).filter(Boolean);
+
+        await eventBus.emitAsync(DOMAIN_EVENTS.DRIVE_PUBLISHED, {
+          drive,
+          eligibleStudentUserIds: eligibleUserIds,
+          collegeId,
+        });
+      } catch (eventErr) {
+        console.error('Failed to emit DRIVE_PUBLISHED event:', eventErr);
+      }
+    }
 
     return res.json({
       success: true,
