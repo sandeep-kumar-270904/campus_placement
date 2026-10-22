@@ -17,9 +17,12 @@ import {
   AlertTriangle,
   RotateCcw,
   Check,
+  BookOpen,
 } from 'lucide-react';
 import studentService from '../../services/studentService';
 import { useTenant } from '../../context/TenantContext';
+import AiResumeMatchModal from '../../components/ai/AiResumeMatchModal';
+import CompanyPrepPackModal from '../../components/ai/CompanyPrepPackModal';
 
 export default function StudentOpportunityHub() {
   const { branding, formatGrade } = useTenant();
@@ -40,6 +43,8 @@ export default function StudentOpportunityHub() {
   const [eligibilityModalDrive, setEligibilityModalDrive] = useState(null);
   const [applyModalDrive, setApplyModalDrive] = useState(null);
   const [withdrawModalDrive, setWithdrawModalDrive] = useState(null);
+  const [resumeMatchDrive, setResumeMatchDrive] = useState(null);
+  const [prepPackCompany, setPrepPackCompany] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionMsg, setActionMsg] = useState({ type: '', text: '' });
 
@@ -313,6 +318,26 @@ export default function StudentOpportunityHub() {
                         Branches: {drive.eligibilityRules.allowedBranches.join(', ')}
                       </p>
                     )}
+                  </div>
+
+                  {/* AI Intelligence Actions */}
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setResumeMatchDrive(drive)}
+                      className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[11px] font-semibold transition cursor-pointer"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                      <span>Check Resume</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPrepPackCompany(drive.companyName)}
+                      className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-850 hover:bg-slate-800 text-slate-300 border border-slate-700 text-[11px] font-semibold transition cursor-pointer"
+                    >
+                      <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Company Prep</span>
+                    </button>
                   </div>
                 </div>
 
@@ -601,6 +626,23 @@ export default function StudentOpportunityHub() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* AI Resume Match Modal */}
+      {resumeMatchDrive && (
+        <AiResumeMatchModal
+          driveId={resumeMatchDrive.id || resumeMatchDrive._id}
+          driveTitle={`${resumeMatchDrive.companyName} — ${resumeMatchDrive.title}`}
+          onClose={() => setResumeMatchDrive(null)}
+        />
+      )}
+
+      {/* AI Company Prep Pack Modal */}
+      {prepPackCompany && (
+        <CompanyPrepPackModal
+          companyName={prepPackCompany}
+          onClose={() => setPrepPackCompany(null)}
+        />
       )}
     </div>
   );

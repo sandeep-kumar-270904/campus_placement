@@ -26,6 +26,7 @@ import {
   FileCheck
 } from 'lucide-react';
 import tpoService from '../../services/tpoService';
+import TpoNaturalLanguageSearch from '../../components/tpo/TpoNaturalLanguageSearch';
 
 const SAVED_PRESETS = [
   { id: 'all', label: 'All Students', filter: {} },
@@ -381,6 +382,9 @@ export default function TpoStudents() {
           </button>
         </div>
       </div>
+
+      {/* Natural Language AI Assistant Search */}
+      <TpoNaturalLanguageSearch />
 
       {/* Saved Presets Bar */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">

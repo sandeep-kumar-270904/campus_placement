@@ -26,6 +26,7 @@ const NAV_ITEMS = [
   { path: '/student/applications', label: 'My Applications', icon: FileText },
   { path: '/student/profile', label: 'Profile Builder', icon: User },
   { path: '/student/interviews', label: 'Interview Calendar', icon: Calendar },
+  { path: '/student/mock-interview', label: 'AI Mock Interviewer', icon: Sparkles },
   { path: '/student/documents', label: 'Documents & NOC', icon: FolderLock },
   { path: '/student/privacy', label: 'Data & Privacy', icon: ShieldAlert },
   { path: '/student/notifications/preferences', label: 'Notification Settings', icon: Bell },

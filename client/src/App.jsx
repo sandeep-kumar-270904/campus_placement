@@ -34,6 +34,8 @@ import RecruiterJdEditor from './pages/recruiter/RecruiterJdEditor';
 import RecruiterScheduleSlots from './pages/recruiter/RecruiterScheduleSlots';
 import RecruiterDriveFunnel from './pages/recruiter/RecruiterDriveFunnel';
 import RecruiterAcceptInvite from './pages/recruiter/RecruiterAcceptInvite';
+import StudentMockInterview from './pages/student/StudentMockInterview';
+import TpoPlacementRiskDashboard from './pages/tpo/TpoPlacementRiskDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import ForStudents from './pages/ForStudents';
 import ForColleges from './pages/ForColleges';
@@ -107,6 +109,7 @@ function App() {
                   <Route path="applications" element={<StudentApplications />} />
                   <Route path="profile" element={<StudentProfileBuilder />} />
                   <Route path="interviews" element={<StudentInterviewCalendar />} />
+                  <Route path="mock-interview" element={<StudentMockInterview />} />
                   <Route path="documents" element={<StudentDocuments />} />
                   <Route path="privacy" element={<StudentPrivacy />} />
                   <Route path="notifications/preferences" element={<NotificationPreferences />} />
@@ -119,6 +122,7 @@ function App() {
                   <Route index element={<Navigate to="/tpo/dashboard" replace />} />
                   <Route path="dashboard" element={<TpoDashboardHome />} />
                   <Route path="students" element={<TpoStudents />} />
+                  <Route path="placement-risk" element={<TpoPlacementRiskDashboard />} />
                   <Route path="verification" element={<TpoVerification />} />
                   <Route path="drives" element={<TpoDrives />} />
                   <Route path="drives/:id" element={<TpoDriveWorkspace />} />

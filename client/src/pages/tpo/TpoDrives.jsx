@@ -25,6 +25,7 @@ import {
   DollarSign
 } from 'lucide-react';
 import tpoService from '../../services/tpoService';
+import TpoJdParserModal from '../../components/tpo/TpoJdParserModal';
 
 const STATUS_TABS = ['all', 'Open', 'In Progress', 'Draft', 'Closed', 'Archived'];
 
@@ -47,6 +48,7 @@ export default function TpoDrives() {
 
   // Drive Creation Wizard
   const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [isJdParserOpen, setIsJdParserOpen] = useState(false);
   const [wizardStep, setWizardStep] = useState(1);
   const [wizardForm, setWizardForm] = useState({
     title: '',
@@ -213,16 +215,25 @@ export default function TpoDrives() {
           </p>
         </div>
 
-        <button
-          onClick={() => {
-            setWizardStep(1);
-            setIsWizardOpen(true);
-          }}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 transition cursor-pointer"
-        >
-          <Plus className="w-4 h-4 stroke-[2.5]" />
-          Create Placement Drive
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsJdParserOpen(true)}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold text-xs transition cursor-pointer"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+            AI Prefill from Raw JD
+          </button>
+          <button
+            onClick={() => {
+              setWizardStep(1);
+              setIsWizardOpen(true);
+            }}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 transition cursor-pointer"
+          >
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            Create Placement Drive
+          </button>
+        </div>
       </div>
 
       {/* Status Filter Tabs & Search Bar */}
@@ -832,6 +843,33 @@ export default function TpoDrives() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* AI JD Parser Modal */}
+      {isJdParserOpen && (
+        <TpoJdParserModal
+          onClose={() => setIsJdParserOpen(false)}
+          onApplyStructuredJd={(parsed) => {
+            setWizardForm((prev) => ({
+              ...prev,
+              title: parsed.title || prev.title,
+              companyName: parsed.companyName || prev.companyName,
+              fixedCtc: parsed.ctc?.fixed || prev.fixedCtc,
+              variableCtc: parsed.ctc?.variable || prev.variableCtc,
+              rounds: parsed.rounds?.length ? parsed.rounds : prev.rounds,
+              eligibilityRules: {
+                ...prev.eligibilityRules,
+                minCgpa: parsed.eligibilityRules?.minCgpa ?? prev.eligibilityRules.minCgpa,
+                maxBacklogs: parsed.eligibilityRules?.maxBacklogs ?? prev.eligibilityRules.maxBacklogs,
+                allowedBranches: parsed.eligibilityRules?.allowedBranches?.length ? parsed.eligibilityRules.allowedBranches : prev.eligibilityRules.allowedBranches,
+              },
+              description: parsed.description || prev.description,
+            }));
+            setIsWizardOpen(true);
+            setWizardStep(1);
+            showToast('Prefilled drive form from parsed JD!');
+          }}
+        />
       )}
     </div>
   );

@@ -28,6 +28,7 @@ const tpoRoutes = require('./routes/tpoRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const studentRoutes = require('./routes/studentRoutes');
 const recruiterRoutes = require('./routes/recruiterRoutes');
+const aiRoutes = require('./routes/aiRoutes');
 
 // Initialize event-driven notification subscribers
 require('./services/notifications');
@@ -48,6 +49,7 @@ app.use('/api/tpo', tpoRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/recruiter', recruiterRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Central Error Handler
 app.use((err, req, res, next) => {

@@ -23,9 +23,11 @@ import {
   X,
   History,
   Send,
-  MessageSquare
+  MessageSquare,
+  Sparkles,
 } from 'lucide-react';
 import tpoService from '../../services/tpoService';
+import TpoFeedbackApprovalModal from '../../components/tpo/TpoFeedbackApprovalModal';
 
 const KANBAN_STAGES = [
   { key: 'Applied', title: 'Applied', color: 'border-slate-700 bg-slate-900/60' },
@@ -79,6 +81,9 @@ export default function TpoDriveWorkspace() {
   // Reject Modal
   const [rejectModalApp, setRejectModalApp] = useState(null);
   const [rejectReason, setRejectReason] = useState('Did not clear round assessment threshold');
+
+  // AI Feedback Approval Modal
+  const [reviewFeedbackData, setReviewFeedbackData] = useState(null);
 
   // Toast
   const [toast, setToast] = useState(null);
@@ -685,6 +690,16 @@ export default function TpoDriveWorkspace() {
                         {fb.strengths && <p className="text-slate-300"><strong>Strengths:</strong> {fb.strengths}</p>}
                         {fb.gaps && <p className="text-slate-400"><strong>Gaps:</strong> {fb.gaps}</p>}
                         {fb.comments && <p className="text-slate-400 italic">"{fb.comments}"</p>}
+                        <div className="pt-2 flex justify-end">
+                          <button
+                            type="button"
+                            onClick={() => setReviewFeedbackData({ application: app, feedback: fb })}
+                            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold transition cursor-pointer"
+                          >
+                            <Sparkles className="w-3 h-3 text-indigo-400" />
+                            <span>AI Review & Release</span>
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -1029,6 +1044,19 @@ export default function TpoDriveWorkspace() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* AI Feedback Approval Modal */}
+      {reviewFeedbackData && (
+        <TpoFeedbackApprovalModal
+          application={reviewFeedbackData.application}
+          initialFeedback={reviewFeedbackData.feedback}
+          onClose={() => setReviewFeedbackData(null)}
+          onApproved={() => {
+            showToast('Feedback verified and released to candidate workspace');
+            fetchWorkspace();
+          }}
+        />
       )}
     </div>
   );

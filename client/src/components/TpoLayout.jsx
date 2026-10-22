@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   Users,
   ShieldCheck,
+  ShieldAlert,
   Briefcase,
   Calendar,
   Building2,
@@ -29,6 +30,7 @@ import NotificationCenter from './NotificationCenter';
 const NAV_ITEMS = [
   { path: '/tpo/dashboard', label: 'Command Center', icon: LayoutDashboard },
   { path: '/tpo/students', label: 'Student Directory', icon: Users },
+  { path: '/tpo/placement-risk', label: 'Placement Risk AI', icon: ShieldAlert },
   { path: '/tpo/verification', label: 'Verification Queue', icon: ShieldCheck, badgeKey: 'pendingVerifications' },
   { path: '/tpo/drives', label: 'Placement Drives', icon: Briefcase, badgeKey: 'activeDrives' },
   { path: '/tpo/schedule', label: 'Recruitment Schedule', icon: Calendar },
