@@ -24,6 +24,7 @@ const profileRoutes = require('./routes/profileRoutes');
 const documentRoutes = require('./routes/documentRoutes');
 const collegeRoutes = require('./routes/collegeRoutes');
 const verifyRoutes = require('./routes/verifyRoutes');
+const tpoRoutes = require('./routes/tpoRoutes');
 
 // Basic Health Route
 app.get('/', (req, res) => {
@@ -37,6 +38,7 @@ app.use('/api/opportunities', opportunityRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/verify', verifyRoutes);
+app.use('/api/tpo', tpoRoutes);
 
 // Central Error Handler
 app.use((err, req, res, next) => {

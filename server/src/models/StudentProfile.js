@@ -30,6 +30,7 @@ const verificationRecordSchema = new mongoose.Schema({
   verifiedAt: { type: Date },
   verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   signedPayload: { type: mongoose.Schema.Types.Mixed },
+  rejectionReason: { type: String, default: '' },
 }, { _id: false });
 
 const studentProfileSchema = new mongoose.Schema({
@@ -102,6 +103,13 @@ const studentProfileSchema = new mongoose.Schema({
   }],
   careerGoals: { type: String, default: '' },
   isVerifiedByTPO: { type: Boolean, default: false },
+  marksheetUrl: { type: String, default: '' },
+  isPlaced: { type: Boolean, default: false },
+  tpoNotes: [{
+    note: { type: String, required: true },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    createdAt: { type: Date, default: Date.now },
+  }],
   verificationRecord: {
     type: verificationRecordSchema,
     default: () => ({ status: 'Unverified' }),

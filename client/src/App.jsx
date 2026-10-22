@@ -1,10 +1,21 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { TenantProvider } from './context/TenantContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import StudentDashboard from './pages/StudentDashboard';
-import TpoDashboard from './pages/TpoDashboard';
+import TpoLayout from './components/TpoLayout';
+import TpoDashboardHome from './pages/tpo/TpoDashboardHome';
+import TpoStudents from './pages/tpo/TpoStudents';
+import TpoVerification from './pages/tpo/TpoVerification';
+import TpoDrives from './pages/tpo/TpoDrives';
+import TpoDriveWorkspace from './pages/tpo/TpoDriveWorkspace';
+import TpoSchedule from './pages/tpo/TpoSchedule';
+import TpoCompanies from './pages/tpo/TpoCompanies';
+import TpoAnnouncements from './pages/tpo/TpoAnnouncements';
+import TpoAnalytics from './pages/tpo/TpoAnalytics';
+import TpoReports from './pages/tpo/TpoReports';
+import TpoSettings from './pages/tpo/TpoSettings';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import CollegeSettings from './pages/CollegeSettings';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -64,8 +75,21 @@ function App() {
               </Route>
 
               {/* TPO Routes */}
-              <Route element={<ProtectedRoute allowedRoles={['tpo', 'superadmin']} />}>
-                <Route path="/tpo/dashboard" element={<TpoDashboard />} />
+              <Route element={<ProtectedRoute allowedRoles={['tpo', 'admin', 'superadmin']} />}>
+                <Route path="/tpo" element={<TpoLayout />}>
+                  <Route index element={<Navigate to="/tpo/dashboard" replace />} />
+                  <Route path="dashboard" element={<TpoDashboardHome />} />
+                  <Route path="students" element={<TpoStudents />} />
+                  <Route path="verification" element={<TpoVerification />} />
+                  <Route path="drives" element={<TpoDrives />} />
+                  <Route path="drives/:id" element={<TpoDriveWorkspace />} />
+                  <Route path="schedule" element={<TpoSchedule />} />
+                  <Route path="companies" element={<TpoCompanies />} />
+                  <Route path="announcements" element={<TpoAnnouncements />} />
+                  <Route path="analytics" element={<TpoAnalytics />} />
+                  <Route path="reports" element={<TpoReports />} />
+                  <Route path="settings" element={<TpoSettings />} />
+                </Route>
               </Route>
 
               {/* Super Admin Console */}
