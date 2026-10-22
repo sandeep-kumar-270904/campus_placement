@@ -3,7 +3,14 @@ import { AuthProvider } from './context/AuthContext';
 import { TenantProvider } from './context/TenantContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import StudentDashboard from './pages/StudentDashboard';
+import StudentLayout from './components/StudentLayout';
+import StudentDashboardHome from './pages/student/StudentDashboardHome';
+import StudentProfileBuilder from './pages/student/StudentProfileBuilder';
+import StudentOpportunityHub from './pages/student/StudentOpportunityHub';
+import StudentApplications from './pages/student/StudentApplications';
+import StudentDocuments from './pages/student/StudentDocuments';
+import StudentInterviewCalendar from './pages/student/StudentInterviewCalendar';
+import StudentPrivacy from './pages/student/StudentPrivacy';
 import TpoLayout from './components/TpoLayout';
 import TpoDashboardHome from './pages/tpo/TpoDashboardHome';
 import TpoStudents from './pages/tpo/TpoStudents';
@@ -73,8 +80,17 @@ function App() {
 
               {/* Student Routes */}
               <Route element={<ProtectedRoute allowedRoles={['student']} />}>
-                <Route path="/student/dashboard" element={<StudentDashboard />} />
-                <Route path="/student/notifications/preferences" element={<NotificationPreferences />} />
+                <Route path="/student" element={<StudentLayout />}>
+                  <Route index element={<Navigate to="/student/dashboard" replace />} />
+                  <Route path="dashboard" element={<StudentDashboardHome />} />
+                  <Route path="opportunities" element={<StudentOpportunityHub />} />
+                  <Route path="applications" element={<StudentApplications />} />
+                  <Route path="profile" element={<StudentProfileBuilder />} />
+                  <Route path="interviews" element={<StudentInterviewCalendar />} />
+                  <Route path="documents" element={<StudentDocuments />} />
+                  <Route path="privacy" element={<StudentPrivacy />} />
+                  <Route path="notifications/preferences" element={<NotificationPreferences />} />
+                </Route>
               </Route>
 
               {/* TPO Routes */}

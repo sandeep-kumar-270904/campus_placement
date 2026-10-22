@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
   ShieldCheck, CheckCircle2, AlertTriangle, GraduationCap, Award, 
-  ExternalLink, Copy, Check, ArrowLeft, Printer, QrCode as QrIcon 
+  ExternalLink, Copy, Check, ArrowLeft, Printer, QrCode as QrIcon,
+  Briefcase, Globe
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import QRCode from 'qrcode';
@@ -37,7 +38,11 @@ const PublicPortfolio = () => {
             collegeName: res.data.student.collegeName,
             verificationCode: res.data.student.verificationCode,
             keyId: res.data.student.keyId,
-            skills: ['React', 'Node.js', 'System Design', 'Algorithms', 'MongoDB', 'Python'],
+            skills: res.data.student.skills?.length > 0 ? res.data.student.skills : ['React', 'Node.js', 'System Design', 'Algorithms', 'MongoDB', 'Python'],
+            projects: res.data.student.projects || [],
+            certifications: res.data.student.certifications || [],
+            socialLinks: res.data.student.socialLinks || {},
+            publicPortfolioSettings: res.data.student.publicPortfolioSettings || {},
           });
         }
       } catch {
@@ -279,6 +284,128 @@ const PublicPortfolio = () => {
               ))}
             </div>
           </div>
+
+          {/* Portfolio Projects */}
+          {student.projects && student.projects.length > 0 && (
+            <div>
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <Briefcase className="w-4 h-4 text-mongo-green-dark" />
+                Featured Engineering Projects
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {student.projects.map((proj, idx) => (
+                  <div key={idx} className="p-4 rounded-2xl bg-gray-50 border border-gray-200 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-bold text-gray-900">{proj.title}</h4>
+                      {proj.link && (
+                        <a
+                          href={proj.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-bold text-mongo-green-dark hover:underline flex items-center gap-1"
+                        >
+                          Demo <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
+                    {proj.description && <p className="text-xs text-gray-600 leading-relaxed">{proj.description}</p>}
+                    {proj.githubUrl && (
+                      <a
+                        href={proj.githubUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500 hover:text-gray-900"
+                      >
+                        GitHub Repo ➔
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Certifications */}
+          {student.certifications && student.certifications.length > 0 && (
+            <div>
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <Award className="w-4 h-4 text-mongo-green-dark" />
+                Verified Credentials & Certifications
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {student.certifications.map((cert, idx) => (
+                  <div key={idx} className="p-3.5 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-gray-900">{cert.name}</p>
+                      <p className="text-[11px] text-gray-500">{cert.issuer}</p>
+                    </div>
+                    {cert.credentialUrl && (
+                      <a
+                        href={cert.credentialUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-bold text-mongo-green-dark hover:underline flex items-center gap-1"
+                      >
+                        Verify <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Social & Contact Profiles */}
+          {student.socialLinks && Object.values(student.socialLinks).some(Boolean) && (
+            <div>
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <Globe className="w-4 h-4 text-mongo-green-dark" />
+                Profiles & Coding Handles
+              </h3>
+              <div className="flex flex-wrap gap-3">
+                {student.socialLinks.github && (
+                  <a
+                    href={student.socialLinks.github}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-xs font-bold text-gray-800 transition flex items-center gap-1"
+                  >
+                    GitHub <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+                {student.socialLinks.linkedin && (
+                  <a
+                    href={student.socialLinks.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-xs font-bold text-blue-700 transition flex items-center gap-1"
+                  >
+                    LinkedIn <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+                {student.socialLinks.portfolio && (
+                  <a
+                    href={student.socialLinks.portfolio}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-xs font-bold text-emerald-800 transition flex items-center gap-1"
+                  >
+                    Personal Site <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+                {student.socialLinks.leetcode && (
+                  <a
+                    href={student.socialLinks.leetcode}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-xs font-bold text-amber-800 transition flex items-center gap-1"
+                  >
+                    LeetCode <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}

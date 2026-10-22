@@ -1,19 +1,24 @@
 import api from './api';
 
-export const uploadResume = async (file) => {
+export const uploadFile = async (file, purpose = 'marksheet') => {
   const formData = new FormData();
   formData.append('document', file);
+  formData.append('purpose', purpose);
 
-  try {
-    const response = await api.post('/documents/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-    return response.data.file.url;
-  } catch (err) {
-    console.warn('Backend upload unavailable, using local document reader fallback.', err);
-    // Local fallback: create an object URL or base64 representation
-    return URL.createObjectURL(file);
-  }
+  const response = await api.post('/documents/upload', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+
+  return response.data.document;
+};
+
+export const uploadResume = async (file) => {
+  return uploadFile(file, 'resume');
+};
+
+export default {
+  uploadFile,
+  uploadResume,
 };

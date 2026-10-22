@@ -146,6 +146,13 @@ exports.verifyStudentSeal = async (req, res) => {
     }
 
     // 4. Valid Seal: return authentic certificate data (sensitive personal info excluded)
+    const settings = profile.publicPortfolioSettings || {
+      showCgpa: true,
+      showContactInfo: true,
+      showProjects: true,
+      showCertifications: true,
+    };
+
     return res.json({
       valid: true,
       status: 'Signature valid',
@@ -156,7 +163,7 @@ exports.verifyStudentSeal = async (req, res) => {
         collegeCode,
         branch: profile.branch,
         gradYear: profile.graduationYear || profile.academics?.graduationYear || 2026,
-        cgpa: profile.cgpa,
+        cgpa: settings.showCgpa !== false ? profile.cgpa : '[Protected / Confidential]',
         backlogs: profile.backlogs,
         verifiedAt: profile.verificationRecord.verifiedAt,
         verifier: verifierName,
@@ -164,6 +171,11 @@ exports.verifyStudentSeal = async (req, res) => {
         keyId: profile.verificationRecord.keyId,
         version: profile.verificationRecord.version,
         verificationCode: profile.verificationRecord.verificationCode,
+        skills: profile.skills || [],
+        projects: settings.showProjects !== false ? profile.projects || [] : [],
+        certifications: settings.showCertifications !== false ? profile.certifications || [] : [],
+        socialLinks: settings.showContactInfo !== false ? profile.socialLinks || {} : {},
+        publicPortfolioSettings: settings,
       },
     });
   } catch (err) {

@@ -80,6 +80,11 @@ const studentProfileSchema = new mongoose.Schema({
     gender: { type: String, enum: ['Male', 'Female', 'Other', ''] },
     address: { type: String, default: '' },
   },
+  educationGapYears: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
   academics: {
     tenth: academicSchema,
     twelfth: academicSchema,
@@ -89,27 +94,123 @@ const studentProfileSchema = new mongoose.Schema({
     totalBacklogs: { type: Number, default: 0 },
     graduationYear: { type: Number, default: 2026 },
   },
+  semesters: [
+    {
+      semesterNumber: { type: Number, required: true },
+      sgpa: { type: Number, required: true },
+      credits: { type: Number, default: 24 },
+      backlogs: { type: Number, default: 0 },
+    },
+  ],
   skills: [{ type: String }],
-  projects: [{
-    title: { type: String },
-    description: { type: String },
-    link: { type: String },
-  }],
-  experience: [{
-    company: { type: String },
-    role: { type: String },
-    duration: { type: String },
-    description: { type: String },
-  }],
+  projects: [
+    {
+      title: { type: String, required: true },
+      description: { type: String, default: '' },
+      link: { type: String, default: '' },
+      githubUrl: { type: String, default: '' },
+      technologies: [{ type: String }],
+      startDate: { type: String, default: '' },
+      endDate: { type: String, default: '' },
+    },
+  ],
+  certifications: [
+    {
+      name: { type: String, required: true },
+      issuer: { type: String, default: '' },
+      issueDate: { type: String, default: '' },
+      credentialUrl: { type: String, default: '' },
+      credentialId: { type: String, default: '' },
+    },
+  ],
+  socialLinks: {
+    github: { type: String, default: '' },
+    linkedin: { type: String, default: '' },
+    leetcode: { type: String, default: '' },
+    portfolio: { type: String, default: '' },
+  },
+  resumeVersions: [
+    {
+      version: { type: Number, default: 1 },
+      originalName: { type: String, default: 'Resume.pdf' },
+      url: { type: String, default: '' },
+      storageKey: { type: String, default: '' },
+      isPrimary: { type: Boolean, default: true },
+      uploadedAt: { type: Date, default: Date.now },
+    },
+  ],
+  experience: [
+    {
+      company: { type: String },
+      role: { type: String },
+      duration: { type: String },
+      description: { type: String },
+    },
+  ],
   careerGoals: { type: String, default: '' },
   isVerifiedByTPO: { type: Boolean, default: false },
   marksheetUrl: { type: String, default: '' },
   isPlaced: { type: Boolean, default: false },
-  tpoNotes: [{
-    note: { type: String, required: true },
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    createdAt: { type: Date, default: Date.now },
-  }],
+  placedDetails: {
+    companyName: { type: String, default: '' },
+    role: { type: String, default: '' },
+    ctc: { type: Number, default: 0 },
+    offerLetterUrl: { type: String, default: '' },
+    placedAt: { type: Date },
+  },
+  nocRequests: [
+    {
+      companyName: { type: String, required: true },
+      role: { type: String, required: true },
+      purpose: {
+        type: String,
+        enum: ['Internship NOC', 'Bonafide Certificate', 'Attendance Exemption', 'Other'],
+        default: 'Internship NOC',
+      },
+      startDate: { type: Date },
+      endDate: { type: Date },
+      status: {
+        type: String,
+        enum: ['Pending', 'Approved', 'Rejected'],
+        default: 'Pending',
+      },
+      tpoRemarks: { type: String, default: '' },
+      approvedAt: { type: Date },
+      requestedAt: { type: Date, default: Date.now },
+    },
+  ],
+  publicPortfolioSettings: {
+    isPublic: { type: Boolean, default: true },
+    showCgpa: { type: Boolean, default: true },
+    showProjects: { type: Boolean, default: true },
+    showCertifications: { type: Boolean, default: true },
+    showExperience: { type: Boolean, default: true },
+    showContact: { type: Boolean, default: false },
+  },
+  consentLog: [
+    {
+      consentedAt: { type: Date, default: Date.now },
+      consentType: { type: String, default: 'recruiter_data_sharing' },
+      ipAddress: { type: String, default: '' },
+      version: { type: String, default: '1.0' },
+    },
+  ],
+  deletionRequest: {
+    requestedAt: { type: Date },
+    reason: { type: String, default: '' },
+    status: {
+      type: String,
+      enum: ['None', 'Pending', 'Processed'],
+      default: 'None',
+    },
+  },
+  tpoNotes: [
+    {
+      note: { type: String, required: true },
+      createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      createdAt: { type: Date, default: Date.now },
+    },
+  ],
   verificationRecord: {
     type: verificationRecordSchema,
     default: () => ({ status: 'Unverified' }),
