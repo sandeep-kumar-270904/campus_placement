@@ -18,12 +18,15 @@ import {
   ExternalLink,
   ArrowUpRight,
   ShieldAlert,
-  Sparkles
+  Sparkles,
+  MessageSquare,
 } from 'lucide-react';
 import tpoService from '../../services/tpoService';
+import { useTenant } from '../../context/TenantContext';
 
 export default function TpoDashboardHome() {
   const navigate = useNavigate();
+  const { isFeatureEnabled } = useTenant();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -228,6 +231,42 @@ export default function TpoDashboardHome() {
             <FileSpreadsheet className="w-3.5 h-3.5 text-purple-400" />
             Export Report
           </button>
+          {(!isFeatureEnabled || isFeatureEnabled('internshipPpo')) && (
+            <button
+              onClick={() => navigate('/tpo/internships')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs transition cursor-pointer"
+            >
+              <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+              Internships & PPO
+            </button>
+          )}
+          {(!isFeatureEnabled || isFeatureEnabled('offCampusHigherStudies')) && (
+            <button
+              onClick={() => navigate('/tpo/outcomes')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs transition cursor-pointer"
+            >
+              <Award className="w-3.5 h-3.5 text-indigo-400" />
+              External Outcomes
+            </button>
+          )}
+          {(!isFeatureEnabled || isFeatureEnabled('alumniNetwork')) && (
+            <button
+              onClick={() => navigate('/tpo/alumni')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs transition cursor-pointer"
+            >
+              <Users className="w-3.5 h-3.5 text-cyan-400" />
+              Alumni Queue
+            </button>
+          )}
+          {(!isFeatureEnabled || isFeatureEnabled('interviewExperiences')) && (
+            <button
+              onClick={() => navigate('/tpo/interview-experiences')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs transition cursor-pointer"
+            >
+              <MessageSquare className="w-3.5 h-3.5 text-amber-400" />
+              Debriefs Moderation
+            </button>
+          )}
         </div>
       </div>
 

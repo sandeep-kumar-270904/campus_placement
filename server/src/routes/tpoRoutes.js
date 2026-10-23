@@ -135,10 +135,27 @@ const {
   getReportHistory,
 } = require('../controllers/tpoReportController');
 
-// 10. Prebuilt Reports Exporter, XLSX/CSV Generation & Audit History
+const {
+  initiateReportJob,
+  getJobProgress,
+  downloadReportFile,
+  getReportJobsHistory,
+  getYoyAnalytics,
+  updateReportSettings,
+  getWeeklyDigest,
+} = require('../controllers/tpoReportJobController');
+
+// 10. Prebuilt Reports Exporter, Async Jobs, PDF/XLSX/CSV Generation & Audit History
 router.get('/reports/templates', getReportTemplates);
 router.post('/reports/generate', generateReport);
 router.get('/reports/history', getReportHistory);
+router.post('/reports/jobs', initiateReportJob);
+router.get('/reports/jobs/:jobId', getJobProgress);
+router.get('/reports/download/:jobId', downloadReportFile);
+router.get('/reports/jobs-history', getReportJobsHistory);
+router.get('/reports/yoy', getYoyAnalytics);
+router.patch('/reports/settings', updateReportSettings);
+router.post('/reports/digest', getWeeklyDigest);
 
 const {
   getSettings,

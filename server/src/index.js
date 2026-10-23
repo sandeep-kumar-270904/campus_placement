@@ -29,6 +29,10 @@ const notificationRoutes = require('./routes/notificationRoutes');
 const studentRoutes = require('./routes/studentRoutes');
 const recruiterRoutes = require('./routes/recruiterRoutes');
 const aiRoutes = require('./routes/aiRoutes');
+const alumniRoutes = require('./routes/alumniRoutes');
+const interviewExperienceRoutes = require('./routes/interviewExperienceRoutes');
+const internshipRoutes = require('./routes/internshipRoutes');
+const externalOutcomeRoutes = require('./routes/externalOutcomeRoutes');
 
 // Initialize event-driven notification subscribers
 require('./services/notifications');
@@ -50,6 +54,10 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/recruiter', recruiterRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/alumni', alumniRoutes);
+app.use('/api/interview-experiences', interviewExperienceRoutes);
+app.use('/api/internships', internshipRoutes);
+app.use('/api/external-outcomes', externalOutcomeRoutes);
 
 // Central Error Handler
 app.use((err, req, res, next) => {

@@ -42,6 +42,17 @@ export default function CollegeSettings() {
     darkBg: '#001E2B',
     branches: [],
     rules: [],
+    featureFlags: {
+      atsMatcher: true,
+      prepHub: true,
+      publicPortfolio: true,
+      interviewScheduler: true,
+      alumniNetwork: true,
+      interviewExperiences: true,
+      internshipPpo: true,
+      offCampusHigherStudies: true,
+      consolidatedResources: true,
+    },
   });
 
   const [newBranchInput, setNewBranchInput] = useState('');
@@ -92,6 +103,17 @@ export default function CollegeSettings() {
             'Students with > 0 active backlogs are restricted from Dream Tier placement drives.',
             'Minimum 75% attendance in mock training drives is mandatory for drive eligibility.',
           ],
+          featureFlags: {
+            atsMatcher: data.featureFlags?.atsMatcher ?? true,
+            prepHub: data.featureFlags?.prepHub ?? true,
+            publicPortfolio: data.featureFlags?.publicPortfolio ?? true,
+            interviewScheduler: data.featureFlags?.interviewScheduler ?? true,
+            alumniNetwork: data.featureFlags?.alumniNetwork ?? true,
+            interviewExperiences: data.featureFlags?.interviewExperiences ?? true,
+            internshipPpo: data.featureFlags?.internshipPpo ?? true,
+            offCampusHigherStudies: data.featureFlags?.offCampusHigherStudies ?? true,
+            consolidatedResources: data.featureFlags?.consolidatedResources ?? true,
+          },
         });
       } catch (err) {
         console.error('Failed to load college config:', err);
@@ -151,6 +173,16 @@ export default function CollegeSettings() {
     }));
   };
 
+  const handleToggleFeature = (flagKey) => {
+    setFormData((prev) => ({
+      ...prev,
+      featureFlags: {
+        ...prev.featureFlags,
+        [flagKey]: !prev.featureFlags?.[flagKey],
+      },
+    }));
+  };
+
   // Submit updates
   const handleSaveConfig = async (e) => {
     e.preventDefault();
@@ -193,6 +225,7 @@ export default function CollegeSettings() {
           darkBg: formData.darkBg,
           logoUrl: formData.logoUrl.trim(),
         },
+        featureFlags: formData.featureFlags,
       };
 
       await collegeService.updateCollegeConfig(collegeId, payload);
@@ -620,6 +653,99 @@ export default function CollegeSettings() {
                   + Add Rule
                 </button>
               </form>
+            </div>
+
+            {/* Section 6: Feature Flags & Modular Capabilities */}
+            <div className="p-6 rounded-2xl bg-slate-900/70 border border-slate-800/80 shadow-md space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                <div>
+                  <h2 className="text-sm font-bold text-white">
+                    6. Institutional Modules & Feature Flags
+                  </h2>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    Toggle optional campus features on or off. Disabled modules are hidden from navigation and guarded by tenant middleware.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                {[
+                  {
+                    key: 'alumniNetwork',
+                    label: 'Alumni Network & Mentors',
+                    desc: 'Alumni directory, TPO verification, mentor matching, and rate-limited referral requests.',
+                  },
+                  {
+                    key: 'interviewExperiences',
+                    label: 'Interview Debriefs Library',
+                    desc: 'Crowdsourced interview questions, round breakdowns, difficulty ratings, and moderation.',
+                  },
+                  {
+                    key: 'internshipPpo',
+                    label: 'Internship & PPO Pipeline',
+                    desc: 'Separate tracking for summer/winter internships, monthly stipends, and PPO conversions.',
+                  },
+                  {
+                    key: 'offCampusHigherStudies',
+                    label: 'Off-Campus & Higher Studies',
+                    desc: 'Student self-reporting for off-campus offers, GATE/GRE scores, startups, and TPO digital seals.',
+                  },
+                  {
+                    key: 'consolidatedResources',
+                    label: 'Career Resources (90+)',
+                    desc: 'Searchable consolidated hub of 55 learning platforms and 35 hiring platforms with bookmarks.',
+                  },
+                  {
+                    key: 'atsMatcher',
+                    label: 'AI Resume & JD Matcher',
+                    desc: 'Server-side Claude resume scoring, missing skills analysis, and bullet rewrites.',
+                  },
+                  {
+                    key: 'prepHub',
+                    label: 'AI Mock Interviewer',
+                    desc: 'Turn-by-turn AI interview simulation with structured scoring rubrics and feedback.',
+                  },
+                  {
+                    key: 'publicPortfolio',
+                    label: 'Verified Portfolios',
+                    desc: 'Ed25519 digitally sealed public portfolios and public verification endpoints.',
+                  },
+                ].map((item) => {
+                  const isEnabled = formData.featureFlags?.[item.key] ?? true;
+                  return (
+                    <div
+                      key={item.key}
+                      onClick={() => handleToggleFeature(item.key)}
+                      className={`p-3.5 rounded-xl border transition cursor-pointer flex flex-col justify-between ${
+                        isEnabled
+                          ? 'bg-slate-950/80 border-emerald-500/40 shadow-sm'
+                          : 'bg-slate-950/30 border-slate-800/80 opacity-60'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <span className="font-bold text-xs text-white">{item.label}</span>
+                        <input
+                          type="checkbox"
+                          checked={isEnabled}
+                          onChange={() => {}} // handled by parent onClick
+                          className="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-500 bg-slate-900 border-slate-700 pointer-events-none"
+                        />
+                      </div>
+                      <p className="text-[10px] text-slate-400 leading-relaxed">{item.desc}</p>
+                      <div className="mt-2.5 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px]">
+                        <span className="text-slate-500">Status:</span>
+                        <span
+                          className={`font-bold ${
+                            isEnabled ? 'text-emerald-400' : 'text-slate-500'
+                          }`}
+                        >
+                          {isEnabled ? 'Enabled' : 'Disabled'}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
 

@@ -35,6 +35,15 @@ import RecruiterScheduleSlots from './pages/recruiter/RecruiterScheduleSlots';
 import RecruiterDriveFunnel from './pages/recruiter/RecruiterDriveFunnel';
 import RecruiterAcceptInvite from './pages/recruiter/RecruiterAcceptInvite';
 import StudentMockInterview from './pages/student/StudentMockInterview';
+import StudentAlumniNetwork from './pages/student/StudentAlumniNetwork';
+import StudentInterviewExperiences from './pages/student/StudentInterviewExperiences';
+import StudentInternships from './pages/student/StudentInternships';
+import StudentOutcomes from './pages/student/StudentOutcomes';
+import StudentResources from './pages/student/StudentResources';
+import TpoAlumniManagement from './pages/tpo/TpoAlumniManagement';
+import TpoInterviewModeration from './pages/tpo/TpoInterviewModeration';
+import TpoInternships from './pages/tpo/TpoInternships';
+import TpoExternalOutcomes from './pages/tpo/TpoExternalOutcomes';
 import TpoPlacementRiskDashboard from './pages/tpo/TpoPlacementRiskDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import ForStudents from './pages/ForStudents';
@@ -113,6 +122,11 @@ function App() {
                   <Route path="documents" element={<StudentDocuments />} />
                   <Route path="privacy" element={<StudentPrivacy />} />
                   <Route path="notifications/preferences" element={<NotificationPreferences />} />
+                  <Route path="alumni" element={<StudentAlumniNetwork />} />
+                  <Route path="interview-experiences" element={<StudentInterviewExperiences />} />
+                  <Route path="internships" element={<StudentInternships />} />
+                  <Route path="outcomes" element={<StudentOutcomes />} />
+                  <Route path="resources" element={<StudentResources />} />
                 </Route>
               </Route>
 
@@ -133,6 +147,10 @@ function App() {
                   <Route path="analytics" element={<TpoAnalytics />} />
                   <Route path="reports" element={<TpoReports />} />
                   <Route path="settings" element={<TpoSettings />} />
+                  <Route path="alumni" element={<TpoAlumniManagement />} />
+                  <Route path="interview-experiences" element={<TpoInterviewModeration />} />
+                  <Route path="internships" element={<TpoInternships />} />
+                  <Route path="outcomes" element={<TpoExternalOutcomes />} />
                 </Route>
               </Route>
 

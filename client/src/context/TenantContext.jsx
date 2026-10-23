@@ -17,6 +17,10 @@ const DEFAULT_FEATURE_FLAGS = {
   publicPortfolio: true,
   interviewScheduler: true,
   alumniNetwork: true,
+  interviewExperiences: true,
+  internshipPpo: true,
+  offCampusHigherStudies: true,
+  consolidatedResources: true,
 };
 
 const DEFAULT_GRADING_SYSTEM = {

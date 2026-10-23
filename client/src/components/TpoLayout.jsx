@@ -22,12 +22,14 @@ import {
   Plus,
   Sparkles,
   ExternalLink,
-  ChevronRight
+  ChevronRight,
+  TrendingUp,
+  Award,
 } from 'lucide-react';
 import tpoService from '../services/tpoService';
 import NotificationCenter from './NotificationCenter';
 
-const NAV_ITEMS = [
+const ALL_NAV_ITEMS = [
   { path: '/tpo/dashboard', label: 'Command Center', icon: LayoutDashboard },
   { path: '/tpo/students', label: 'Student Directory', icon: Users },
   { path: '/tpo/placement-risk', label: 'Placement Risk AI', icon: ShieldAlert },
@@ -36,6 +38,10 @@ const NAV_ITEMS = [
   { path: '/tpo/schedule', label: 'Recruitment Schedule', icon: Calendar },
   { path: '/tpo/companies', label: 'Company CRM', icon: Building2 },
   { path: '/tpo/announcements', label: 'Broadcasts', icon: Megaphone },
+  { path: '/tpo/internships', label: 'Internships & PPO', icon: TrendingUp, featureFlag: 'internshipPpo' },
+  { path: '/tpo/outcomes', label: 'External Outcomes', icon: Award, featureFlag: 'offCampusHigherStudies' },
+  { path: '/tpo/alumni', label: 'Alumni Network', icon: Users, featureFlag: 'alumniNetwork' },
+  { path: '/tpo/interview-experiences', label: 'Interview Debriefs', icon: MessageSquare, featureFlag: 'interviewExperiences' },
   { path: '/tpo/notifications/tracking', label: 'Delivery Reports', icon: Bell },
   { path: '/tpo/analytics', label: 'Institutional Analytics', icon: BarChart3 },
   { path: '/tpo/reports', label: 'Reports & Exports', icon: FileSpreadsheet },
@@ -44,9 +50,13 @@ const NAV_ITEMS = [
 
 export default function TpoLayout() {
   const { user, logout } = useContext(AuthContext);
-  const { branding, college } = useTenant();
+  const { branding, college, isFeatureEnabled } = useTenant();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const navItems = ALL_NAV_ITEMS.filter(
+    (item) => !item.featureFlag || (isFeatureEnabled && isFeatureEnabled(item.featureFlag))
+  );
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [badges, setBadges] = useState({ pendingVerifications: 0, activeDrives: 0 });
@@ -222,7 +232,7 @@ export default function TpoLayout() {
           <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
             Navigation Menu
           </div>
-          {NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const Icon = item.icon;
             const badgeCount = item.badgeKey ? badges[item.badgeKey] : 0;
             return (
@@ -281,7 +291,7 @@ export default function TpoLayout() {
                   </button>
                 </div>
                 <div className="space-y-1">
-                  {NAV_ITEMS.map((item) => {
+                  {navItems.map((item) => {
                     const Icon = item.icon;
                     return (
                       <NavLink

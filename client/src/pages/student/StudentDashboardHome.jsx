@@ -16,12 +16,16 @@ import {
   TrendingUp,
   ExternalLink,
   Info,
+  Users,
+  MessageSquareText,
+  Compass,
+  GraduationCap,
 } from 'lucide-react';
 import studentService from '../../services/studentService';
 import { useTenant } from '../../context/TenantContext';
 
 export default function StudentDashboardHome() {
-  const { branding, formatGrade } = useTenant();
+  const { branding, formatGrade, isFeatureEnabled } = useTenant();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
@@ -468,6 +472,105 @@ export default function StudentDashboardHome() {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Career Accelerators & Community Hub */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-emerald-400" />
+              <h2 className="text-sm font-bold text-white">Career Accelerators</h2>
+            </div>
+            <div className="grid grid-cols-1 gap-2 text-xs">
+              {(!isFeatureEnabled || isFeatureEnabled('consolidatedResources')) && (
+                <Link
+                  to="/student/resources"
+                  className="p-3 rounded-xl bg-slate-800/40 hover:bg-slate-800/80 border border-slate-700/60 flex items-center justify-between group transition"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Compass className="w-4 h-4 text-emerald-400" />
+                    <div>
+                      <p className="font-bold text-white group-hover:text-emerald-400 transition">
+                        Career Resources (90+)
+                      </p>
+                      <p className="text-[10px] text-slate-400">DSA practice, curated roadmaps & job portals</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400 transition" />
+                </Link>
+              )}
+
+              {(!isFeatureEnabled || isFeatureEnabled('alumniNetwork')) && (
+                <Link
+                  to="/student/alumni"
+                  className="p-3 rounded-xl bg-slate-800/40 hover:bg-slate-800/80 border border-slate-700/60 flex items-center justify-between group transition"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Users className="w-4 h-4 text-purple-400" />
+                    <div>
+                      <p className="font-bold text-white group-hover:text-purple-400 transition">
+                        Alumni Mentorship & Referrals
+                      </p>
+                      <p className="text-[10px] text-slate-400">Connect with verified seniors at top firms</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-purple-400 transition" />
+                </Link>
+              )}
+
+              {(!isFeatureEnabled || isFeatureEnabled('interviewExperiences')) && (
+                <Link
+                  to="/student/interview-experiences"
+                  className="p-3 rounded-xl bg-slate-800/40 hover:bg-slate-800/80 border border-slate-700/60 flex items-center justify-between group transition"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <MessageSquareText className="w-4 h-4 text-cyan-400" />
+                    <div>
+                      <p className="font-bold text-white group-hover:text-cyan-400 transition">
+                        Interview Experiences
+                      </p>
+                      <p className="text-[10px] text-slate-400">Real debriefs, asked questions & prep strategies</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-cyan-400 transition" />
+                </Link>
+              )}
+
+              {(!isFeatureEnabled || isFeatureEnabled('internshipPpo')) && (
+                <Link
+                  to="/student/internships"
+                  className="p-3 rounded-xl bg-slate-800/40 hover:bg-slate-800/80 border border-slate-700/60 flex items-center justify-between group transition"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <TrendingUp className="w-4 h-4 text-amber-400" />
+                    <div>
+                      <p className="font-bold text-white group-hover:text-amber-400 transition">
+                        Industrial Internships & PPO
+                      </p>
+                      <p className="text-[10px] text-slate-400">Stipend tracker & pre-placement offer logs</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-amber-400 transition" />
+                </Link>
+              )}
+
+              {(!isFeatureEnabled || isFeatureEnabled('offCampusHigherStudies')) && (
+                <Link
+                  to="/student/outcomes"
+                  className="p-3 rounded-xl bg-slate-800/40 hover:bg-slate-800/80 border border-slate-700/60 flex items-center justify-between group transition"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <GraduationCap className="w-4 h-4 text-indigo-400" />
+                    <div>
+                      <p className="font-bold text-white group-hover:text-indigo-400 transition">
+                        Off-Campus & Higher Studies
+                      </p>
+                      <p className="text-[10px] text-slate-400">Report external offers, GATE/GRE, or startups</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-indigo-400 transition" />
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </div>

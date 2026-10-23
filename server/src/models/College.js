@@ -104,6 +104,48 @@ const collegeSchema = new mongoose.Schema({
       type: Boolean,
       default: true,
     },
+    interviewExperiences: {
+      type: Boolean,
+      default: true,
+    },
+    internshipPpo: {
+      type: Boolean,
+      default: true,
+    },
+    offCampusHigherStudies: {
+      type: Boolean,
+      default: true,
+    },
+    consolidatedResources: {
+      type: Boolean,
+      default: true,
+    },
+  },
+  reportSettings: {
+    headerTitle: {
+      type: String,
+      default: 'CAMPUS PLACEMENT & ACCREDITATION AUDIT REPORT',
+    },
+    logoUrl: {
+      type: String,
+      default: '',
+    },
+    signatories: {
+      type: [
+        {
+          title: { type: String, default: 'Training & Placement Officer' },
+          name: { type: String, default: 'Dr. Placement Officer' },
+        },
+      ],
+      default: [
+        { title: 'Training & Placement Officer', name: 'Dr. Placement Officer' },
+        { title: 'Principal / Director', name: 'Dr. College Principal' },
+      ],
+    },
+    customDisclaimer: {
+      type: String,
+      default: 'Confidential institutional record certified for NAAC, NIRF, and NBA statutory audits.',
+    },
   },
   branding: {
     primaryColor: {

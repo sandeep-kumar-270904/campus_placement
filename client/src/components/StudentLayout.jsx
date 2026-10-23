@@ -17,16 +17,26 @@ import {
   ExternalLink,
   Sparkles,
   ChevronRight,
+  Users,
+  MessageSquareText,
+  TrendingUp,
+  GraduationCap,
+  Compass,
 } from 'lucide-react';
 import NotificationCenter from './NotificationCenter';
 
-const NAV_ITEMS = [
+const ALL_NAV_ITEMS = [
   { path: '/student/dashboard', label: 'Today Hub', icon: LayoutDashboard },
   { path: '/student/opportunities', label: 'Opportunities', icon: Briefcase },
   { path: '/student/applications', label: 'My Applications', icon: FileText },
   { path: '/student/profile', label: 'Profile Builder', icon: User },
   { path: '/student/interviews', label: 'Interview Calendar', icon: Calendar },
-  { path: '/student/mock-interview', label: 'AI Mock Interviewer', icon: Sparkles },
+  { path: '/student/mock-interview', label: 'AI Mock Interviewer', icon: Sparkles, featureFlag: 'atsMatcher' },
+  { path: '/student/alumni', label: 'Alumni Network', icon: Users, featureFlag: 'alumniNetwork' },
+  { path: '/student/interview-experiences', label: 'Interview Debriefs', icon: MessageSquareText, featureFlag: 'interviewExperiences' },
+  { path: '/student/internships', label: 'Internships & PPO', icon: TrendingUp, featureFlag: 'internshipPpo' },
+  { path: '/student/outcomes', label: 'Off-Campus & Outcomes', icon: GraduationCap, featureFlag: 'offCampusHigherStudies' },
+  { path: '/student/resources', label: 'Career Resources (90+)', icon: Compass, featureFlag: 'consolidatedResources' },
   { path: '/student/documents', label: 'Documents & NOC', icon: FolderLock },
   { path: '/student/privacy', label: 'Data & Privacy', icon: ShieldAlert },
   { path: '/student/notifications/preferences', label: 'Notification Settings', icon: Bell },
@@ -34,9 +44,13 @@ const NAV_ITEMS = [
 
 export default function StudentLayout() {
   const { user, logout } = useContext(AuthContext);
-  const { branding, college } = useTenant();
+  const { branding, college, isFeatureEnabled } = useTenant();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const navItems = ALL_NAV_ITEMS.filter(
+    (item) => !item.featureFlag || (isFeatureEnabled && isFeatureEnabled(item.featureFlag))
+  );
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -134,7 +148,7 @@ export default function StudentLayout() {
 
         {/* Nav Links */}
         <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
-          {NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path || (item.path !== '/student/dashboard' && location.pathname.startsWith(item.path));
             return (
