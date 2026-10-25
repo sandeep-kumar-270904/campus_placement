@@ -9,6 +9,7 @@
   - `docs(<scope>): <concise descriptive message>`
   - `test(<scope>): <concise descriptive message>`
   - `refactor(<scope>): <concise descriptive message>`
+- **Timely Pushing to GitHub**: Frequently push committed milestones directly to GitHub (`git push origin <branch>`) so remote repository history stays in sync, backup is secured, and team visibility is immediate.
 - **Clear Commit History**: Maintain a beautifully visible repository history that makes debugging, audit trails, and progress reviews effortless.
 
 ---
