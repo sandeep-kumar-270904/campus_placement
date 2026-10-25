@@ -1,27 +1,40 @@
 const jwt = require('jsonwebtoken');
 const { tenantContextMiddleware } = require('./tenantContext');
 
+const getJwtSecret = () => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('FATAL: JWT_SECRET environment variable is missing in production environment.');
+    }
+    // Safe deterministic development secret
+    return 'dev_placeearly_super_secure_jwt_secret_key_2026';
+  }
+  return secret;
+};
+
 const protect = async (req, res, next) => {
   let token;
 
+  // Enforce tokens strictly via the Authorization Bearer header (no query param leakage)
   if (
     req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
+    req.headers.authorization.startsWith('Bearer ')
   ) {
     token = req.headers.authorization.split(' ')[1];
-  } else if (req.query && req.query.token) {
-    token = req.query.token;
   }
 
   if (token) {
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
+      const decoded = jwt.verify(token, getJwtSecret());
       req.user = {
         ...decoded,
         id: decoded.id || decoded.userId,
         userId: decoded.id || decoded.userId,
         collegeId: decoded.collegeId || null,
         companyId: decoded.companyId || null,
+        role: decoded.role || 'student',
+        department: decoded.department || null,
       };
 
       // Wrap downstream route handling in tenant context
@@ -36,14 +49,12 @@ const protect = async (req, res, next) => {
     }
   }
 
-  if (!token) {
-    return res.status(401).json({
-      error: {
-        code: 'UNAUTHORIZED',
-        message: 'Not authorized, no bearer token provided',
-      },
-    });
-  }
+  return res.status(401).json({
+    error: {
+      code: 'UNAUTHORIZED',
+      message: 'Not authorized, no bearer token provided in Authorization header',
+    },
+  });
 };
 
 const authorize = (...roles) => {
@@ -65,4 +76,5 @@ module.exports = {
   authorize,
   verifyToken: protect,
   authorizeRoles: (...roles) => authorize(...roles),
+  getJwtSecret,
 };

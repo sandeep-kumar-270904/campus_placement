@@ -44,7 +44,18 @@ exports.getStudents = async (req, res) => {
 
     const filter = collegeId ? { collegeId } : {};
 
-    if (branch && branch !== 'all') {
+    if (req.user?.role === 'coordinator') {
+      const coordinatorDept = req.deptScope || req.user.department;
+      if (!coordinatorDept) {
+        return res.status(403).json({
+          error: {
+            code: 'NO_DEPARTMENT_ASSIGNED',
+            message: 'Department Coordinator account has no assigned department.',
+          },
+        });
+      }
+      filter.branch = new RegExp(`^${coordinatorDept.trim()}$`, 'i');
+    } else if (branch && branch !== 'all') {
       filter.branch = branch;
     }
 
@@ -188,6 +199,18 @@ exports.getStudentDetails = async (req, res) => {
 
     if (!student) {
       return res.status(404).json({ error: { message: 'Student profile not found.' } });
+    }
+
+    if (req.user?.role === 'coordinator') {
+      const coordinatorDept = req.deptScope || req.user.department;
+      if (!coordinatorDept || (student.branch || '').trim().toLowerCase() !== coordinatorDept.trim().toLowerCase()) {
+        return res.status(403).json({
+          error: {
+            code: 'DEPARTMENT_MISMATCH',
+            message: `Access denied. You can only view students in the '${coordinatorDept || 'assigned'}' department.`,
+          },
+        });
+      }
     }
 
     const collegeId = student.collegeId;
@@ -606,6 +629,18 @@ exports.addStudentNote = async (req, res) => {
     const profile = await StudentProfile.findById(id);
     if (!profile) {
       return res.status(404).json({ error: { message: 'Student profile not found.' } });
+    }
+
+    if (req.user?.role === 'coordinator') {
+      const coordinatorDept = req.deptScope || req.user.department;
+      if (!coordinatorDept || (profile.branch || '').trim().toLowerCase() !== coordinatorDept.trim().toLowerCase()) {
+        return res.status(403).json({
+          error: {
+            code: 'DEPARTMENT_MISMATCH',
+            message: `Access denied. You can only annotate students in the '${coordinatorDept || 'assigned'}' department.`,
+          },
+        });
+      }
     }
 
     profile.tpoNotes.push({

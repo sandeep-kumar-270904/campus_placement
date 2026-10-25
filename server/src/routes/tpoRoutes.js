@@ -18,9 +18,12 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB for Excel/CSV imports
 });
 
-// All TPO endpoints are protected and restricted to TPO, Admin, or SuperAdmin
+// All TPO endpoints are protected and restricted to staff roles (TPO, Coordinator, Admin, SuperAdmin)
+// Students and Recruiters are immediately rejected with 403 FORBIDDEN
 router.use(protect);
-router.use(authorize('tpo', 'admin', 'superadmin'));
+router.use(authorize('tpo', 'coordinator', 'admin', 'superadmin'));
+
+const { requirePermission, requireDeptScope } = require('../middleware/permissionMiddleware');
 
 const {
   getVerificationQueue,
@@ -49,26 +52,26 @@ const {
 router.get('/dashboard-summary', getDashboardSummary);
 
 // 2. Student Directory, Details, Bulk Verification, and Import
-router.get('/students', getStudents);
-router.get('/students/:id', getStudentDetails);
-router.post('/students/bulk-verify', bulkVerifyStudents);
-router.post('/students/bulk-import/preview', upload.single('file'), previewBulkImport);
-router.post('/students/bulk-import/commit', commitBulkImport);
-router.post('/students/manual', addStudentManual);
-router.put('/students/:id/notes', addStudentNote);
+router.get('/students', requireDeptScope, getStudents);
+router.get('/students/:id', requireDeptScope, getStudentDetails);
+router.post('/students/bulk-verify', requirePermission('student:verify'), bulkVerifyStudents);
+router.post('/students/bulk-import/preview', requirePermission('student:import'), upload.single('file'), previewBulkImport);
+router.post('/students/bulk-import/commit', requirePermission('student:import'), commitBulkImport);
+router.post('/students/manual', requirePermission('student:import'), addStudentManual);
+router.put('/students/:id/notes', requireDeptScope, addStudentNote);
 
 // 3. Academic Verification Queue & Actions
-router.get('/verification-queue', getVerificationQueue);
-router.post('/verification/:studentId/action', actionVerification);
+router.get('/verification-queue', requireDeptScope, getVerificationQueue);
+router.post('/verification/:studentId/action', requireDeptScope, actionVerification);
 
 // 4. Placement Drives Roster, Wizard & State Transitions
 router.get('/drives', getDrives);
-router.post('/drives', createDrive);
-router.put('/drives/:id', updateDrive);
+router.post('/drives', requirePermission('drive:create'), createDrive);
+router.put('/drives/:id', requirePermission('drive:update'), updateDrive);
 router.post('/drives/preview-eligibility', previewEligibility);
-router.patch('/drives/:id/status', updateDriveStatus);
-router.post('/drives/:id/duplicate', duplicateDrive);
-router.patch('/drives/:id/review-proposed-jd', reviewProposedJd);
+router.patch('/drives/:id/status', requirePermission('drive:close'), updateDriveStatus);
+router.post('/drives/:id/duplicate', requirePermission('drive:create'), duplicateDrive);
+router.patch('/drives/:id/review-proposed-jd', requirePermission('drive:update'), reviewProposedJd);
 
 // 5. Drive Workspace, Pipeline Kanban, Shortlist Upload, Feedback & Offers
 router.get('/drives/:id/workspace', getDriveWorkspace);

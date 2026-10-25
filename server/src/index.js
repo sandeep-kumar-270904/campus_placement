@@ -1,8 +1,11 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
 const { tenantContextMiddleware } = require('./middleware/tenantContext');
+const { noSqlSanitizer, xssSanitizer } = require('./middleware/securityMiddleware');
 
 dotenv.config();
 
@@ -10,9 +13,44 @@ const app = express();
 
 app.set('trust proxy', 1);
 
-// Standard Middleware
-app.use(cors());
-app.use(express.json());
+// Security Headers via Helmet
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    contentSecurityPolicy: false, // Managed by Vercel / reverse proxy in production
+  })
+);
+
+// Strict CORS Allowlist with credentials support
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+].filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+        return callback(null, true);
+      }
+      return callback(new Error(`CORS origin '${origin}' not allowed by security policy.`));
+    },
+    credentials: true,
+  })
+);
+
+// Request body size limits (1MB cap to prevent payload denial-of-service)
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+
+// Cookie Parser for httpOnly refresh tokens
+app.use(cookieParser());
+
+// NoSQL Injection and XSS sanitization
+app.use(noSqlSanitizer);
+app.use(xssSanitizer);
 
 // Global Tenant Context Middleware
 app.use(tenantContextMiddleware);
@@ -35,6 +73,7 @@ const internshipRoutes = require('./routes/internshipRoutes');
 const externalOutcomeRoutes = require('./routes/externalOutcomeRoutes');
 const placementPolicyRoutes = require('./routes/placementPolicyRoutes');
 const resourceRoutes = require('./routes/resourceRoutes');
+const auditLogRoutes = require('./routes/auditLogRoutes');
 
 // Initialize event-driven notification subscribers
 require('./services/notifications');
@@ -63,6 +102,8 @@ app.use('/api/external-outcomes', externalOutcomeRoutes);
 app.use('/api/resources', resourceRoutes);
 app.use('/api/policies', placementPolicyRoutes);
 app.use('/api/tpo/policies', placementPolicyRoutes);
+app.use('/api/admin/audit-logs', auditLogRoutes);
+app.use('/api/audit-logs', auditLogRoutes);
 
 // Central Error Handler
 app.use((err, req, res, next) => {

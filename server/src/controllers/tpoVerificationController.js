@@ -23,7 +23,18 @@ exports.getVerificationQueue = async (req, res) => {
       isVerifiedByTPO: false,
     };
 
-    if (branch && branch !== 'all') {
+    if (req.user?.role === 'coordinator') {
+      const coordinatorDept = req.deptScope || req.user.department;
+      if (!coordinatorDept) {
+        return res.status(403).json({
+          error: {
+            code: 'NO_DEPARTMENT_ASSIGNED',
+            message: 'Department Coordinator account has no assigned department.',
+          },
+        });
+      }
+      filter.branch = new RegExp(`^${coordinatorDept.trim()}$`, 'i');
+    } else if (branch && branch !== 'all') {
       filter.branch = branch;
     }
 
@@ -140,6 +151,18 @@ exports.actionVerification = async (req, res) => {
       return res.status(404).json({ error: { message: 'Student profile not found.' } });
     }
 
+    if (req.user?.role === 'coordinator') {
+      const coordinatorDept = req.deptScope || req.user.department;
+      if (!coordinatorDept || (profile.branch || '').trim().toLowerCase() !== coordinatorDept.trim().toLowerCase()) {
+        return res.status(403).json({
+          error: {
+            code: 'DEPARTMENT_MISMATCH',
+            message: `Access denied. You can only verify students in the '${coordinatorDept || 'assigned'}' department.`,
+          },
+        });
+      }
+    }
+
     let seal = null;
 
     if (action === 'approve') {
@@ -187,13 +210,17 @@ exports.actionVerification = async (req, res) => {
 
     await profile.save();
 
-    await AuditLog.create({
+    const { logAuditAction } = require('../utils/auditLogger');
+    await logAuditAction({
+      req,
       collegeId,
       actorId: tpoId,
-      action: action === 'approve' ? 'STUDENT_VERIFICATION_APPROVED' : 'STUDENT_VERIFICATION_REJECTED',
-      resource: 'StudentProfile',
-      metadata: {
-        studentId: profile._id,
+      actor: req.user?.email,
+      role: req.user?.role,
+      action: action === 'approve' ? 'VERIFY_STUDENT' : 'REJECT_STUDENT',
+      entity: 'StudentProfile',
+      entityId: profile._id.toString(),
+      after: {
         rollNo: profile.rollNo,
         action,
         verificationCode: seal?.verificationCode,

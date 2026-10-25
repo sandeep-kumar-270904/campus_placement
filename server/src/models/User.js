@@ -26,6 +26,11 @@ const userSchema = new mongoose.Schema({
     default: 'student',
     index: true,
   },
+  department: {
+    type: String,
+    trim: true,
+    default: null, // Scoped branch/department for 'coordinator'
+  },
   isVerified: {
     type: Boolean,
     default: false,
@@ -64,6 +69,20 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  googleId: {
+    type: String,
+    index: true,
+    default: null,
+  },
+  resetPasswordToken: {
+    type: String,
+    index: true,
+    default: null,
+  },
+  resetPasswordExpires: {
+    type: Date,
+    default: null,
+  },
 }, { timestamps: true });
 
 // Enforce email uniqueness per college
@@ -72,17 +91,27 @@ userSchema.index({ collegeId: 1, email: 1 }, { unique: true });
 // Apply tenant scoping plugin (optional for users to allow global superadmin)
 userSchema.plugin(tenantPlugin, { required: false });
 
-// Hash password before saving
+// Hash password before saving using standard bcrypt cost 12
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
-  const salt = await bcrypt.genSalt(10);
+  const salt = await bcrypt.genSalt(12);
   this.password = await bcrypt.hash(this.password, salt);
   next();
 });
 
-// Compare password method
+// Compare password method with safe on-the-fly migration for hashes with cost < 12
 userSchema.methods.matchPassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
+  const isMatch = await bcrypt.compare(enteredPassword, this.password);
+  if (isMatch) {
+    const roundsMatch = this.password.match(/^\$2[aby]?\$(\d+)\$/);
+    const currentRounds = roundsMatch ? parseInt(roundsMatch[1], 10) : 0;
+    if (currentRounds < 12) {
+      const salt = await bcrypt.genSalt(12);
+      this.password = await bcrypt.hash(enteredPassword, salt);
+      await this.save();
+    }
+  }
+  return isMatch;
 };
 
 const User = mongoose.model('User', userSchema);
