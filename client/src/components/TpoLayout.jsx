@@ -46,6 +46,8 @@ const ALL_NAV_ITEMS = [
   { path: '/tpo/notifications/tracking', label: 'Delivery Reports', icon: Bell },
   { path: '/tpo/analytics', label: 'Institutional Analytics', icon: BarChart3 },
   { path: '/tpo/reports', label: 'Reports & Exports', icon: FileSpreadsheet },
+  { path: '/tpo/audit-log', label: 'Audit & Compliance', icon: ShieldAlert },
+  { path: '/settings/sessions', label: 'Active Sessions', icon: Settings },
   { path: '/tpo/settings', label: 'Placement Policies', icon: Settings },
 ];
 

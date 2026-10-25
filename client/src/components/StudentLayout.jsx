@@ -40,6 +40,7 @@ const ALL_NAV_ITEMS = [
   { path: '/student/documents', label: 'Documents & NOC', icon: FolderLock },
   { path: '/student/privacy', label: 'Data & Privacy', icon: ShieldAlert },
   { path: '/student/notifications/preferences', label: 'Notification Settings', icon: Bell },
+  { path: '/settings/sessions', label: 'Active Sessions', icon: FolderLock },
 ];
 
 export default function StudentLayout() {

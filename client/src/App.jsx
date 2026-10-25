@@ -28,6 +28,10 @@ import TpoDeliveryReport from './pages/tpo/TpoDeliveryReport';
 import NotificationPreferences from './pages/NotificationPreferences';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import CollegeSettings from './pages/CollegeSettings';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
+import AdminAuditLog from './pages/admin/AdminAuditLog';
+import SessionManagement from './pages/settings/SessionManagement';
 import RecruiterLayout from './components/RecruiterLayout';
 import RecruiterDrives from './pages/recruiter/RecruiterDrives';
 import RecruiterDriveCandidates from './pages/recruiter/RecruiterDriveCandidates';
@@ -95,8 +99,20 @@ function App() {
               <Route path="/portfolio/:rollNo" element={<PublicPortfolio />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/recruiter/accept-invite" element={<RecruiterAcceptInvite />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
+
+              {/* Shared Session Management Route */}
+              <Route element={<ProtectedRoute allowedRoles={['student', 'tpo', 'coordinator', 'admin', 'superadmin', 'recruiter']} />}>
+                <Route path="/settings/sessions" element={<SessionManagement />} />
+              </Route>
+
+              {/* Standalone Admin Audit Log Route */}
+              <Route element={<ProtectedRoute allowedRoles={['admin', 'superadmin', 'tpo']} />}>
+                <Route path="/admin/audit-log" element={<AdminAuditLog />} />
+              </Route>
 
               {/* Recruiter Routes */}
               <Route element={<ProtectedRoute allowedRoles={['recruiter', 'admin', 'superadmin']} />}>
@@ -131,8 +147,8 @@ function App() {
                 </Route>
               </Route>
 
-              {/* TPO Routes */}
-              <Route element={<ProtectedRoute allowedRoles={['tpo', 'admin', 'superadmin']} />}>
+              {/* TPO & Coordinator Routes */}
+              <Route element={<ProtectedRoute allowedRoles={['tpo', 'coordinator', 'admin', 'superadmin']} />}>
                 <Route path="/tpo" element={<TpoLayout />}>
                   <Route index element={<Navigate to="/tpo/dashboard" replace />} />
                   <Route path="dashboard" element={<TpoDashboardHome />} />
@@ -147,6 +163,7 @@ function App() {
                   <Route path="notifications/tracking" element={<TpoDeliveryReport />} />
                   <Route path="analytics" element={<TpoAnalytics />} />
                   <Route path="reports" element={<TpoReports />} />
+                  <Route path="audit-log" element={<AdminAuditLog />} />
                   <Route path="settings" element={<TpoSettings />} />
                   <Route path="settings/policies" element={<TpoPlacementPolicies />} />
                   <Route path="policies" element={<TpoPlacementPolicies />} />
