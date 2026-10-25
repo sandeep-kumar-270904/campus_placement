@@ -144,6 +144,29 @@ exports.applyToOpportunity = async (req, res) => {
       });
     }
 
+    // Enforce Institutional Placement Policy Engine
+    const { evaluateStudentPolicy } = require('../services/policyEngine/placementPolicyEngine');
+    const policyResult = await evaluateStudentPolicy({
+      collegeId: opportunity.collegeId,
+      studentId,
+      opportunity,
+      studentProfile: profile,
+    });
+
+    if (!policyResult.isAllowed) {
+      const primaryReason = policyResult.blockingReasons[0];
+      return res.status(403).json({
+        message: primaryReason?.message || 'Application blocked by institutional placement policy',
+        error: {
+          code: primaryReason?.code || 'POLICY_BLOCKED',
+          message: primaryReason?.message || 'Application blocked by institutional placement policy',
+          policyType: primaryReason?.policyType,
+          blockingReasons: policyResult.blockingReasons,
+          canRequestException: true,
+        },
+      });
+    }
+
     // Create Application
     const application = new Application({
       collegeId: opportunity.collegeId,

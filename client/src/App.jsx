@@ -23,6 +23,7 @@ import TpoAnnouncements from './pages/tpo/TpoAnnouncements';
 import TpoAnalytics from './pages/tpo/TpoAnalytics';
 import TpoReports from './pages/tpo/TpoReports';
 import TpoSettings from './pages/tpo/TpoSettings';
+import TpoPlacementPolicies from './pages/tpo/TpoPlacementPolicies';
 import TpoDeliveryReport from './pages/tpo/TpoDeliveryReport';
 import NotificationPreferences from './pages/NotificationPreferences';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
@@ -147,6 +148,8 @@ function App() {
                   <Route path="analytics" element={<TpoAnalytics />} />
                   <Route path="reports" element={<TpoReports />} />
                   <Route path="settings" element={<TpoSettings />} />
+                  <Route path="settings/policies" element={<TpoPlacementPolicies />} />
+                  <Route path="policies" element={<TpoPlacementPolicies />} />
                   <Route path="alumni" element={<TpoAlumniManagement />} />
                   <Route path="interview-experiences" element={<TpoInterviewModeration />} />
                   <Route path="internships" element={<TpoInternships />} />

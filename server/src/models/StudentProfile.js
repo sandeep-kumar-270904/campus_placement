@@ -78,6 +78,7 @@ const studentProfileSchema = new mongoose.Schema({
     phone: { type: String, default: '' },
     dateOfBirth: { type: Date },
     gender: { type: String, enum: ['Male', 'Female', 'Other', ''] },
+    category: { type: String, enum: ['General', 'OBC', 'SC', 'ST', 'EWS', 'Other', ''], default: 'General' },
     address: { type: String, default: '' },
   },
   educationGapYears: {

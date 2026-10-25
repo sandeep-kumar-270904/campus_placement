@@ -430,6 +430,17 @@ export default function TpoSettings() {
           Placement Policies & Season
         </button>
 
+        <a
+          href="/tpo/settings/policies"
+          className="pb-3 text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-emerald-400 transition-all flex items-center gap-2"
+        >
+          <Sparkles className="w-4 h-4 text-emerald-400" />
+          <span>Policy Engine & Governance</span>
+          <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.2 rounded-full font-mono">
+            New
+          </span>
+        </a>
+
         <button
           onClick={() => setActiveTab('branches')}
           className={`pb-3 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${

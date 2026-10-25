@@ -484,6 +484,73 @@ exports.reviewProposedOffer = async (req, res) => {
     }
 
     if (decision === 'Approved') {
+      const { getCollegePlacementPolicy, getOpportunityCtc, determineTier } = require('../services/policyEngine/placementPolicyEngine');
+      const policy = await getCollegePlacementPolicy(application.collegeId);
+      const PolicyOverride = require('../models/PolicyOverride');
+
+      // Check One-Student-One-Offer violation
+      if (policy.oneStudentOneOffer?.enabled && !req.body.bypassPolicyWarning) {
+        const existingAccepted = await Application.findOne({
+          collegeId: application.collegeId,
+          studentId: application.studentId,
+          _id: { $ne: application._id },
+          $or: [{ 'offer.status': 'Accepted' }, { status: 'Placed' }],
+        }).populate('opportunityId');
+
+        if (existingAccepted) {
+          const hasOverride = await PolicyOverride.findOne({
+            collegeId: application.collegeId,
+            studentId: application.studentId,
+            isActive: true,
+            policyType: { $in: ['all', 'one_student_one_offer'] },
+          });
+
+          if (!hasOverride) {
+            return res.status(400).json({
+              error: {
+                code: 'POLICY_OFFER_BLOCKED',
+                message: `Candidate has already accepted an offer with ${existingAccepted.opportunityId?.companyName || 'another employer'} under One-Student-One-Offer policy. A policy override is required to extend an additional offer.`,
+                requiresOverride: true,
+              },
+            });
+          }
+        }
+      }
+
+      // Check Dream Cap violation
+      if (policy.dreamCap?.enabled && !req.body.bypassPolicyWarning) {
+        const offerCtc = application.offer.ctc || getOpportunityCtc(application.opportunityId) || 0;
+        const dreamThreshold = policy.dreamCap.dreamThresholdCtc || 15.0;
+        if (offerCtc >= dreamThreshold) {
+          const dreamOffers = await Application.find({
+            collegeId: application.collegeId,
+            studentId: application.studentId,
+            _id: { $ne: application._id },
+            'offer.status': { $in: ['Pending', 'Accepted'] },
+            'offer.ctc': { $gte: dreamThreshold },
+          });
+
+          if (dreamOffers.length >= (policy.dreamCap.maxDreamOffers || 1)) {
+            const hasOverride = await PolicyOverride.findOne({
+              collegeId: application.collegeId,
+              studentId: application.studentId,
+              isActive: true,
+              policyType: { $in: ['all', 'dream_cap'] },
+            });
+
+            if (!hasOverride) {
+              return res.status(400).json({
+                error: {
+                  code: 'POLICY_DREAM_CAP_EXCEEDED',
+                  message: `Candidate has already received ${dreamOffers.length} Dream tier offer(s), reaching the institutional Dream cap. A policy override is required.`,
+                  requiresOverride: true,
+                },
+              });
+            }
+          }
+        }
+      }
+
       application.offer.status = 'Pending';
       application.offer.tpoApprovedAt = new Date();
       application.offer.tpoApprovedBy = tpoId;

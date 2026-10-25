@@ -18,8 +18,12 @@ import {
   RotateCcw,
   Check,
   BookOpen,
+  ShieldAlert,
+  ShieldCheck,
+  FileText,
 } from 'lucide-react';
 import studentService from '../../services/studentService';
+import policyService from '../../services/policyService';
 import { useTenant } from '../../context/TenantContext';
 import AiResumeMatchModal from '../../components/ai/AiResumeMatchModal';
 import CompanyPrepPackModal from '../../components/ai/CompanyPrepPackModal';
@@ -47,6 +51,18 @@ export default function StudentOpportunityHub() {
   const [prepPackCompany, setPrepPackCompany] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionMsg, setActionMsg] = useState({ type: '', text: '' });
+
+  // Policy Exception Appeal States
+  const [policyBlockedAlert, setPolicyBlockedAlert] = useState(null);
+  const [showAppealModal, setShowAppealModal] = useState(false);
+  const [appealDrive, setAppealDrive] = useState(null);
+  const [appealForm, setAppealForm] = useState({
+    justification: '',
+    documentName: '',
+    documentUrl: '',
+    policyType: 'general',
+  });
+  const [submittingAppeal, setSubmittingAppeal] = useState(false);
 
   const fetchOpportunities = async () => {
     try {
@@ -93,12 +109,65 @@ export default function StudentOpportunityHub() {
       setTimeout(() => setActionMsg({ type: '', text: '' }), 5000);
       fetchOpportunities();
     } catch (err) {
+      const errRes = err?.response?.data;
+      const errorObj = errRes?.error;
+      const errorMsg = errorObj?.message || errRes?.message || 'Failed to submit application.';
+
+      if (errorObj?.code?.startsWith('POLICY_') || errorObj?.canRequestException) {
+        setPolicyBlockedAlert({
+          drive: applyModalDrive,
+          code: errorObj.code,
+          message: errorMsg,
+          policyType: errorObj.policyType || 'general',
+          blockingReasons: errorObj.blockingReasons || [],
+        });
+      }
+
       setActionMsg({
         type: 'error',
-        text: err?.response?.data?.error?.message || 'Failed to submit application.',
+        text: errorMsg,
       });
+      setApplyModalDrive(null);
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleSubmitAppeal = async (e) => {
+    e.preventDefault();
+    if (!appealDrive) return;
+    if (!appealForm.justification.trim() || appealForm.justification.trim().length < 10) {
+      setActionMsg({
+        type: 'error',
+        text: 'Please write a justification of at least 10 characters for your appeal.',
+      });
+      return;
+    }
+    try {
+      setSubmittingAppeal(true);
+      const docs = appealForm.documentUrl
+        ? [{ name: appealForm.documentName || 'Supporting_Proof.pdf', url: appealForm.documentUrl }]
+        : [];
+      await policyService.submitException({
+        opportunityId: appealDrive.id || appealDrive._id,
+        policyType: appealForm.policyType,
+        justification: appealForm.justification.trim(),
+        documents: docs,
+      });
+      setActionMsg({
+        type: 'success',
+        text: 'Your policy exception appeal has been submitted to the TPO moderation queue.',
+      });
+      setShowAppealModal(false);
+      setPolicyBlockedAlert(null);
+      setAppealForm({ justification: '', documentName: '', documentUrl: '', policyType: 'general' });
+    } catch (err) {
+      setActionMsg({
+        type: 'error',
+        text: err?.response?.data?.error?.message || 'Failed to submit exception appeal.',
+      });
+    } finally {
+      setSubmittingAppeal(false);
     }
   };
 
@@ -155,6 +224,47 @@ export default function StudentOpportunityHub() {
           </div>
         )}
       </div>
+
+      {/* Policy Blocked Alert Banner with 1-Click Appeal */}
+      {policyBlockedAlert && (
+        <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fadeIn">
+          <div className="flex items-start gap-3">
+            <ShieldAlert className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+            <div>
+              <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider">
+                Institutional Placement Policy Block
+              </span>
+              <p className="text-xs font-semibold text-white mt-0.5">
+                {policyBlockedAlert.message}
+              </p>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Target Drive: {policyBlockedAlert.drive?.companyName} - {policyBlockedAlert.drive?.title}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <button
+              onClick={() => {
+                setAppealDrive(policyBlockedAlert.drive);
+                setAppealForm((prev) => ({
+                  ...prev,
+                  policyType: policyBlockedAlert.policyType || 'general',
+                }));
+                setShowAppealModal(true);
+              }}
+              className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold shadow-sm transition cursor-pointer"
+            >
+              Appeal for TPO Exception
+            </button>
+            <button
+              onClick={() => setPolicyBlockedAlert(null)}
+              className="p-1.5 text-slate-400 hover:text-white"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Search & Filter Bar */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-4">
@@ -643,6 +753,110 @@ export default function StudentOpportunityHub() {
           companyName={prepPackCompany}
           onClose={() => setPrepPackCompany(null)}
         />
+      )}
+
+      {/* Student Policy Exception Appeal Modal */}
+      {showAppealModal && appealDrive && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+          <form
+            onSubmit={handleSubmitAppeal}
+            className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-lg w-full space-y-4 shadow-2xl"
+          >
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <ShieldAlert className="w-5 h-5 text-amber-400" />
+                <h3 className="text-sm font-bold text-white">Appeal for Policy Exception</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAppealModal(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs">
+              <span className="text-[10px] uppercase font-bold text-indigo-400 block">Target Drive</span>
+              <p className="font-semibold text-white">
+                {appealDrive.companyName} — {appealDrive.title}
+              </p>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="text-slate-300 font-semibold block mb-1">Policy Category *</label>
+                <select
+                  value={appealForm.policyType}
+                  onChange={(e) => setAppealForm({ ...appealForm, policyType: e.target.value })}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                >
+                  <option value="general">General Policy Exception</option>
+                  <option value="one_student_one_offer">One-Student-One-Offer Exemption</option>
+                  <option value="dream_cap">Dream Tier Cap Exemption</option>
+                  <option value="tier_eligibility">Tier Progression Exemption</option>
+                  <option value="max_concurrent_apps">Concurrent Applications Waiver</option>
+                  <option value="cgpa_exception">Academic / CGPA Exception</option>
+                  <option value="backlog_waiver">Backlog Waiver</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-slate-300 font-semibold block mb-1">
+                  Written Justification / Statement * (Min 10 characters)
+                </label>
+                <textarea
+                  placeholder="Provide your specific reasoning, academic context, or career rationale to the TPO moderation committee..."
+                  value={appealForm.justification}
+                  onChange={(e) => setAppealForm({ ...appealForm, justification: e.target.value })}
+                  required
+                  rows={4}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-slate-300 font-semibold block mb-1">Supporting Document Name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Dean_Approval_Letter.pdf"
+                    value={appealForm.documentName}
+                    onChange={(e) => setAppealForm({ ...appealForm, documentName: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-slate-300 font-semibold block mb-1">Document Link / URL</label>
+                  <input
+                    type="url"
+                    placeholder="https://drive.google.com/..."
+                    value={appealForm.documentUrl}
+                    onChange={(e) => setAppealForm({ ...appealForm, documentUrl: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-white"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-800 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowAppealModal(false)}
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 text-xs font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submittingAppeal}
+                className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-950 text-xs font-bold shadow-md shadow-emerald-500/20"
+              >
+                {submittingAppeal ? 'Submitting Appeal...' : 'Submit Appeal to TPO'}
+              </button>
+            </div>
+          </form>
+        </div>
       )}
     </div>
   );
