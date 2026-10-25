@@ -19,6 +19,7 @@ import {
 import { LEARNING_PLATFORMS_DATA } from '../../data/learningPlatformsData';
 import { JOB_PLATFORMS_DATA } from '../../data/jobPlatformsData';
 import { AuthContext } from '../../context/AuthContext';
+import resourceService from '../../services/resourceService';
 
 export default function StudentResources() {
   const { user } = useContext(AuthContext);
@@ -27,7 +28,7 @@ export default function StudentResources() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('all'); // 'all' | 'learning' | 'jobs' | 'dsa' | 'courses' | 'startups' | 'internships' | 'bookmarks'
 
-  // Bookmarks persisted in localStorage
+  // Bookmarks persisted in localStorage and synced with backend API
   const [bookmarks, setBookmarks] = useState(() => {
     try {
       const saved = localStorage.getItem('student_bookmarked_resources');
@@ -36,6 +37,27 @@ export default function StudentResources() {
       return ['leetcode', 'neetcode', 'linkedin', 'wellfound'];
     }
   });
+
+  useEffect(() => {
+    let isMounted = true;
+    resourceService
+      .getBookmarks()
+      .then((serverBookmarks) => {
+        if (isMounted && Array.isArray(serverBookmarks) && serverBookmarks.length > 0) {
+          setBookmarks((prev) => {
+            const merged = Array.from(new Set([...prev, ...serverBookmarks]));
+            try {
+              localStorage.setItem('student_bookmarked_resources', JSON.stringify(merged));
+            } catch {}
+            return merged;
+          });
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Selected Platform for Drawer / Detail Modal
   const [selectedPlatform, setSelectedPlatform] = useState(null);
@@ -64,6 +86,8 @@ export default function StudentResources() {
       }
       return next;
     });
+    // Sync with backend API
+    resourceService.toggleBookmark(id).catch(() => {});
   };
 
   // Student's target role from profile

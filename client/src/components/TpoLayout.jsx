@@ -25,6 +25,7 @@ import {
   ChevronRight,
   TrendingUp,
   Award,
+  MessageSquare,
 } from 'lucide-react';
 import tpoService from '../services/tpoService';
 import NotificationCenter from './NotificationCenter';

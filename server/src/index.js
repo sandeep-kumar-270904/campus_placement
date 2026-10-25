@@ -34,6 +34,7 @@ const interviewExperienceRoutes = require('./routes/interviewExperienceRoutes');
 const internshipRoutes = require('./routes/internshipRoutes');
 const externalOutcomeRoutes = require('./routes/externalOutcomeRoutes');
 const placementPolicyRoutes = require('./routes/placementPolicyRoutes');
+const resourceRoutes = require('./routes/resourceRoutes');
 
 // Initialize event-driven notification subscribers
 require('./services/notifications');
@@ -59,6 +60,7 @@ app.use('/api/alumni', alumniRoutes);
 app.use('/api/interview-experiences', interviewExperienceRoutes);
 app.use('/api/internships', internshipRoutes);
 app.use('/api/external-outcomes', externalOutcomeRoutes);
+app.use('/api/resources', resourceRoutes);
 app.use('/api/policies', placementPolicyRoutes);
 app.use('/api/tpo/policies', placementPolicyRoutes);
 

@@ -149,6 +149,8 @@ const studentProfileSchema = new mongoose.Schema({
     },
   ],
   careerGoals: { type: String, default: '' },
+  targetRole: { type: String, default: 'Software Development Engineer' },
+  bookmarkedResources: [{ type: String }],
   isVerifiedByTPO: { type: Boolean, default: false },
   marksheetUrl: { type: String, default: '' },
   isPlaced: { type: Boolean, default: false },
