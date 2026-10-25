@@ -152,9 +152,10 @@ function buildWeeklyDigestHtml(digestData) {
 
         <!-- Deep Action Links -->
         <div style="border-top: 1px solid #1e293b; padding-top: 20px; display: flex; gap: 8px; justify-content: space-between;">
-          <a href="${deepLinks.drivesUrl}" style="background-color: #059669; color: #ffffff; text-decoration: none; padding: 8px 14px; border-radius: 8px; font-size: 11px; font-weight: bold;">Manage Drives</a>
-          <a href="${deepLinks.verificationUrl}" style="background-color: #334155; color: #f8fafc; text-decoration: none; padding: 8px 14px; border-radius: 8px; font-size: 11px; font-weight: bold;">Review Queue</a>
-          <a href="${deepLinks.scheduleUrl}" style="background-color: #334155; color: #f8fafc; text-decoration: none; padding: 8px 14px; border-radius: 8px; font-size: 11px; font-weight: bold;">Schedule</a>
+          <a href="${deepLinks.drivesUrl}" style="background-color: #059669; color: #ffffff; text-decoration: none; padding: 8px 12px; border-radius: 8px; font-size: 11px; font-weight: bold;">Manage Drives</a>
+          <a href="${deepLinks.verificationUrl}" style="background-color: #334155; color: #f8fafc; text-decoration: none; padding: 8px 12px; border-radius: 8px; font-size: 11px; font-weight: bold;">Review Queue</a>
+          <a href="${deepLinks.scheduleUrl}" style="background-color: #334155; color: #f8fafc; text-decoration: none; padding: 8px 12px; border-radius: 8px; font-size: 11px; font-weight: bold;">Schedule</a>
+          <a href="${deepLinks.reportsUrl}" style="background-color: #334155; color: #f8fafc; text-decoration: none; padding: 8px 12px; border-radius: 8px; font-size: 11px; font-weight: bold;">Audit Reports</a>
         </div>
       </div>
     </div>
