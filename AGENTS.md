@@ -24,3 +24,24 @@
 - **Automated Verification**:
   - Run `npm test` in `server` and verify all tests pass prior to committing.
   - Run `npm run build` and `npm run lint` in `client` to guarantee zero syntax or bundling errors.
+
+---
+
+## 3. Simple Server Commands & Ports (QUICK REFERENCE - NO NEED TO READ SCRIPTS)
+Direct, instant commands to launch servers immediately:
+
+### Option A: From Project Root (`PLACEearly/`)
+- **Start Backend**: `npm run dev:server` (Port 5001, nodemon hot-reload)
+- **Start Frontend**: `npm run dev:client` (Port 5173, Vite dev server)
+- **Run Server Tests**: `npm test`
+- **Build Frontend**: `npm run build:client`
+
+### Option B: From Subdirectories
+- **Backend** (`cd server`):
+  - Dev: `npm run dev` (API at `http://localhost:5001/api`)
+  - Start: `npm start`
+  - Test: `npm test`
+- **Frontend** (`cd client`):
+  - Dev: `npm run dev` (Web app at `http://localhost:5173`)
+  - Build: `npm run build`
+

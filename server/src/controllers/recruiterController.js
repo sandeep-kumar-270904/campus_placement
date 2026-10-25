@@ -7,7 +7,7 @@ const Company = require('../models/Company');
 const User = require('../models/User');
 const AuditLog = require('../models/AuditLog');
 const { getStorageService } = require('../services/storage');
-const { eventBus, DOMAIN_EVENTS } = require('../services/notifications/events');
+const { eventBus, DOMAIN_EVENTS } = require('../services/notifications/events/EventBus');
 
 /**
  * Verify recruiter has authority to view or mutate a drive
