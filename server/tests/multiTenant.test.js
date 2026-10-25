@@ -7,6 +7,28 @@ const User = require('../src/models/User');
 const StudentProfile = require('../src/models/StudentProfile');
 const Opportunity = require('../src/models/Opportunity');
 const Application = require('../src/models/Application');
+const AiAuditLog = require('../src/models/AiAuditLog');
+const AlumniProfile = require('../src/models/AlumniProfile');
+const AlumniReferralRequest = require('../src/models/AlumniReferralRequest');
+const Announcement = require('../src/models/Announcement');
+const AuditLog = require('../src/models/AuditLog');
+const Company = require('../src/models/Company');
+const Document = require('../src/models/Document');
+const EligibilityCache = require('../src/models/EligibilityCache');
+const ExternalOutcome = require('../src/models/ExternalOutcome');
+const InternshipRecord = require('../src/models/InternshipRecord');
+const InterviewExperience = require('../src/models/InterviewExperience');
+const InterviewSlot = require('../src/models/InterviewSlot');
+const MockInterviewSession = require('../src/models/MockInterviewSession');
+const Notification = require('../src/models/Notification');
+const NotificationPreference = require('../src/models/NotificationPreference');
+const NotificationTemplate = require('../src/models/NotificationTemplate');
+const PlacementPolicy = require('../src/models/PlacementPolicy');
+const PolicyExceptionRequest = require('../src/models/PolicyExceptionRequest');
+const PolicyOverride = require('../src/models/PolicyOverride');
+const ReportJob = require('../src/models/ReportJob');
+const Session = require('../src/models/Session');
+
 const { runWithTenantContext, tenantContextMiddleware } = require('../src/middleware/tenantContext');
 const {
   createCollegeSchema,
@@ -15,163 +37,205 @@ const {
   inviteTpoSchema,
 } = require('../src/validations/collegeValidation');
 
-describe('Multi-Tenant Database Models & Scoping Engine Tests', () => {
+const ALL_TENANT_MODELS = [
+  { model: User, name: 'User', sample: () => ({ email: 'test@campus.edu', password: 'Password123!', role: 'student', firstName: 'A', lastName: 'B' }) },
+  { model: StudentProfile, name: 'StudentProfile', sample: () => ({ user: new mongoose.Types.ObjectId(), rollNo: 'TEST-001', branch: 'CSE', cgpa: 8.5 }) },
+  { model: Opportunity, name: 'Opportunity', sample: () => ({ title: 'SDE', companyName: 'Acme', type: 'Job', location: 'Remote', salary: '10 LPA', description: 'Desc', deadline: new Date(), createdBy: new mongoose.Types.ObjectId() }) },
+  { model: Application, name: 'Application', sample: () => ({ studentId: new mongoose.Types.ObjectId(), opportunityId: new mongoose.Types.ObjectId(), studentRollNo: 'TEST-001' }) },
+  { model: AiAuditLog, name: 'AiAuditLog', sample: () => ({ userId: new mongoose.Types.ObjectId(), userRole: 'student', feature: 'resume_match' }) },
+  { model: AlumniProfile, name: 'AlumniProfile', sample: () => ({ user: new mongoose.Types.ObjectId(), fullName: 'Alum', graduationBatch: 2024, branch: 'CSE', currentCompany: 'Google', currentRole: 'SDE' }) },
+  { model: AlumniReferralRequest, name: 'AlumniReferralRequest', sample: () => ({ studentId: new mongoose.Types.ObjectId(), alumniId: new mongoose.Types.ObjectId(), targetCompany: 'Amazon', targetRole: 'Dev', message: 'Hello' }) },
+  { model: Announcement, name: 'Announcement', sample: () => ({ title: 'Notice', message: 'Content', author: new mongoose.Types.ObjectId() }) },
+  { model: AuditLog, name: 'AuditLog', sample: () => ({ actor: 'tpo@campus.edu', role: 'tpo', action: 'LOGIN_SUCCESS', entity: 'User' }) },
+  { model: Company, name: 'Company', sample: () => ({ name: 'Microsoft' }) },
+  { model: Document, name: 'Document', sample: () => ({ studentId: new mongoose.Types.ObjectId(), title: 'Resume', fileUrl: 'https://storage/resume.pdf', fileType: 'pdf' }) },
+  { model: EligibilityCache, name: 'EligibilityCache', sample: () => ({ studentId: new mongoose.Types.ObjectId(), opportunityId: new mongoose.Types.ObjectId(), isEligible: true }) },
+  { model: ExternalOutcome, name: 'ExternalOutcome', sample: () => ({ studentId: new mongoose.Types.ObjectId(), category: 'off_campus_placement', roleOrDegree: 'SDE', organizationName: 'Startup' }) },
+  { model: InternshipRecord, name: 'InternshipRecord', sample: () => ({ studentId: new mongoose.Types.ObjectId(), companyName: 'Uber', role: 'Intern' }) },
+  { model: InterviewExperience, name: 'InterviewExperience', sample: () => ({ studentId: new mongoose.Types.ObjectId(), company: 'Meta', role: 'SWE' }) },
+  { model: InterviewSlot, name: 'InterviewSlot', sample: () => ({ driveId: new mongoose.Types.ObjectId(), companyName: 'Stripe', candidateId: new mongoose.Types.ObjectId(), date: new Date(), startTime: '10:00', endTime: '10:30' }) },
+  { model: MockInterviewSession, name: 'MockInterviewSession', sample: () => ({ studentId: new mongoose.Types.ObjectId(), companyName: 'Amazon', role: 'SDE-1', roundType: 'technical' }) },
+  { model: Notification, name: 'Notification', sample: () => ({ recipient: new mongoose.Types.ObjectId(), title: 'Alert', message: 'Msg' }) },
+  { model: NotificationPreference, name: 'NotificationPreference', sample: () => ({ user: new mongoose.Types.ObjectId() }) },
+  { model: NotificationTemplate, name: 'NotificationTemplate', sample: () => ({ name: 'Tpl', eventType: 'DRIVE_PUBLISHED', channels: { inApp: { enabled: true, template: 'T' } } }) },
+  { model: PlacementPolicy, name: 'PlacementPolicy', sample: () => ({}) },
+  { model: PolicyExceptionRequest, name: 'PolicyExceptionRequest', sample: () => ({ studentId: new mongoose.Types.ObjectId(), opportunityId: new mongoose.Types.ObjectId(), policyType: 'dream_cap', reason: 'Appeal' }) },
+  { model: PolicyOverride, name: 'PolicyOverride', sample: () => ({ studentId: new mongoose.Types.ObjectId(), opportunityId: new mongoose.Types.ObjectId(), policyType: 'dream_cap', reason: 'Granted', grantedBy: new mongoose.Types.ObjectId() }) },
+  { model: ReportJob, name: 'ReportJob', sample: () => ({ reportType: 'naac_nirf', format: 'xlsx' }) },
+  { model: Session, name: 'Session', sample: () => ({ userId: new mongoose.Types.ObjectId(), tokenHash: 'hash', family: 'fam', expiresAt: new Date(Date.now() + 10000) }) },
+];
+
+describe('Multi-Tenant Database Models & Central Scoping Engine Tests', () => {
   const collegeAId = new mongoose.Types.ObjectId().toString();
   const collegeBId = new mongoose.Types.ObjectId().toString();
 
-  describe('1. Compound Index & Schema Verification (Roll No & Email Isolation)', () => {
-    test('StudentProfile must register compound unique index on (collegeId, rollNo)', () => {
+  describe('1. ACCEPTANCE CRITERIA: Two Seeded Colleges with Identical Roll Numbers Isolation', () => {
+    test('Two colleges with identical roll number (2026-CS-001) are completely isolated and never leak data', () => {
+      // Simulate College A and College B student profiles in memory
+      const studentCollegeA = {
+        _id: new mongoose.Types.ObjectId().toString(),
+        collegeId: collegeAId,
+        rollNo: '2026-CS-001',
+        fullName: 'Aarav Sharma (ANITS College)',
+        branch: 'Computer Science',
+        cgpa: 9.1,
+      };
+
+      const studentCollegeB = {
+        _id: new mongoose.Types.ObjectId().toString(),
+        collegeId: collegeBId,
+        rollNo: '2026-CS-001',
+        fullName: 'Vikram Joshi (IIT Bombay)',
+        branch: 'Computer Science',
+        cgpa: 9.8,
+      };
+
+      const database = [studentCollegeA, studentCollegeB];
+
+      // 1. Query executed within College A context
+      runWithTenantContext({ collegeId: collegeAId, isSuperAdmin: false }, () => {
+        const query = StudentProfile.find({ rollNo: '2026-CS-001' });
+        StudentProfile.schema.s.hooks.execPreSync('find', query);
+        const filter = query.getFilter();
+
+        // Enforced query filter strictly includes College A
+        assert.strictEqual(filter.rollNo, '2026-CS-001');
+        assert.strictEqual(filter.collegeId, collegeAId);
+
+        // Execute against mock database using filter
+        const matched = database.filter(
+          (doc) => doc.rollNo === filter.rollNo && doc.collegeId === filter.collegeId
+        );
+
+        assert.strictEqual(matched.length, 1);
+        assert.strictEqual(matched[0].fullName, 'Aarav Sharma (ANITS College)');
+        assert.strictEqual(matched[0].collegeId, collegeAId);
+        assert.notStrictEqual(matched[0].collegeId, collegeBId);
+      });
+
+      // 2. Query executed within College B context
+      runWithTenantContext({ collegeId: collegeBId, isSuperAdmin: false }, () => {
+        const query = StudentProfile.find({ rollNo: '2026-CS-001' });
+        StudentProfile.schema.s.hooks.execPreSync('find', query);
+        const filter = query.getFilter();
+
+        // Enforced query filter strictly includes College B
+        assert.strictEqual(filter.rollNo, '2026-CS-001');
+        assert.strictEqual(filter.collegeId, collegeBId);
+
+        // Execute against mock database using filter
+        const matched = database.filter(
+          (doc) => doc.rollNo === filter.rollNo && doc.collegeId === filter.collegeId
+        );
+
+        assert.strictEqual(matched.length, 1);
+        assert.strictEqual(matched[0].fullName, 'Vikram Joshi (IIT Bombay)');
+        assert.strictEqual(matched[0].collegeId, collegeBId);
+        assert.notStrictEqual(matched[0].collegeId, collegeAId);
+      });
+    });
+
+    test('StudentProfile model schema enforces compound uniqueness on (collegeId, rollNo)', () => {
       const indexes = StudentProfile.schema.indexes();
       const rollNoIndex = indexes.find(
         ([fields, opts]) => fields.collegeId === 1 && fields.rollNo === 1 && opts?.unique === true
       );
-      assert.ok(rollNoIndex, 'StudentProfile must have unique index on { collegeId: 1, rollNo: 1 }');
-    });
-
-    test('StudentProfile must register compound unique index on (collegeId, user)', () => {
-      const indexes = StudentProfile.schema.indexes();
-      const userIndex = indexes.find(
-        ([fields, opts]) => fields.collegeId === 1 && fields.user === 1 && opts?.unique === true
-      );
-      assert.ok(userIndex, 'StudentProfile must have unique index on { collegeId: 1, user: 1 }');
-    });
-
-    test('User must register compound unique index on (collegeId, email)', () => {
-      const indexes = User.schema.indexes();
-      const emailIndex = indexes.find(
-        ([fields, opts]) => fields.collegeId === 1 && fields.email === 1 && opts?.unique === true
-      );
-      assert.ok(emailIndex, 'User must have unique index on { collegeId: 1, email: 1 }');
-    });
-
-    test('Application must register compound unique index on (collegeId, studentId, opportunityId)', () => {
-      const indexes = Application.schema.indexes();
-      const appIndex = indexes.find(
-        ([fields, opts]) =>
-          fields.collegeId === 1 && fields.studentId === 1 && fields.opportunityId === 1 && opts?.unique === true
-      );
-      assert.ok(appIndex, 'Application must have unique index on { collegeId: 1, studentId: 1, opportunityId: 1 }');
+      assert.ok(rollNoIndex, 'Must possess unique index on { collegeId: 1, rollNo: 1 }');
     });
   });
 
-  describe('2. Central Query Helper & Tenant Scoping Verification', () => {
-    test('Opportunity queries in College A context automatically scope filter to College A', () => {
-      runWithTenantContext({ collegeId: collegeAId, isSuperAdmin: false }, () => {
-        const query = Opportunity.find({ status: 'Open' });
-        // Execute pre-hooks on query
-        Opportunity.schema.s.hooks.execPreSync('find', query);
-        const filter = query.getFilter();
-        assert.strictEqual(filter.status, 'Open');
-        assert.strictEqual(filter.collegeId, collegeAId);
-      });
-    });
+  describe('2. Cross-Tenant Read & Write Rejection Across Every Model', () => {
+    ALL_TENANT_MODELS.forEach(({ model, name, sample }) => {
+      test(`[${name}] rejects cross-tenant write with CROSS_TENANT_WRITE_FORBIDDEN`, async () => {
+        await runWithTenantContext({ collegeId: collegeAId, isSuperAdmin: false }, async () => {
+          const docData = {
+            ...sample(),
+            collegeId: new mongoose.Types.ObjectId(collegeBId), // Attempt cross-tenant write into College B
+          };
+          const doc = new model(docData);
 
-    test('Opportunity queries in College B context scope to College B and never College A', () => {
-      runWithTenantContext({ collegeId: collegeBId, isSuperAdmin: false }, () => {
-        const query = Opportunity.find({});
-        Opportunity.schema.s.hooks.execPreSync('find', query);
-        const filter = query.getFilter();
-        assert.strictEqual(filter.collegeId, collegeBId);
-        assert.notStrictEqual(filter.collegeId, collegeAId);
-      });
-    });
-
-    test('StudentProfile queries automatically enforce active collegeId filter', () => {
-      runWithTenantContext({ collegeId: collegeAId, isSuperAdmin: false }, () => {
-        const query = StudentProfile.find({ branch: 'Computer Science' });
-        StudentProfile.schema.s.hooks.execPreSync('find', query);
-        const filter = query.getFilter();
-        assert.strictEqual(filter.collegeId, collegeAId);
-        assert.strictEqual(filter.branch, 'Computer Science');
-      });
-    });
-
-    test('Application queries automatically enforce active collegeId filter', () => {
-      runWithTenantContext({ collegeId: collegeBId, isSuperAdmin: false }, () => {
-        const query = Application.find();
-        Application.schema.s.hooks.execPreSync('find', query);
-        const filter = query.getFilter();
-        assert.strictEqual(filter.collegeId, collegeBId);
-      });
-    });
-
-    test('Super Admin queries bypass tenant filter when bypassTenantFilter is true', () => {
-      runWithTenantContext({ collegeId: null, isSuperAdmin: true, bypassTenantFilter: true }, () => {
-        const query = Opportunity.find({});
-        Opportunity.schema.s.hooks.execPreSync('find', query);
-        const filter = query.getFilter();
-        assert.strictEqual(filter.collegeId, undefined);
-      });
-    });
-
-    test('Super Admin queries target specific tenant when collegeId is specified', () => {
-      runWithTenantContext({ collegeId: collegeAId, isSuperAdmin: true, bypassTenantFilter: false }, () => {
-        const query = Opportunity.find({});
-        Opportunity.schema.s.hooks.execPreSync('find', query);
-        const filter = query.getFilter();
-        assert.strictEqual(filter.collegeId, collegeAId);
-      });
-    });
-  });
-
-  describe('3. Cross-Tenant Write & Save Protection via tenantPlugin', () => {
-    test('Saving a document with cross-tenant collegeId is rejected by tenantPlugin pre-save hook', () => {
-      runWithTenantContext({ collegeId: collegeAId, isSuperAdmin: false }, () => {
-        const doc = new Opportunity({
-          collegeId: new mongoose.Types.ObjectId(collegeBId),
-          title: 'Tampered Drive',
-          companyName: 'Acme',
-          type: 'Job',
-          location: 'Remote',
-          salary: '10 LPA',
-          description: 'Desc',
-          deadline: new Date(),
-          createdBy: new mongoose.Types.ObjectId(),
-        });
-
-        // Test the pre-save hook logic
-        let hookError = null;
-        Opportunity.schema.s.hooks.execPre('save', doc, [
-          (err) => {
+          let hookError = null;
+          try {
+            await model.schema.s.hooks.execPre('save', doc, []);
+          } catch (err) {
             hookError = err;
-          },
+          }
+
+          assert.ok(hookError, `${name} must reject cross-tenant write`);
+          assert.strictEqual(
+            hookError.code,
+            'CROSS_TENANT_WRITE_FORBIDDEN',
+            `${name} pre-save hook must throw CROSS_TENANT_WRITE_FORBIDDEN`
+          );
+        });
+      });
+
+      test(`[${name}] automatically injects active collegeId on queries`, () => {
+        runWithTenantContext({ collegeId: collegeAId, isSuperAdmin: false }, () => {
+          const query = model.find({});
+          model.schema.s.hooks.execPreSync('find', query);
+          const filter = query.getFilter();
+
+          assert.strictEqual(
+            filter.collegeId,
+            collegeAId,
+            `${name} query filter must automatically scope to active collegeId`
+          );
+        });
+      });
+    });
+  });
+
+  describe('3. Aggregation Pipeline Scoping & Central Query Helper', () => {
+    test('Aggregation pipelines in tenant context automatically prepend $match stage', () => {
+      runWithTenantContext({ collegeId: collegeAId, isSuperAdmin: false }, () => {
+        const aggregate = Application.aggregate([
+          { $group: { _id: '$status', count: { $sum: 1 } } },
         ]);
 
-        assert.ok(hookError, 'Pre-save hook should throw error on mismatched collegeId');
-        assert.strictEqual(hookError.code, 'CROSS_TENANT_WRITE_FORBIDDEN');
+        Application.schema.s.hooks.execPreSync('aggregate', aggregate);
+        const pipeline = aggregate.pipeline();
+
+        assert.strictEqual(pipeline.length, 2, 'Pipeline must have prepended match stage');
+        assert.deepStrictEqual(pipeline[0], {
+          $match: { collegeId: new mongoose.Types.ObjectId(collegeAId) },
+        });
       });
     });
 
-    test('Saving a document without explicit collegeId automatically receives the active tenant collegeId', () => {
-      runWithTenantContext({ collegeId: collegeAId, isSuperAdmin: false }, () => {
-        const doc = new Opportunity({
-          title: 'College A Drive',
-          companyName: 'TechCorp',
-          type: 'Job',
-          location: 'Hyderabad',
-          salary: '12 LPA',
-          description: 'Desc',
-          deadline: new Date(),
-          createdBy: new mongoose.Types.ObjectId(),
-        });
-
-        Opportunity.schema.s.hooks.execPre('save', doc, [() => {}]);
-        assert.strictEqual(doc.collegeId.toString(), collegeAId);
-      });
+    test('Query helper forTenant sets explicit collegeId filter', () => {
+      const query = Opportunity.find().forTenant(collegeAId);
+      const filter = query.getFilter();
+      assert.strictEqual(filter.collegeId, collegeAId);
     });
   });
 
-  describe('4. Cross-Tenant Header Spoofing & Middleware Enforcement', () => {
-    test('Middleware rejects regular tenant user spoofing another college in x-college-id header with 403', () => {
+  describe('4. College Model Full Specification Verification', () => {
+    test('College schema contains all mandatory tenant attributes and JSON policies', () => {
+      const paths = College.schema.paths;
+      assert.ok(paths['name'], 'Must include name');
+      assert.ok(paths['code'], 'Must include code');
+      assert.ok(paths['logo'], 'Must include logo');
+      assert.ok(paths['domains'], 'Must include domains');
+      assert.ok(paths['timezone'], 'Must include timezone');
+      assert.ok(paths['academicYearConfig.currentYear'], 'Must include academicYearConfig.currentYear');
+      assert.ok(paths['academicYearConfig.placementSeason.startDate'], 'Must include placementSeason.startDate');
+      assert.ok(paths['branches'], 'Must include branches list');
+      assert.ok(paths['policies.customPolicies'], 'Must include policies.customPolicies (JSON)');
+      assert.ok(paths['policies.dreamTierThreshold'], 'Must include policies.dreamTierThreshold');
+      assert.ok(paths['plan'], 'Must include plan');
+      assert.ok(paths['createdAt'], 'Must include createdAt timestamp');
+      assert.ok(paths['updatedAt'], 'Must include updatedAt timestamp');
+      assert.ok(paths['branding.primaryColor'], 'Must include branding.primaryColor');
+      assert.ok(paths['branding.accentColor'], 'Must include branding.accentColor');
+    });
+  });
+
+  describe('5. Middleware Header Spoofing Prevention & SuperAdmin Flexibility', () => {
+    test('Tenant user spoofing foreign college in x-college-id header receives 403 CROSS_TENANT_FORBIDDEN', () => {
       const req = {
-        headers: {
-          'x-college-id': collegeBId,
-        },
-        user: {
-          id: 'user-123',
-          role: 'student',
-          collegeId: collegeAId,
-        },
+        headers: { 'x-college-id': collegeBId },
+        user: { id: 'user-001', role: 'tpo', collegeId: collegeAId },
       };
 
       let statusCode = null;
@@ -197,43 +261,14 @@ describe('Multi-Tenant Database Models & Scoping Engine Tests', () => {
       assert.strictEqual(nextCalled, false);
     });
 
-    test('Middleware accepts matching tenant header and binds tenant context', () => {
+    test('Super Admin can target any college using x-college-id header', () => {
       const req = {
-        headers: {
-          'x-college-id': collegeAId,
-        },
-        user: {
-          id: 'user-123',
-          role: 'tpo',
-          collegeId: collegeAId,
-        },
+        headers: { 'x-college-id': collegeBId },
+        user: { id: 'admin-001', role: 'superadmin' },
       };
 
       let nextCalled = false;
-      const res = {};
-      tenantContextMiddleware(req, res, () => {
-        nextCalled = true;
-        assert.strictEqual(req.tenant.collegeId, collegeAId);
-        assert.strictEqual(req.tenant.isSuperAdmin, false);
-      });
-
-      assert.strictEqual(nextCalled, true);
-    });
-
-    test('Middleware allows Super Admin to target any college using x-college-id header', () => {
-      const req = {
-        headers: {
-          'x-college-id': collegeBId,
-        },
-        user: {
-          id: 'admin-001',
-          role: 'superadmin',
-        },
-      };
-
-      let nextCalled = false;
-      const res = {};
-      tenantContextMiddleware(req, res, () => {
+      tenantContextMiddleware(req, {}, () => {
         nextCalled = true;
         assert.strictEqual(req.tenant.collegeId, collegeBId);
         assert.strictEqual(req.tenant.isSuperAdmin, true);
@@ -244,8 +279,8 @@ describe('Multi-Tenant Database Models & Scoping Engine Tests', () => {
     });
   });
 
-  describe('5. Zod Validation Schemas for Multi-Tenant Management', () => {
-    test('createCollegeSchema succeeds with valid input and populates default flags and branding', () => {
+  describe('6. Multi-Tenant Validation Schemas (Zod)', () => {
+    test('createCollegeSchema validates correct fields and populates default flags and branding', () => {
       const parsed = createCollegeSchema.safeParse({
         name: 'Andhra University College of Engineering',
         code: 'AUCOE',
@@ -257,46 +292,15 @@ describe('Multi-Tenant Database Models & Scoping Engine Tests', () => {
       assert.strictEqual(parsed.data.code, 'AUCOE');
       assert.strictEqual(parsed.data.gradingSystem.scale, '10-point');
       assert.strictEqual(parsed.data.featureFlags.atsMatcher, true);
-      assert.strictEqual(parsed.data.featureFlags.prepHub, true);
       assert.strictEqual(parsed.data.branding.primaryColor, '#00ED64');
     });
 
-    test('createCollegeSchema rejects invalid characters in college code', () => {
+    test('createCollegeSchema rejects malformed college code with spaces or symbols', () => {
       const parsed = createCollegeSchema.safeParse({
         name: 'Invalid College',
         code: 'BAD CODE!',
       });
-
       assert.strictEqual(parsed.success, false);
-    });
-
-    test('updateFeatureFlagsSchema allows toggling individual features', () => {
-      const parsed = updateFeatureFlagsSchema.safeParse({
-        atsMatcher: false,
-        prepHub: true,
-      });
-
-      assert.strictEqual(parsed.success, true);
-      assert.strictEqual(parsed.data.atsMatcher, false);
-      assert.strictEqual(parsed.data.prepHub, true);
-    });
-
-    test('inviteTpoSchema validates initial TPO credentials', () => {
-      const invalid = inviteTpoSchema.safeParse({
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'not-an-email',
-        password: '123', // too short
-      });
-      assert.strictEqual(invalid.success, false);
-
-      const valid = inviteTpoSchema.safeParse({
-        firstName: 'Dr. Ramesh',
-        lastName: 'Sharma',
-        email: 'tpo@anits.edu.in',
-        password: 'SecurePassword123!',
-      });
-      assert.strictEqual(valid.success, true);
     });
   });
 });

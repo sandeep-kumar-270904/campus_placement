@@ -103,6 +103,11 @@ const mockInterviewSessionSchema = new mongoose.Schema(
 );
 
 mockInterviewSessionSchema.index({ studentId: 1, createdAt: -1 });
+mockInterviewSessionSchema.index({ collegeId: 1, studentId: 1 });
+mockInterviewSessionSchema.index({ collegeId: 1, createdAt: -1 });
+
+const tenantPlugin = require('../plugins/tenantPlugin');
+mockInterviewSessionSchema.plugin(tenantPlugin, { required: false });
 
 const MockInterviewSession = mongoose.model(
   'MockInterviewSession',

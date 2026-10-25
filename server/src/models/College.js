@@ -82,6 +82,10 @@ const collegeSchema = new mongoose.Schema({
     rules: [{
       type: String,
     }],
+    customPolicies: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
   },
   featureFlags: {
     atsMatcher: {

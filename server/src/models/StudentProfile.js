@@ -298,7 +298,7 @@ studentProfileSchema.pre('save', function (next) {
     }
   }
 
-  next();
+  if (typeof next === 'function') next();
 });
 
 // Compound unique indexes: roll numbers and profiles are scoped per college!

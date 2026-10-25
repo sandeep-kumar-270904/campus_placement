@@ -80,6 +80,10 @@ const externalOutcomeSchema = new mongoose.Schema(
 );
 
 externalOutcomeSchema.index({ collegeId: 1, category: 1, verificationStatus: 1 });
+externalOutcomeSchema.index({ collegeId: 1, studentId: 1 });
+
+const tenantPlugin = require('../plugins/tenantPlugin');
+externalOutcomeSchema.plugin(tenantPlugin, { required: true });
 
 const ExternalOutcome = mongoose.model('ExternalOutcome', externalOutcomeSchema);
 module.exports = ExternalOutcome;

@@ -65,6 +65,11 @@ const alumniReferralRequestSchema = new mongoose.Schema(
 
 // Compound index to facilitate weekly rate-limiting queries
 alumniReferralRequestSchema.index({ studentId: 1, createdAt: -1 });
+alumniReferralRequestSchema.index({ collegeId: 1, studentId: 1 });
+alumniReferralRequestSchema.index({ collegeId: 1, alumniId: 1 });
+
+const tenantPlugin = require('../plugins/tenantPlugin');
+alumniReferralRequestSchema.plugin(tenantPlugin, { required: true });
 
 const AlumniReferralRequest = mongoose.model('AlumniReferralRequest', alumniReferralRequestSchema);
 module.exports = AlumniReferralRequest;

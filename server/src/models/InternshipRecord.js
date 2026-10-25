@@ -95,6 +95,10 @@ const internshipRecordSchema = new mongoose.Schema(
 );
 
 internshipRecordSchema.index({ collegeId: 1, ppoStatus: 1 });
+internshipRecordSchema.index({ collegeId: 1, studentId: 1 });
+
+const tenantPlugin = require('../plugins/tenantPlugin');
+internshipRecordSchema.plugin(tenantPlugin, { required: true });
 
 const InternshipRecord = mongoose.model('InternshipRecord', internshipRecordSchema);
 module.exports = InternshipRecord;

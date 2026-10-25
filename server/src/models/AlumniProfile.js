@@ -98,6 +98,10 @@ const alumniProfileSchema = new mongoose.Schema(
 );
 
 alumniProfileSchema.index({ collegeId: 1, currentCompany: 1, branch: 1 });
+alumniProfileSchema.index({ collegeId: 1, user: 1 });
+
+const tenantPlugin = require('../plugins/tenantPlugin');
+alumniProfileSchema.plugin(tenantPlugin, { required: true });
 
 const AlumniProfile = mongoose.model('AlumniProfile', alumniProfileSchema);
 module.exports = AlumniProfile;

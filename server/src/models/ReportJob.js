@@ -96,5 +96,8 @@ const reportJobSchema = new mongoose.Schema(
 
 reportJobSchema.index({ collegeId: 1, createdAt: -1 });
 
+const tenantPlugin = require('../plugins/tenantPlugin');
+reportJobSchema.plugin(tenantPlugin, { required: true });
+
 const ReportJob = mongoose.model('ReportJob', reportJobSchema);
 module.exports = ReportJob;

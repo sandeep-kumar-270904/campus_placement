@@ -50,12 +50,41 @@ function tenantPlugin(schema, options = {}) {
     });
   });
 
+  // Automatically scope aggregation pipelines to active tenant
+  schema.pre('aggregate', function () {
+    if (this.options && this.options.bypassTenantFilter) {
+      return;
+    }
+
+    const context = getTenantContext();
+    if (context.bypassTenantFilter && !context.collegeId) {
+      return;
+    }
+
+    if (context.collegeId) {
+      const tenantObjectId =
+        typeof context.collegeId === 'string' && mongoose.Types.ObjectId.isValid(context.collegeId)
+          ? new mongoose.Types.ObjectId(context.collegeId)
+          : context.collegeId;
+
+      this.pipeline().unshift({
+        $match: { collegeId: tenantObjectId },
+      });
+    }
+  });
+
+  // Query helper for explicit tenant scoping
+  schema.query.forTenant = function (collegeId) {
+    return this.where({ collegeId });
+  };
+
   schema.pre('save', function (next) {
     if (this.isNew || this.isModified('collegeId')) {
       const context = getTenantContext();
 
       if (context.bypassTenantFilter && !context.collegeId) {
-        return next();
+        if (typeof next === 'function') return next();
+        return;
       }
 
       if (context.collegeId) {
@@ -64,11 +93,12 @@ function tenantPlugin(schema, options = {}) {
         } else if (this.collegeId.toString() !== context.collegeId.toString()) {
           const err = new Error('Cross-tenant write rejected: document collegeId does not match authenticated tenant context');
           err.code = 'CROSS_TENANT_WRITE_FORBIDDEN';
-          return next(err);
+          if (typeof next === 'function') return next(err);
+          throw err;
         }
       }
     }
-    next();
+    if (typeof next === 'function') next();
   });
 }
 

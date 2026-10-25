@@ -77,6 +77,11 @@ const aiAuditLogSchema = new mongoose.Schema(
 );
 
 aiAuditLogSchema.index({ createdAt: -1 });
+aiAuditLogSchema.index({ collegeId: 1, userId: 1 });
+aiAuditLogSchema.index({ collegeId: 1, createdAt: -1 });
+
+const tenantPlugin = require('../plugins/tenantPlugin');
+aiAuditLogSchema.plugin(tenantPlugin, { required: false });
 
 const AiAuditLog = mongoose.model('AiAuditLog', aiAuditLogSchema);
 module.exports = AiAuditLog;

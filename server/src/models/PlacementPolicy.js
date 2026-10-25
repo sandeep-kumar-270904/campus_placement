@@ -126,6 +126,7 @@ const placementPolicySchema = new mongoose.Schema({
 
 // Plugin tenant scoping
 placementPolicySchema.plugin(tenantPlugin, { required: true });
+placementPolicySchema.index({ collegeId: 1 }, { unique: true });
 
 module.exports = mongoose.model('PlacementPolicy', placementPolicySchema);
 module.exports.DEFAULT_TIERS = DEFAULT_TIERS;

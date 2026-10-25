@@ -100,7 +100,7 @@ auditLogSchema.pre('save', function (next) {
   if (!this.afterState && this.after) this.afterState = this.after;
   if (!this.ip && this.ipAddress) this.ip = this.ipAddress;
   if (!this.ipAddress && this.ip) this.ipAddress = this.ip;
-  next();
+  if (typeof next === 'function') next();
 });
 
 // Compound indexes for fast tenant filtering, action auditing, and date range exports
@@ -108,6 +108,9 @@ auditLogSchema.index({ collegeId: 1, createdAt: -1 });
 auditLogSchema.index({ collegeId: 1, action: 1 });
 auditLogSchema.index({ collegeId: 1, entity: 1 });
 auditLogSchema.index({ collegeId: 1, actor: 1 });
+
+const tenantPlugin = require('../plugins/tenantPlugin');
+auditLogSchema.plugin(tenantPlugin, { required: false });
 
 const AuditLog = mongoose.model('AuditLog', auditLogSchema);
 module.exports = AuditLog;

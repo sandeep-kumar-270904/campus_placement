@@ -128,6 +128,10 @@ const interviewExperienceSchema = new mongoose.Schema(
 );
 
 interviewExperienceSchema.index({ collegeId: 1, status: 1, upvoteCount: -1 });
+interviewExperienceSchema.index({ collegeId: 1, company: 1 });
+
+const tenantPlugin = require('../plugins/tenantPlugin');
+interviewExperienceSchema.plugin(tenantPlugin, { required: true });
 
 const InterviewExperience = mongoose.model('InterviewExperience', interviewExperienceSchema);
 module.exports = InterviewExperience;

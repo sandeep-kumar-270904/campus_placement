@@ -55,6 +55,11 @@ const sessionSchema = new mongoose.Schema({
 // Compound indexes for session querying and rotation verification
 sessionSchema.index({ userId: 1, isRevoked: 1 });
 sessionSchema.index({ family: 1, isRevoked: 1 });
+sessionSchema.index({ collegeId: 1, userId: 1 });
+sessionSchema.index({ collegeId: 1, tokenHash: 1 });
+
+const tenantPlugin = require('../plugins/tenantPlugin');
+sessionSchema.plugin(tenantPlugin, { required: false });
 
 const Session = mongoose.model('Session', sessionSchema);
 module.exports = Session;
