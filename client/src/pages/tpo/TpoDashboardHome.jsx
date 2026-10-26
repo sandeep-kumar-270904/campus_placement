@@ -463,6 +463,47 @@ export default function TpoDashboardHome() {
                 </div>
               </div>
             )}
+
+            {/* 5. Expiring & Pending Offers */}
+            {needsAttention?.expiringOffers?.length > 0 && (
+              <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
+                  <div className="flex items-center gap-2">
+                    <Award className="w-4 h-4 text-teal-400" />
+                    <span className="text-xs font-bold text-white">Offers Pending Acceptance</span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-teal-500/10 text-teal-400 border border-teal-500/20">
+                      {needsAttention.expiringOffers.length}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => navigate('/tpo/drives')}
+                    className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1"
+                  >
+                    View Pipeline <ChevronRight className="w-3 h-3" />
+                  </button>
+                </div>
+                <div className="divide-y divide-slate-800/60">
+                  {needsAttention.expiringOffers.map((o) => (
+                    <div key={o.id} className="py-2.5 flex items-center justify-between text-xs">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-white">{o.studentName}</span>
+                          <span className="text-emerald-400 font-semibold text-[11px] font-mono">
+                            {o.ctc ? `₹${o.ctc} LPA` : 'Offer Extended'}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-400 mt-0.5">
+                          {o.companyName} • Role: {o.role}
+                        </p>
+                      </div>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                        Pending Response
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
