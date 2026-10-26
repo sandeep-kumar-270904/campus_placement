@@ -31,6 +31,7 @@ export default function TpoDeliveryReport() {
 
   const [channelFilter, setChannelFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
@@ -49,11 +50,12 @@ export default function TpoDeliveryReport() {
         limit: 25,
         channel: channelFilter,
         status: statusFilter,
+        search: searchQuery,
       });
       if (data) {
         setReport({
-          summary: data.summary || { total: 0, queued: 0, sent: 0, delivered: 0, failed: 0, read: 0, deliveryRate: 100 },
-          notifications: data.notifications || [],
+          summary: data.summary || data.stats || { total: 0, queued: 0, sent: 0, delivered: 0, failed: 0, read: 0, deliveryRate: 100 },
+          notifications: data.notifications || data.logs || [],
           total: data.total || 0,
           page: data.page || 1,
           totalPages: data.totalPages || 1,
@@ -68,7 +70,7 @@ export default function TpoDeliveryReport() {
 
   useEffect(() => {
     fetchReport();
-  }, [page, channelFilter, statusFilter]);
+  }, [page, channelFilter, statusFilter, searchQuery]);
 
   const handleDrainQueue = async () => {
     setActionLoading(true);
@@ -293,6 +295,20 @@ export default function TpoDeliveryReport() {
             <option value="queued">Queued</option>
             <option value="failed">Failed</option>
           </select>
+
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(1);
+              }}
+              placeholder="Search title..."
+              className="bg-slate-950 border border-slate-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 w-36 sm:w-48"
+            />
+          </div>
         </div>
 
         <div className="text-xs text-slate-400">

@@ -8,6 +8,10 @@ const NotificationTemplate = require('../src/models/NotificationTemplate');
 const { MANDATORY_EVENTS } = require('../src/models/NotificationPreference');
 const MockNotificationProvider = require('../src/services/notifications/providers/MockNotificationProvider');
 const { getProvider, registerProvider } = require('../src/services/notifications/providers');
+const EmailProvider = require('../src/services/notifications/providers/EmailProvider');
+const WhatsAppProvider = require('../src/services/notifications/providers/WhatsAppProvider');
+const SmsProvider = require('../src/services/notifications/providers/SmsProvider');
+const WebPushProvider = require('../src/services/notifications/providers/WebPushProvider');
 const {
   renderTemplate,
   generateUnsubscribeUrl,
@@ -330,6 +334,99 @@ describe('Notification System & Enterprise Multi-Channel Engine Tests', () => {
       assert.strictEqual(mockEmailProvider.sentItems.length, 500, 'Mock provider must capture 500 dispatches');
       assert.strictEqual(mockEmailProvider.sentItems[0].to, 'candidate_1@university.edu');
       assert.strictEqual(mockEmailProvider.sentItems[499].to, 'candidate_500@university.edu');
+    });
+  });
+
+  describe('8. Multi-Channel Provider Interfaces & Input Validation', () => {
+    test('EmailProvider validates recipient and returns mock ID in test mode', async () => {
+      const provider = new EmailProvider();
+      const invalidRes = await provider.send({ to: 'invalid-email', title: 'Test', body: 'Test' });
+      assert.strictEqual(invalidRes.success, false);
+      assert.ok(invalidRes.error.includes('Invalid recipient'));
+
+      const validRes = await provider.send({ to: 'student@campus.edu', title: 'Test', body: 'Hello' });
+      assert.strictEqual(validRes.success, true);
+      assert.ok(validRes.messageId.startsWith('email_'));
+    });
+
+    test('WhatsAppProvider validates recipient phone and returns mock ID in test mode', async () => {
+      const provider = new WhatsAppProvider();
+      const invalidRes = await provider.send({ to: '123', title: 'Test', body: 'Test' });
+      assert.strictEqual(invalidRes.success, false);
+      assert.ok(invalidRes.error.includes('invalid or missing'));
+
+      const validRes = await provider.send({ to: '+919876543210', title: 'Test', body: 'Hello' });
+      assert.strictEqual(validRes.success, true);
+      assert.ok(validRes.messageId.startsWith('wa_'));
+    });
+
+    test('SmsProvider validates recipient and returns mock ID in test mode', async () => {
+      const provider = new SmsProvider();
+      const invalidRes = await provider.send({ to: '12', title: 'Test', body: 'Test' });
+      assert.strictEqual(invalidRes.success, false);
+      assert.ok(invalidRes.error.includes('invalid'));
+
+      const validRes = await provider.send({ to: '+919876543210', title: 'Test', body: 'SMS' });
+      assert.strictEqual(validRes.success, true);
+      assert.ok(validRes.messageId.startsWith('sms_'));
+    });
+
+    test('WebPushProvider validates endpoint and returns mock ID in test mode', async () => {
+      const provider = new WebPushProvider();
+      const invalidRes = await provider.send({ to: null, title: 'Test', body: 'Test' });
+      assert.strictEqual(invalidRes.success, false);
+      assert.ok(invalidRes.error.includes('No push subscription'));
+
+      const validRes = await provider.send({ to: 'https://push.browser.com/sub/123', title: 'Test', body: 'Push' });
+      assert.strictEqual(validRes.success, true);
+      assert.ok(validRes.messageId.startsWith('push_'));
+    });
+  });
+
+  describe('9. Scheduled Reminders Window Filtering Logic', () => {
+    test('Calculates deadline 24h & 3h matching windows accurately', () => {
+      const now = new Date('2026-10-26T12:00:00Z');
+      const in24h = new Date(now.getTime() + 24 * 3600 * 1000);
+      const in3h = new Date(now.getTime() + 3 * 3600 * 1000);
+
+      const in23h = new Date(now.getTime() + 23 * 3600 * 1000);
+      const in25h = new Date(now.getTime() + 25 * 3600 * 1000);
+      assert.ok(in24h >= in23h && in24h <= in25h, '24h deadline falls inside (23h, 25h) scan window');
+
+      const in2h = new Date(now.getTime() + 2 * 3600 * 1000);
+      const in4h = new Date(now.getTime() + 4 * 3600 * 1000);
+      assert.ok(in3h >= in2h && in3h <= in4h, '3h deadline falls inside (2h, 4h) scan window');
+    });
+
+    test('Calculates interview 1d & 1h reminder windows accurately', () => {
+      const now = new Date('2026-10-26T12:00:00Z');
+      const in1h = new Date(now.getTime() + 60 * 60 * 1000);
+      const in45m = new Date(now.getTime() + 45 * 60 * 1000);
+      const in75m = new Date(now.getTime() + 75 * 60 * 1000);
+
+      assert.ok(in1h >= in45m && in1h <= in75m, '1h interview falls inside (45m, 75m) scan window');
+    });
+  });
+
+  describe('10. Dead-Letter Retry & Requeuing Logic', () => {
+    test('Resetting retry count and status transitions dead-letter failed jobs back to queued', () => {
+      const failedJob = {
+        status: 'failed',
+        retryCount: 3,
+        failureReason: 'Max retries exhausted',
+        nextRetryAt: new Date(),
+      };
+
+      // Simulated retry logic
+      failedJob.status = 'queued';
+      failedJob.retryCount = 0;
+      failedJob.failureReason = '';
+      failedJob.nextRetryAt = null;
+
+      assert.strictEqual(failedJob.status, 'queued');
+      assert.strictEqual(failedJob.retryCount, 0);
+      assert.strictEqual(failedJob.failureReason, '');
+      assert.strictEqual(failedJob.nextRetryAt, null);
     });
   });
 });

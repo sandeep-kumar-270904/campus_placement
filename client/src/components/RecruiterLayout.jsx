@@ -16,6 +16,7 @@ import {
   X,
   Sparkles,
 } from 'lucide-react';
+import NotificationCenter from './NotificationCenter';
 
 export default function RecruiterLayout() {
   const { user, logout } = useContext(AuthContext);
@@ -105,6 +106,7 @@ export default function RecruiterLayout() {
 
           {/* User Controls & Logout */}
           <div className="flex items-center gap-3">
+            <NotificationCenter isDark={true} />
             <div className="hidden sm:flex flex-col text-right">
               <span className="text-xs font-semibold text-white">
                 {user?.firstName} {user?.lastName}

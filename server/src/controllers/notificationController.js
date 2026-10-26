@@ -7,6 +7,7 @@ const Opportunity = require('../models/Opportunity');
 const Application = require('../models/Application');
 const InterviewSlot = require('../models/InterviewSlot');
 const User = require('../models/User');
+const StudentProfile = require('../models/StudentProfile');
 const College = require('../models/College');
 const { notificationQueue } = require('../services/notifications/queue/NotificationQueue');
 const { eventBus, DOMAIN_EVENTS } = require('../services/notifications/events/EventBus');
@@ -146,6 +147,7 @@ exports.getPreferences = async (req, res) => {
     res.json({
       success: true,
       preferences: pref,
+      preference: pref,
       mandatoryEvents: ['offer.extended', 'interview.scheduled', 'interview.reminder_1h'],
     });
   } catch (error) {
@@ -196,6 +198,7 @@ exports.updatePreferences = async (req, res) => {
       success: true,
       message: 'Notification preferences updated successfully.',
       preferences: pref,
+      preference: pref,
     });
   } catch (error) {
     res.status(500).json({ error: { message: error.message || 'Failed to update preferences.' } });
@@ -231,7 +234,10 @@ exports.whatsappOptIn = async (req, res) => {
     res.json({
       success: true,
       message: enabled ? 'WhatsApp notifications enabled successfully.' : 'WhatsApp notifications disabled.',
-      whatsappOptIn: pref.whatsappOptIn,
+      whatsappOptIn: {
+        ...(pref.whatsappOptIn?.toObject ? pref.whatsappOptIn.toObject() : pref.whatsappOptIn),
+        optedIn: Boolean(enabled),
+      },
     });
   } catch (error) {
     res.status(500).json({ error: { message: error.message || 'Failed to update WhatsApp opt-in.' } });
@@ -361,19 +367,24 @@ exports.getDeliveryTracking = async (req, res) => {
     ]);
 
     const stats = statsAgg[0] || { total: 0, delivered: 0, queued: 0, failed: 0 };
+    const formattedLogs = logs.map((l) => ({
+      ...l,
+      recipientName: l.userId ? `${l.userId.firstName || ''} ${l.userId.lastName || ''}`.trim() : (l.metadata?.recipientName || 'Recipient'),
+      recipientEmail: l.userId?.email || l.metadata?.recipientAddress || '',
+    }));
+
+    const summaryStats = {
+      ...stats,
+      deliveryRate: stats.total > 0 ? Math.round((stats.delivered / stats.total) * 100) : 100,
+    };
 
     res.json({
       success: true,
-      logs: logs.map((l) => ({
-        ...l,
-        recipientName: l.userId ? `${l.userId.firstName || ''} ${l.userId.lastName || ''}`.trim() : 'Recipient',
-        recipientEmail: l.userId?.email || '',
-      })),
+      logs: formattedLogs,
+      notifications: formattedLogs,
       total,
-      stats: {
-        ...stats,
-        deliveryRate: stats.total > 0 ? Math.round((stats.delivered / stats.total) * 100) : 100,
-      },
+      stats: summaryStats,
+      summary: summaryStats,
       page: pageNum,
       totalPages: Math.ceil(total / limitNum),
     });
@@ -549,6 +560,25 @@ exports.processQueueBatch = async (req, res) => {
   }
 };
 
+async function getNonAppliedEligibleUserIds(drive) {
+  const eligibleQuery = { collegeId: drive.collegeId };
+  if (drive.eligibilityRules?.allowedBranches?.length > 0) {
+    eligibleQuery.branch = { $in: drive.eligibilityRules.allowedBranches };
+  }
+  if (drive.eligibilityRules?.minCgpa) {
+    eligibleQuery.cgpa = { $gte: drive.eligibilityRules.minCgpa };
+  }
+  if (drive.eligibilityRules?.maxBacklogs !== undefined) {
+    eligibleQuery.backlogs = { $lte: drive.eligibilityRules.maxBacklogs };
+  }
+  const eligibleProfiles = await StudentProfile.find(eligibleQuery).select('user').lean();
+  const eligibleUserIds = eligibleProfiles.map((p) => p.user?.toString()).filter(Boolean);
+
+  const applied = await Application.find({ opportunityId: drive._id }).select('studentId').lean();
+  const appliedSet = new Set(applied.map((a) => a.studentId.toString()));
+  return eligibleUserIds.filter((uid) => !appliedSet.has(uid));
+}
+
 exports.triggerScheduledReminders = async (req, res) => {
   try {
     const now = new Date();
@@ -569,26 +599,63 @@ exports.triggerScheduledReminders = async (req, res) => {
     }).lean();
 
     for (const drive of closing24hDrives) {
-      // Find non-applied eligible students
-      const applied = await Application.find({ opportunityId: drive._id }).select('studentId').lean();
-      const appliedUserIds = applied.map((a) => a.studentId.toString());
-
+      const nonAppliedUserIds = await getNonAppliedEligibleUserIds(drive);
       const college = await College.findById(drive.collegeId).lean();
-      // Emit deadline 24h event
       await eventBus.emitAsync(DOMAIN_EVENTS.DRIVE_DEADLINE_24H, {
         drive,
-        nonAppliedUserIds: appliedUserIds,
+        nonAppliedUserIds,
         collegeId: drive.collegeId,
         collegeTimezone: college?.timezone || 'Asia/Kolkata',
       });
       results.deadline24hDrives++;
     }
 
-    // 2. Scan for interview slots in 1 hour (45m to 75m window)
+    // 2. Scan for drives closing in 3h (2h to 4h window)
+    const in2h = new Date(now.getTime() + 2 * 3600 * 1000);
+    const in4h = new Date(now.getTime() + 4 * 3600 * 1000);
+
+    const closing3hDrives = await Opportunity.find({
+      status: 'Open',
+      deadline: { $gte: in2h, $lte: in4h },
+    }).lean();
+
+    for (const drive of closing3hDrives) {
+      const nonAppliedUserIds = await getNonAppliedEligibleUserIds(drive);
+      const college = await College.findById(drive.collegeId).lean();
+      await eventBus.emitAsync(DOMAIN_EVENTS.DRIVE_DEADLINE_3H, {
+        drive,
+        nonAppliedUserIds,
+        collegeId: drive.collegeId,
+        collegeTimezone: college?.timezone || 'Asia/Kolkata',
+      });
+      results.deadline3hDrives++;
+    }
+
+    // 3. Scan for interview slots in 1 day (23h to 25h window)
+    const upcoming1dSlots = await InterviewSlot.find({
+      status: 'Scheduled',
+      startDateTime: { $gte: in23h, $lte: in25h },
+      studentId: { $ne: null },
+    })
+      .populate('studentId', 'firstName lastName email')
+      .populate('opportunityId', 'title companyName')
+      .lean();
+
+    for (const slot of upcoming1dSlots) {
+      await eventBus.emitAsync(DOMAIN_EVENTS.INTERVIEW_REMINDER_1D, {
+        slot,
+        studentUser: slot.studentId,
+        drive: slot.opportunityId,
+        collegeId: slot.collegeId,
+      });
+      results.interview1dSlots++;
+    }
+
+    // 4. Scan for interview slots in 1 hour (45m to 75m window)
     const in45m = new Date(now.getTime() + 45 * 60 * 1000);
     const in75m = new Date(now.getTime() + 75 * 60 * 1000);
 
-    const upcomingSlots = await InterviewSlot.find({
+    const upcoming1hSlots = await InterviewSlot.find({
       status: 'Scheduled',
       startDateTime: { $gte: in45m, $lte: in75m },
       studentId: { $ne: null },
@@ -597,7 +664,7 @@ exports.triggerScheduledReminders = async (req, res) => {
       .populate('opportunityId', 'title companyName')
       .lean();
 
-    for (const slot of upcomingSlots) {
+    for (const slot of upcoming1hSlots) {
       await eventBus.emitAsync(DOMAIN_EVENTS.INTERVIEW_REMINDER_1H, {
         slot,
         studentUser: slot.studentId,

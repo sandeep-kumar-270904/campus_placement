@@ -105,11 +105,11 @@ export default function NotificationPreferences() {
     const loadPrefs = async () => {
       try {
         const res = await notificationService.getPreferences();
-        if (res?.preference) {
-          const pref = res.preference;
+        const pref = res?.preference || res?.preferences;
+        if (pref) {
           setChannels(pref.channels || { in_app: true, email: true, push: true, whatsapp: false, sms: false });
           setCustomPreferences(pref.customPreferences || {});
-          if (pref.whatsappOptIn?.optedIn) {
+          if (pref.whatsappOptIn?.enabled || pref.whatsappOptIn?.optedIn) {
             setWhatsappOptedIn(true);
             setWhatsappPhone(pref.whatsappOptIn.phoneNumber || '');
           }

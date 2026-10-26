@@ -49,13 +49,14 @@ const notificationService = {
   },
 
   // TPO Delivery Tracking & Queue Management
-  async getDeliveryTracking({ page = 1, limit = 20, channel = '', status = '', eventType = '' } = {}) {
+  async getDeliveryTracking({ page = 1, limit = 20, channel = '', status = '', eventType = '', search = '' } = {}) {
     const params = new URLSearchParams({
       page: String(page),
       limit: String(limit),
       ...(channel && channel !== 'all' ? { channel } : {}),
       ...(status && status !== 'all' ? { status } : {}),
       ...(eventType && eventType !== 'all' ? { eventType } : {}),
+      ...(search ? { search } : {}),
     });
     const res = await api.get(`/notifications/tracking?${params.toString()}`);
     return res.data;

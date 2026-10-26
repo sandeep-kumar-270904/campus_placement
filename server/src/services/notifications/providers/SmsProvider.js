@@ -14,6 +14,33 @@ class SmsProvider extends INotificationProvider {
     }
 
     try {
+      if (this.accountSid && this.authToken) {
+        const auth = Buffer.from(`${this.accountSid}:${this.authToken}`).toString('base64');
+        const params = new URLSearchParams({
+          From: this.fromNumber,
+          To: to,
+          Body: body,
+        });
+
+        const res = await fetch(
+          `https://api.twilio.com/2010-04-01/Accounts/${this.accountSid}/Messages.json`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Basic ${auth}`,
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: params.toString(),
+          }
+        );
+
+        const data = await res.json();
+        if (!res.ok) {
+          return { success: false, error: data.message || 'Twilio SMS dispatch failed' };
+        }
+        return { success: true, messageId: data.sid };
+      }
+
       const mockId = `sms_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
       return {
         success: true,

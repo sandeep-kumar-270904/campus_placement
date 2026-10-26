@@ -44,6 +44,35 @@ class EmailProvider extends INotificationProvider {
         return { success: true, messageId: data.id };
       }
 
+      // If SendGrid API key is provided
+      if (process.env.SENDGRID_API_KEY) {
+        const res = await fetch('https://api.sendgrid.com/v3/mail/send', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${process.env.SENDGRID_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            personalizations: [{ to: [{ email: to, name: recipientName || '' }] }],
+            from: { email: this.fromEmail, name: 'PLACEearly Notifications' },
+            subject: title,
+            content: [{ type: 'text/html', value: body }],
+            headers: unsubscribeUrl
+              ? {
+                  'List-Unsubscribe': `<${unsubscribeUrl}>`,
+                  'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+                }
+              : {},
+          }),
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          return { success: false, error: errData.errors?.[0]?.message || 'SendGrid delivery failed' };
+        }
+        return { success: true, messageId: `sg_${Date.now()}` };
+      }
+
       // Default / Dev / Test Mock execution
       const mockMessageId = `email_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
       return {

@@ -14,6 +14,34 @@ class WhatsAppProvider extends INotificationProvider {
     }
 
     try {
+      // Meta WhatsApp Cloud API dispatch
+      if (process.env.META_WHATSAPP_TOKEN && process.env.META_WHATSAPP_PHONE_NUMBER_ID) {
+        const cleanNumber = to.replace(/[^0-9]/g, '');
+        const res = await fetch(
+          `https://graph.facebook.com/v19.0/${process.env.META_WHATSAPP_PHONE_NUMBER_ID}/messages`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${process.env.META_WHATSAPP_TOKEN}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              messaging_product: 'whatsapp',
+              recipient_type: 'individual',
+              to: cleanNumber,
+              type: 'text',
+              text: { preview_url: false, body },
+            }),
+          }
+        );
+
+        const data = await res.json();
+        if (!res.ok) {
+          return { success: false, error: data.error?.message || 'Meta WhatsApp dispatch failed' };
+        }
+        return { success: true, messageId: data.messages?.[0]?.id || `wa_${Date.now()}` };
+      }
+
       if (this.accountSid && this.authToken) {
         // Twilio WhatsApp dispatch
         const cleanTo = to.startsWith('whatsapp:') ? to : `whatsapp:${to}`;
