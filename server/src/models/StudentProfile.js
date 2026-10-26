@@ -301,6 +301,17 @@ studentProfileSchema.pre('save', function (next) {
   if (typeof next === 'function') next();
 });
 
+studentProfileSchema.post('save', async function (doc) {
+  try {
+    const EligibilityCache = mongoose.models.EligibilityCache || require('./EligibilityCache');
+    if (doc?.user) {
+      await EligibilityCache.invalidateForStudent(doc.user);
+    }
+  } catch (err) {
+    // Non-blocking cache invalidation error
+  }
+});
+
 // Compound unique indexes: roll numbers and profiles are scoped per college!
 studentProfileSchema.index({ collegeId: 1, rollNo: 1 }, { unique: true });
 studentProfileSchema.index({ collegeId: 1, user: 1 }, { unique: true });

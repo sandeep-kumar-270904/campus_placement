@@ -4,6 +4,7 @@ const Application = require('../models/Application');
 const StudentProfile = require('../models/StudentProfile');
 const Company = require('../models/Company');
 const AuditLog = require('../models/AuditLog');
+const EligibilityCache = require('../models/EligibilityCache');
 
 /**
  * @desc    Fetch paginated campus drives roster with applicant counts
@@ -361,6 +362,11 @@ exports.updateDrive = async (req, res) => {
     }
 
     await drive.save();
+    try {
+      await EligibilityCache.invalidateForDrive(drive._id);
+    } catch (cacheErr) {
+      // Non-fatal cache invalidation error
+    }
 
     await AuditLog.create({
       collegeId,
@@ -407,6 +413,11 @@ exports.updateDriveStatus = async (req, res) => {
     const prevStatus = drive.status;
     drive.status = status;
     await drive.save();
+    try {
+      await EligibilityCache.invalidateForDrive(drive._id);
+    } catch (cacheErr) {
+      // Non-fatal cache invalidation error
+    }
 
     await AuditLog.create({
       collegeId,

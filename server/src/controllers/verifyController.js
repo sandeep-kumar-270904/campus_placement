@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const StudentProfile = require('../models/StudentProfile');
 const User = require('../models/User');
 const College = require('../models/College');
@@ -19,13 +20,19 @@ exports.verifyStudentSeal = async (req, res) => {
 
     const trimmedCode = code.trim();
 
-    // Look up by verification code or roll number across all institutions
+    // Look up by verification code, roll number, or ObjectId across all institutions
+    const searchConditions = [
+      { 'verificationRecord.verificationCode': trimmedCode },
+      { rollNo: trimmedCode.toUpperCase() },
+      { rollNo: trimmedCode },
+    ];
+    if (mongoose.Types.ObjectId.isValid(trimmedCode)) {
+      searchConditions.push({ user: trimmedCode });
+      searchConditions.push({ _id: trimmedCode });
+    }
+
     const profile = await StudentProfile.findOne({
-      $or: [
-        { 'verificationRecord.verificationCode': trimmedCode },
-        { rollNo: trimmedCode.toUpperCase() },
-        { rollNo: trimmedCode },
-      ],
+      $or: searchConditions,
     }).setOptions({ bypassTenantFilter: true });
 
     if (!profile) {
@@ -71,11 +78,16 @@ exports.verifyStudentSeal = async (req, res) => {
           collegeCode,
           branch: profile.branch,
           gradYear: profile.graduationYear || profile.academics?.graduationYear || 2026,
-          cgpa: profile.cgpa,
+          cgpa: profile.publicPortfolioSettings?.showCgpa !== false ? profile.cgpa : '[Protected / Confidential]',
           backlogs: profile.backlogs,
           verifiedAt: null,
           verifier: verifierName,
           status: 'Unverified',
+          skills: profile.skills || [],
+          projects: profile.publicPortfolioSettings?.showProjects !== false ? profile.projects || [] : [],
+          certifications: profile.publicPortfolioSettings?.showCertifications !== false ? profile.certifications || [] : [],
+          socialLinks: (profile.publicPortfolioSettings?.showContact || profile.publicPortfolioSettings?.showContactInfo) ? profile.socialLinks || {} : {},
+          publicPortfolioSettings: profile.publicPortfolioSettings || {},
         },
       });
     }
@@ -147,11 +159,33 @@ exports.verifyStudentSeal = async (req, res) => {
 
     // 4. Valid Seal: return authentic certificate data (sensitive personal info excluded)
     const settings = profile.publicPortfolioSettings || {
+      isPublic: true,
       showCgpa: true,
-      showContactInfo: true,
       showProjects: true,
       showCertifications: true,
+      showExperience: true,
+      showContact: false,
     };
+
+    if (settings.isPublic === false) {
+      return res.json({
+        valid: true,
+        status: 'Profile is private',
+        isPrivate: true,
+        student: {
+          name: studentName,
+          rollNo: profile.rollNo,
+          collegeName,
+          collegeCode,
+          branch: profile.branch,
+          gradYear: profile.graduationYear || profile.academics?.graduationYear || 2026,
+          isPrivate: true,
+          status: 'Profile is private',
+          verificationCode: profile.verificationRecord?.verificationCode,
+          publicPortfolioSettings: settings,
+        },
+      });
+    }
 
     return res.json({
       valid: true,
@@ -174,7 +208,7 @@ exports.verifyStudentSeal = async (req, res) => {
         skills: profile.skills || [],
         projects: settings.showProjects !== false ? profile.projects || [] : [],
         certifications: settings.showCertifications !== false ? profile.certifications || [] : [],
-        socialLinks: settings.showContactInfo !== false ? profile.socialLinks || {} : {},
+        socialLinks: (settings.showContact || settings.showContactInfo) ? profile.socialLinks || {} : {},
         publicPortfolioSettings: settings,
       },
     });

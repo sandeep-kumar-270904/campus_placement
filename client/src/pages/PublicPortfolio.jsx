@@ -10,46 +10,53 @@ import QRCode from 'qrcode';
 import api from '../services/api';
 
 const PublicPortfolio = () => {
-  const { rollNo } = useParams();
+  const { rollNo, id } = useParams();
+  const identifier = rollNo || id;
   const navigate = useNavigate();
   const [student, setStudent] = useState(null);
   const [copied, setCopied] = useState(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
   const [verificationData, setVerificationData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isPrivate, setIsPrivate] = useState(false);
 
   useEffect(() => {
     const loadStudentData = async () => {
       try {
         setLoading(true);
         // Attempt to fetch real cryptographic verification record
-        const res = await api.get(`/verify/${encodeURIComponent(rollNo)}`);
-        if (res.data && res.data.student) {
-          setVerificationData(res.data);
-          setStudent({
-            name: res.data.student.name,
-            rollNo: res.data.student.rollNo,
-            branch: res.data.student.branch,
-            degree: 'Bachelor of Technology (B.Tech)',
-            cgpa: res.data.student.cgpa,
-            backlogs: res.data.student.backlogs,
-            gradYear: res.data.student.gradYear,
-            isVerified: res.data.valid,
-            collegeName: res.data.student.collegeName,
-            verificationCode: res.data.student.verificationCode,
-            keyId: res.data.student.keyId,
-            skills: res.data.student.skills?.length > 0 ? res.data.student.skills : ['React', 'Node.js', 'System Design', 'Algorithms', 'MongoDB', 'Python'],
-            projects: res.data.student.projects || [],
-            certifications: res.data.student.certifications || [],
-            socialLinks: res.data.student.socialLinks || {},
-            publicPortfolioSettings: res.data.student.publicPortfolioSettings || {},
-          });
+        const res = await api.get(`/verify/${encodeURIComponent(identifier || '')}`);
+        if (res.data) {
+          if (res.data.isPrivate || res.data.student?.publicPortfolioSettings?.isPublic === false) {
+            setIsPrivate(true);
+          }
+          if (res.data.student) {
+            setVerificationData(res.data);
+            setStudent({
+              name: res.data.student.name,
+              rollNo: res.data.student.rollNo,
+              branch: res.data.student.branch,
+              degree: 'Bachelor of Technology (B.Tech)',
+              cgpa: res.data.student.cgpa,
+              backlogs: res.data.student.backlogs,
+              gradYear: res.data.student.gradYear,
+              isVerified: res.data.valid,
+              collegeName: res.data.student.collegeName,
+              verificationCode: res.data.student.verificationCode,
+              keyId: res.data.student.keyId,
+              skills: res.data.student.skills?.length > 0 ? res.data.student.skills : ['React', 'Node.js', 'System Design', 'Algorithms', 'MongoDB', 'Python'],
+              projects: res.data.student.projects || [],
+              certifications: res.data.student.certifications || [],
+              socialLinks: res.data.student.socialLinks || {},
+              publicPortfolioSettings: res.data.student.publicPortfolioSettings || {},
+            });
+          }
         }
       } catch {
         // Fallback profile if offline/mock
         setStudent({
           name: 'Alex Mercer',
-          rollNo: rollNo || 'CS2026-08',
+          rollNo: identifier || 'CS2026-08',
           branch: 'Computer Science & Engineering',
           degree: 'Bachelor of Technology (B.Tech)',
           cgpa: 8.85,
@@ -57,9 +64,10 @@ const PublicPortfolio = () => {
           gradYear: 2026,
           isVerified: true,
           collegeName: 'University College of Engineering',
-          verificationCode: `PE-COL-${rollNo || 'CS2026-08'}`,
+          verificationCode: `PE-COL-${identifier || 'CS2026-08'}`,
           skills: ['React', 'Node.js', 'System Design', 'Algorithms', 'MongoDB', 'Python'],
           placedCompany: 'Google (Software Engineering Intern)',
+          publicPortfolioSettings: { isPublic: true, showCgpa: true, showProjects: true, showCertifications: true, showContact: true },
         });
       } finally {
         setLoading(false);
@@ -67,12 +75,12 @@ const PublicPortfolio = () => {
     };
 
     loadStudentData();
-  }, [rollNo]);
+  }, [identifier]);
 
   // Generate QR Code linking directly to /verify/:code
   useEffect(() => {
     if (!student) return;
-    const targetCode = student.verificationCode || student.rollNo || rollNo;
+    const targetCode = student.verificationCode || student.rollNo || identifier;
     const verifyUrl = `${window.location.origin}/verify/${encodeURIComponent(targetCode)}`;
 
     QRCode.toDataURL(
@@ -91,7 +99,7 @@ const PublicPortfolio = () => {
         }
       }
     );
-  }, [student, rollNo]);
+  }, [student, identifier]);
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -114,8 +122,64 @@ const PublicPortfolio = () => {
     );
   }
 
-  const targetVerifyCode = student.verificationCode || student.rollNo || rollNo;
+  const targetVerifyCode = student.verificationCode || student.rollNo || identifier;
   const isSealValid = verificationData ? verificationData.valid : student.isVerified;
+
+  if (isPrivate || student.publicPortfolioSettings?.isPublic === false) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center p-4 font-sans">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-gray-200 p-8 text-center space-y-5"
+        >
+          <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-500 flex items-center justify-center mx-auto text-2xl shadow-inner">
+            🔒
+          </div>
+          <div>
+            <h2 className="text-xl font-display font-bold text-gray-900">Portfolio is Private</h2>
+            <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
+              The student has restricted public access to their placement portfolio. Project highlights, credentials, and academic scores are shielded.
+            </p>
+          </div>
+
+          <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 text-left space-y-1.5 text-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-500 font-medium">Student Name:</span>
+              <span className="font-bold text-gray-900">{student.name}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-gray-500 font-medium">Institution:</span>
+              <span className="font-bold text-gray-800">{student.collegeName || 'Placement Cell'}</span>
+            </div>
+            {targetVerifyCode && (
+              <div className="flex items-center justify-between">
+                <span className="text-gray-500 font-medium">Record Code:</span>
+                <span className="font-mono font-bold text-mongo-dark">{targetVerifyCode}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="pt-2 flex flex-col gap-2">
+            <button
+              onClick={() => navigate('/')}
+              className="w-full py-2.5 rounded-xl bg-mongo-dark hover:bg-gray-800 text-white font-bold text-xs transition shadow-md"
+            >
+              Return to Home
+            </button>
+            {targetVerifyCode && (
+              <Link
+                to={`/verify/${encodeURIComponent(targetVerifyCode)}`}
+                className="text-xs font-semibold text-mongo-green-dark hover:underline flex items-center justify-center gap-1"
+              >
+                Inspect Cryptographic TPO Seal ➔
+              </Link>
+            )}
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-gray-900 font-sans selection:bg-mongo-green selection:text-mongo-dark py-12 px-4 sm:px-6 lg:px-8">
@@ -211,8 +275,12 @@ const PublicPortfolio = () => {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-center">
                 <span className="text-[11px] font-bold text-gray-500 uppercase block">Cumulative CGPA</span>
-                <span className="text-2xl font-display font-extrabold text-mongo-dark mt-1 block">{student.cgpa}</span>
-                <span className="text-[10px] text-green-600 font-bold">Verified Score</span>
+                <span className="text-2xl font-display font-extrabold text-mongo-dark mt-1 block">
+                  {student.publicPortfolioSettings?.showCgpa !== false ? student.cgpa : '[Protected]'}
+                </span>
+                <span className={`text-[10px] font-bold ${student.publicPortfolioSettings?.showCgpa !== false ? 'text-green-600' : 'text-amber-600'}`}>
+                  {student.publicPortfolioSettings?.showCgpa !== false ? 'Verified Score' : 'Confidential'}
+                </span>
               </div>
 
               <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-center">
@@ -286,7 +354,7 @@ const PublicPortfolio = () => {
           </div>
 
           {/* Portfolio Projects */}
-          {student.projects && student.projects.length > 0 && (
+          {student.publicPortfolioSettings?.showProjects !== false && student.projects && student.projects.length > 0 && (
             <div>
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
                 <Briefcase className="w-4 h-4 text-mongo-green-dark" />
@@ -326,7 +394,7 @@ const PublicPortfolio = () => {
           )}
 
           {/* Certifications */}
-          {student.certifications && student.certifications.length > 0 && (
+          {student.publicPortfolioSettings?.showCertifications !== false && student.certifications && student.certifications.length > 0 && (
             <div>
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
                 <Award className="w-4 h-4 text-mongo-green-dark" />
@@ -356,7 +424,7 @@ const PublicPortfolio = () => {
           )}
 
           {/* Social & Contact Profiles */}
-          {student.socialLinks && Object.values(student.socialLinks).some(Boolean) && (
+          {(student.publicPortfolioSettings?.showContact || student.publicPortfolioSettings?.showContactInfo) && student.socialLinks && Object.values(student.socialLinks).some(Boolean) && (
             <div>
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
                 <Globe className="w-4 h-4 text-mongo-green-dark" />

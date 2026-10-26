@@ -281,4 +281,91 @@ describe('Explanatory Eligibility Engine & What-If Tests (Part A)', () => {
     assert.strictEqual(typeof res.reason, 'string');
     assert.ok(Array.isArray(res.reasons));
   });
+
+  test('16. Batch graduation year coercion: String batch year matches numeric allowed year', () => {
+    const studentStringBatch = {
+      ...fullyQualifiedStudent,
+      graduationYear: '2026',
+    };
+    const res = evaluateEligibility(baseOpportunity, studentStringBatch);
+    assert.strictEqual(res.isEligible, true);
+    const batchRule = res.reasons.find((r) => r.rule === 'Graduation Year');
+    assert.strictEqual(batchRule.status, 'passed');
+  });
+
+  test('17. Empty allowed criteria: Empty branches and batches allow all students', () => {
+    const openDrive = {
+      ...baseOpportunity,
+      eligibilityRules: {
+        minCgpa: 6.0,
+        maxBacklogs: 2,
+        allowedBranches: [],
+        allowedGraduationYears: [],
+      },
+    };
+    const mechStudent = {
+      ...fullyQualifiedStudent,
+      branch: 'Mechanical Engineering',
+      graduationYear: 2025,
+      cgpa: 7.0,
+    };
+    const res = evaluateEligibility(openDrive, mechStudent);
+    assert.strictEqual(res.isEligible, true);
+    assert.ok(!res.reasons.some((r) => r.status === 'failed'));
+  });
+
+  test('18. Placed student policy handling with null / zero CTC drive', () => {
+    const policy = {
+      policies: {
+        allowMultipleOffers: true,
+        dreamTierThreshold: 12.0,
+      },
+    };
+    const unpaidDrive = {
+      ...baseOpportunity,
+      ctc: null,
+    };
+    const placedStudent = {
+      ...fullyQualifiedStudent,
+      isPlaced: true,
+    };
+    const res = evaluateEligibility(unpaidDrive, placedStudent, policy);
+    assert.strictEqual(res.isEligible, false);
+    const rule = res.reasons.find((r) => r.rule === 'Institutional Placement Policy');
+    assert.strictEqual(rule.status, 'failed');
+  });
+
+  test('19. Multiple branches edge cases: Trimming and casing differences', () => {
+    const drive = {
+      ...baseOpportunity,
+      eligibilityRules: {
+        ...baseOpportunity.eligibilityRules,
+        allowedBranches: ['computer science', 'Electrical Engineering'],
+      },
+    };
+    const student = {
+      ...fullyQualifiedStudent,
+      branch: '   COMPUTER SCIENCE   ',
+    };
+    const res = evaluateEligibility(drive, student);
+    assert.strictEqual(res.isEligible, true);
+  });
+
+  test('20. Missing 10th and 12th scores treated safely as 0 with exact gap calculation', () => {
+    const studentWithoutSchoolMarks = {
+      ...fullyQualifiedStudent,
+      academics: {},
+    };
+    const res = evaluateEligibility(baseOpportunity, studentWithoutSchoolMarks);
+    assert.strictEqual(res.isEligible, false);
+    const tenthRule = res.reasons.find((r) => r.rule === 'Class 10th Percentage');
+    assert.strictEqual(tenthRule.status, 'failed');
+    assert.strictEqual(tenthRule.gap, 75.0);
+  });
+
+  test('21. EligibilityCache static methods are defined and callable', () => {
+    assert.strictEqual(typeof EligibilityCache.getCachedOrCompute, 'function');
+    assert.strictEqual(typeof EligibilityCache.invalidateForStudent, 'function');
+    assert.strictEqual(typeof EligibilityCache.invalidateForDrive, 'function');
+  });
 });

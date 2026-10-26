@@ -15,6 +15,11 @@ import {
   UploadCloud,
   ExternalLink,
   Sparkles,
+  Copy,
+  Check,
+  Globe,
+  Lock,
+  QrCode,
 } from 'lucide-react';
 import studentService from '../../services/studentService';
 import { uploadResume } from '../../services/documentService';
@@ -74,6 +79,16 @@ export default function StudentProfileBuilder() {
   const [isVerified, setIsVerified] = useState(false);
   const [completeness, setCompleteness] = useState({ percentage: 0, missing: [], nextBestAction: '' });
   const [readinessScore, setReadinessScore] = useState(0);
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  const [publicPortfolioSettings, setPublicPortfolioSettings] = useState({
+    isPublic: true,
+    showCgpa: true,
+    showProjects: true,
+    showCertifications: true,
+    showExperience: true,
+    showContact: false,
+  });
 
   const fetchProfile = async () => {
     try {
@@ -133,6 +148,17 @@ export default function StudentProfileBuilder() {
         setResumeVersions(p.resumeVersions);
       }
 
+      if (p.publicPortfolioSettings) {
+        setPublicPortfolioSettings({
+          isPublic: p.publicPortfolioSettings.isPublic !== false,
+          showCgpa: p.publicPortfolioSettings.showCgpa !== false,
+          showProjects: p.publicPortfolioSettings.showProjects !== false,
+          showCertifications: p.publicPortfolioSettings.showCertifications !== false,
+          showExperience: p.publicPortfolioSettings.showExperience !== false,
+          showContact: Boolean(p.publicPortfolioSettings.showContact || p.publicPortfolioSettings.showContactInfo),
+        });
+      }
+
       setIsVerified(Boolean(p.isVerifiedByTPO));
       if (res.completeness) setCompleteness(res.completeness);
       if (res.readinessScore) setReadinessScore(res.readinessScore);
@@ -178,6 +204,7 @@ export default function StudentProfileBuilder() {
         certifications,
         socialLinks,
         resumeVersions,
+        publicPortfolioSettings,
       };
 
       const res = await studentService.updateProfile(payload);
@@ -320,6 +347,20 @@ export default function StudentProfileBuilder() {
     setTimeout(() => setSuccessMsg(''), 3000);
   };
 
+  const handleCopyPortfolioLink = () => {
+    const url = `${window.location.origin}/portfolio/${encodeURIComponent(personal.rollNo || '')}`;
+    navigator.clipboard.writeText(url);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 3000);
+  };
+
+  const handleTogglePrivacySetting = (key) => {
+    setPublicPortfolioSettings((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
   if (loading) {
     return (
       <div className="flex-1 p-8 flex items-center justify-center">
@@ -406,6 +447,7 @@ export default function StudentProfileBuilder() {
           { id: 'certifications', label: 'Certifications', icon: Award },
           { id: 'links', label: 'Social & Coding Links', icon: Link2 },
           { id: 'resumes', label: 'Resume Versions', icon: FileText },
+          { id: 'privacy', label: 'Portfolio & Privacy', icon: ShieldCheck },
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -1038,6 +1080,151 @@ export default function StudentProfileBuilder() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* 8. Portfolio & Privacy Settings */}
+        {activeTab === 'privacy' && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-sm font-bold text-white uppercase tracking-wider">Public Portfolio & Privacy Controls</h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Configure your public portfolio visibility and select which academic and credential sections external viewers can inspect.
+              </p>
+            </div>
+
+            {/* Public Portfolio URL Card */}
+            <div className="p-5 rounded-2xl bg-slate-800/80 border border-slate-700/80 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <Globe className="w-4 h-4 text-emerald-400" /> Shareable Portfolio Link
+                </span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  publicPortfolioSettings.isPublic
+                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                    : 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
+                }`}>
+                  {publicPortfolioSettings.isPublic ? 'Publicly Accessible' : 'Restricted (Private)'}
+                </span>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <div className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 text-xs font-mono truncate select-all">
+                  {`${window.location.origin}/portfolio/${encodeURIComponent(personal.rollNo || '')}`}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleCopyPortfolioLink}
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold transition"
+                  >
+                    {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedLink ? 'Copied!' : 'Copy Link'}</span>
+                  </button>
+
+                  <a
+                    href={`/portfolio/${encodeURIComponent(personal.rollNo || '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold transition shadow-md shadow-emerald-500/20"
+                  >
+                    <span>View Live</span> <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Privacy Section Toggles */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Section-Level Display Toggles
+              </h3>
+
+              {[
+                {
+                  key: 'isPublic',
+                  title: 'Public Portfolio Access',
+                  desc: 'Allow employers, recruiters, and verifiers to access your portfolio via your unique link and QR code.',
+                  icon: Globe,
+                },
+                {
+                  key: 'showCgpa',
+                  title: 'Display Verified CGPA',
+                  desc: 'Show your official institutional cumulative CGPA and academic performance badge.',
+                  icon: GraduationCap,
+                },
+                {
+                  key: 'showProjects',
+                  title: 'Display Featured Projects',
+                  desc: 'Show your software engineering projects, GitHub repositories, and live demo links.',
+                  icon: Briefcase,
+                },
+                {
+                  key: 'showCertifications',
+                  title: 'Display Certifications & Credentials',
+                  desc: 'Showcase verified certifications, issuing bodies, and external credential links.',
+                  icon: Award,
+                },
+                {
+                  key: 'showContact',
+                  title: 'Display Social & Coding Profiles',
+                  desc: 'Show links to your GitHub, LinkedIn, LeetCode, and personal websites on your public profile.',
+                  icon: Link2,
+                },
+              ].map((item) => {
+                const Icon = item.icon;
+                const isChecked = Boolean(publicPortfolioSettings[item.key]);
+                return (
+                  <div
+                    key={item.key}
+                    onClick={() => handleTogglePrivacySetting(item.key)}
+                    className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/70 hover:border-slate-600 transition flex items-center justify-between gap-4 cursor-pointer"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`p-2 rounded-lg mt-0.5 ${isChecked ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-700 text-slate-400'}`}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-white">{item.title}</p>
+                        <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">{item.desc}</p>
+                      </div>
+                    </div>
+
+                    <div className="relative inline-flex items-center shrink-0">
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => handleTogglePrivacySetting(item.key)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Verification & Cryptographic QR Seal Status */}
+            <div className="p-5 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-950 border border-emerald-500/20 flex flex-col sm:flex-row items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-6 h-6 text-emerald-400" />
+              </div>
+              <div className="flex-1 text-center sm:text-left space-y-1">
+                <p className="text-xs font-bold text-white">Cryptographic Ed25519 Tamper Protection</p>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Your academic marks are verified by your college Placement & Training Cell. Any change to your CGPA or backlogs will automatically invalidate your seal and require TPO re-verification.
+                </p>
+              </div>
+              <a
+                href={`/verify/${encodeURIComponent(personal.rollNo || '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30 text-xs font-semibold whitespace-nowrap transition flex items-center gap-1.5"
+              >
+                <span>Inspect Seal</span> <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            </div>
           </div>
         )}
       </div>

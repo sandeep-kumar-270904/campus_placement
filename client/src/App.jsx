@@ -97,6 +97,7 @@ function App() {
               <Route path="/learning-platforms" element={<LearningPlatforms />} />
               <Route path="/verify/:code" element={<PublicVerify />} />
               <Route path="/portfolio/:rollNo" element={<PublicPortfolio />} />
+              <Route path="/portfolio/id/:id" element={<PublicPortfolio />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
