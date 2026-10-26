@@ -183,7 +183,15 @@ export default function TpoAnalytics() {
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 shadow-sm transition-all"
           >
             <Download className="w-3.5 h-3.5 text-emerald-400" />
-            Export Dataset
+            Export CSV
+          </button>
+
+          <button
+            onClick={() => window.print()}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 shadow-sm transition-all"
+          >
+            <FileText className="w-3.5 h-3.5 text-blue-400" />
+            Export PDF
           </button>
         </div>
       </div>
