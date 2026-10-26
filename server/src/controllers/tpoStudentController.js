@@ -660,3 +660,145 @@ exports.addStudentNote = async (req, res) => {
     return res.status(500).json({ error: { message: err.message } });
   }
 };
+
+/**
+ * @desc    Edit existing student profile and user details
+ * @route   PUT /api/tpo/students/:id
+ * @access  Private (TPO / SuperAdmin / Coordinator)
+ */
+exports.updateStudentManual = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { firstName, lastName, email, rollNo, branch, cgpa, backlogs, graduationYear, phone } = req.body;
+    const collegeId = req.tenant?.collegeId || req.user?.collegeId;
+    const tpoId = req.user.userId || req.user.id;
+
+    const profile = await StudentProfile.findById(id).populate('user');
+    if (!profile) {
+      return res.status(404).json({ error: { message: 'Student profile not found.' } });
+    }
+
+    if (rollNo && rollNo.trim() !== profile.rollNo) {
+      const duplicateRoll = await StudentProfile.findOne({
+        collegeId,
+        rollNo: rollNo.trim(),
+        _id: { $ne: id },
+      });
+      if (duplicateRoll) {
+        return res.status(400).json({ error: { message: `Student with roll number '${rollNo}' already exists.` } });
+      }
+      profile.rollNo = rollNo.trim();
+    }
+
+    if (branch) profile.branch = branch;
+    if (cgpa !== undefined) profile.cgpa = parseFloat(cgpa);
+    if (backlogs !== undefined) profile.backlogs = parseInt(backlogs, 10);
+    if (graduationYear !== undefined) profile.graduationYear = parseInt(graduationYear, 10);
+    if (phone !== undefined) {
+      profile.personalInfo = profile.personalInfo || {};
+      profile.personalInfo.phone = phone;
+    }
+
+    await profile.save();
+
+    if (profile.user) {
+      if (firstName !== undefined) profile.user.firstName = firstName;
+      if (lastName !== undefined) profile.user.lastName = lastName;
+      if (email && email.toLowerCase() !== profile.user.email) {
+        const duplicateEmail = await User.findOne({
+          collegeId,
+          email: email.toLowerCase(),
+          _id: { $ne: profile.user._id },
+        });
+        if (duplicateEmail) {
+          return res.status(400).json({ error: { message: `Student with email '${email}' already exists.` } });
+        }
+        profile.user.email = email.toLowerCase();
+      }
+      await profile.user.save();
+    }
+
+    await AuditLog.create({
+      collegeId,
+      actorId: tpoId,
+      action: 'STUDENT_MANUALLY_UPDATED',
+      resource: 'StudentProfile',
+      metadata: { studentId: id, rollNo: profile.rollNo },
+    });
+
+    return res.json({
+      success: true,
+      message: 'Student profile updated successfully.',
+      student: { id: profile._id, rollNo: profile.rollNo },
+    });
+  } catch (err) {
+    console.error('updateStudentManual error:', err);
+    return res.status(500).json({ error: { message: err.message } });
+  }
+};
+
+/**
+ * @desc    Bulk enroll / add students to an opportunity drive
+ * @route   POST /api/tpo/students/bulk-add-to-drive
+ * @access  Private (TPO / SuperAdmin)
+ */
+exports.bulkAddToDrive = async (req, res) => {
+  try {
+    const { studentIds, opportunityId } = req.body;
+    if (!studentIds || !Array.isArray(studentIds) || studentIds.length === 0 || !opportunityId) {
+      return res.status(400).json({ error: { message: 'studentIds array and opportunityId are required.' } });
+    }
+
+    const collegeId = req.tenant?.collegeId || req.user?.collegeId;
+    const tpoId = req.user.userId || req.user.id;
+
+    const opportunity = await Opportunity.findById(opportunityId);
+    if (!opportunity) {
+      return res.status(404).json({ error: { message: 'Placement drive not found.' } });
+    }
+
+    const profiles = await StudentProfile.find({
+      _id: { $in: studentIds },
+      ...(collegeId ? { collegeId } : {}),
+    });
+
+    let enrolledCount = 0;
+    for (const prof of profiles) {
+      const studentUserId = prof.user;
+      const existingApp = await Application.findOne({
+        opportunityId,
+        studentId: studentUserId,
+      });
+
+      if (!existingApp) {
+        await Application.create({
+          collegeId,
+          opportunityId,
+          studentId: studentUserId,
+          status: 'Applied',
+          currentRound: opportunity.rounds?.[0]?.name || 'Round 1',
+          appliedAt: new Date(),
+        });
+        enrolledCount++;
+      }
+    }
+
+    await AuditLog.create({
+      collegeId,
+      actorId: tpoId,
+      action: 'STUDENTS_BULK_ENROLLED_TO_DRIVE',
+      resource: 'Opportunity',
+      metadata: { opportunityId, enrolledCount, totalSelected: studentIds.length },
+    });
+
+    return res.json({
+      success: true,
+      message: `Enrolled ${enrolledCount} candidate(s) to ${opportunity.title} • ${opportunity.companyName}`,
+      enrolledCount,
+    });
+  } catch (err) {
+    console.error('bulkAddToDrive error:', err);
+    return res.status(500).json({ error: { message: err.message } });
+  }
+};
+

@@ -12,6 +12,10 @@ const tpoService = {
     const res = await api.get('/tpo/students', { params });
     return res.data;
   },
+  getStudentDetails: async (id) => {
+    const res = await api.get(`/tpo/students/${id}`);
+    return res.data;
+  },
   bulkVerifyStudents: async (data) => {
     const res = await api.post('/tpo/students/bulk-verify', data);
     return res.data;
@@ -28,6 +32,14 @@ const tpoService = {
   },
   addStudentManual: async (data) => {
     const res = await api.post('/tpo/students/manual', data);
+    return res.data;
+  },
+  updateStudentManual: async (studentId, data) => {
+    const res = await api.put(`/tpo/students/${studentId}`, data);
+    return res.data;
+  },
+  bulkAddToDrive: async (data) => {
+    const res = await api.post('/tpo/students/bulk-add-to-drive', data);
     return res.data;
   },
   updateStudentNotes: async (studentId, note) => {

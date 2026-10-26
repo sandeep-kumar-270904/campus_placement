@@ -10,6 +10,8 @@ const {
   previewBulkImport,
   commitBulkImport,
   addStudentManual,
+  updateStudentManual,
+  bulkAddToDrive,
   addStudentNote,
 } = require('../controllers/tpoStudentController');
 
@@ -58,6 +60,8 @@ router.post('/students/bulk-verify', requirePermission('student:verify'), bulkVe
 router.post('/students/bulk-import/preview', requirePermission('student:import'), upload.single('file'), previewBulkImport);
 router.post('/students/bulk-import/commit', requirePermission('student:import'), commitBulkImport);
 router.post('/students/manual', requirePermission('student:import'), addStudentManual);
+router.put('/students/:id', requirePermission('student:import'), updateStudentManual);
+router.post('/students/bulk-add-to-drive', requirePermission('drive:update'), bulkAddToDrive);
 router.put('/students/:id/notes', requireDeptScope, addStudentNote);
 
 // 3. Academic Verification Queue & Actions

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Search,
   Filter,
@@ -23,7 +23,10 @@ import {
   Sparkles,
   Layers,
   ArrowUpDown,
-  FileCheck
+  FileCheck,
+  Edit,
+  MessageSquare,
+  Briefcase
 } from 'lucide-react';
 import tpoService from '../../services/tpoService';
 import TpoNaturalLanguageSearch from '../../components/tpo/TpoNaturalLanguageSearch';
@@ -38,6 +41,7 @@ const SAVED_PRESETS = [
 
 export default function TpoStudents() {
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Directory state
   const [students, setStudents] = useState([]);
@@ -48,6 +52,9 @@ export default function TpoStudents() {
   const [search, setSearch] = useState('');
   const [activePreset, setActivePreset] = useState('all');
   const [branchFilter, setBranchFilter] = useState('all');
+  const [yearFilter, setYearFilter] = useState('all');
+  const [appliedDriveFilter, setAppliedDriveFilter] = useState('all');
+  const [availableDrives, setAvailableDrives] = useState([]);
   const [verificationFilter, setVerificationFilter] = useState('all');
   const [placedFilter, setPlacedFilter] = useState('all');
   const [minCgpaFilter, setMinCgpaFilter] = useState('');
@@ -68,8 +75,11 @@ export default function TpoStudents() {
   });
   const [showColChooser, setShowColChooser] = useState(false);
 
-  // Bulk Selection
+  // Bulk Selection & Operations
   const [selectedIds, setSelectedIds] = useState([]);
+  const [isAddToDriveModalOpen, setIsAddToDriveModalOpen] = useState(false);
+  const [targetDriveId, setTargetDriveId] = useState('');
+  const [enrollingToDrive, setEnrollingToDrive] = useState(false);
 
   // Profile Drawer
   const [drawerStudentId, setDrawerStudentId] = useState(null);
@@ -84,8 +94,9 @@ export default function TpoStudents() {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [committingImport, setCommittingImport] = useState(false);
 
-  // Manual Add Student Modal
+  // Manual Add/Edit Student Modal
   const [isManualModalOpen, setIsManualModalOpen] = useState(false);
+  const [editStudentId, setEditStudentId] = useState(null);
   const [manualForm, setManualForm] = useState({
     firstName: '',
     lastName: '',
@@ -119,6 +130,8 @@ export default function TpoStudents() {
         limit: pagination.limit,
         q: search,
         branch: branchFilter,
+        graduationYear: yearFilter !== 'all' ? yearFilter : '',
+        opportunityId: appliedDriveFilter !== 'all' ? appliedDriveFilter : '',
         verificationStatus: verificationFilter,
         placedStatus: placedFilter,
         minCgpa: minCgpaFilter,
@@ -140,6 +153,8 @@ export default function TpoStudents() {
     pagination.limit,
     search,
     branchFilter,
+    yearFilter,
+    appliedDriveFilter,
     verificationFilter,
     placedFilter,
     minCgpaFilter,
@@ -151,6 +166,13 @@ export default function TpoStudents() {
   useEffect(() => {
     fetchStudents();
   }, [fetchStudents]);
+
+  // Load active drives for filter & add-to-drive modal
+  useEffect(() => {
+    tpoService.getDrives({ limit: 100 })
+      .then((res) => setAvailableDrives(res.drives || []))
+      .catch((err) => console.error('Failed to load drives:', err));
+  }, []);
 
   // Open modal if action=import in URL
   useEffect(() => {
@@ -168,8 +190,7 @@ export default function TpoStudents() {
     try {
       setDrawerStudentId(studentId);
       setDrawerLoading(true);
-      const res = await tpoService.getStudents({ limit: 1 }); // warm up
-      const details = await apiGetStudentDetails(studentId);
+      const details = await tpoService.getStudentDetails(studentId);
       setDrawerData(details);
     } catch (err) {
       console.error('Failed to load student details:', err);
@@ -177,13 +198,6 @@ export default function TpoStudents() {
     } finally {
       setDrawerLoading(false);
     }
-  };
-
-  const apiGetStudentDetails = async (id) => {
-    const res = await fetch(`/api/tpo/students/${id}`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-    });
-    return await res.json();
   };
 
   // Preset Handler
@@ -282,13 +296,19 @@ export default function TpoStudents() {
     }
   };
 
-  // Manual Add Student
+  // Manual Add/Edit Student
   const handleManualAddSubmit = async (e) => {
     e.preventDefault();
     try {
-      await tpoService.addStudentManual(manualForm);
-      showToast('Student profile created successfully');
+      if (editStudentId) {
+        await tpoService.updateStudentManual(editStudentId, manualForm);
+        showToast('Student profile updated successfully');
+      } else {
+        await tpoService.addStudentManual(manualForm);
+        showToast('Student profile created successfully');
+      }
       setIsManualModalOpen(false);
+      setEditStudentId(null);
       setManualForm({
         firstName: '',
         lastName: '',
@@ -302,8 +322,88 @@ export default function TpoStudents() {
       });
       fetchStudents();
     } catch (err) {
-      showToast(err?.response?.data?.error?.message || 'Failed to create student', 'error');
+      showToast(err?.response?.data?.error?.message || 'Failed to save student profile', 'error');
     }
+  };
+
+  const handleOpenAddStudent = () => {
+    setEditStudentId(null);
+    setManualForm({
+      firstName: '',
+      lastName: '',
+      email: '',
+      rollNo: '',
+      branch: 'Computer Science',
+      cgpa: 8.0,
+      backlogs: 0,
+      graduationYear: 2026,
+      phone: '',
+    });
+    setIsManualModalOpen(true);
+  };
+
+  const handleOpenEditStudent = (s) => {
+    setEditStudentId(s.id);
+    const names = (s.fullName || s.name || '').split(' ');
+    setManualForm({
+      firstName: s.firstName || names[0] || '',
+      lastName: s.lastName || names.slice(1).join(' ') || '',
+      email: s.email || '',
+      rollNo: s.rollNo || '',
+      branch: s.branch || 'Computer Science',
+      cgpa: s.cgpa || 0,
+      backlogs: s.backlogs || 0,
+      graduationYear: s.graduationYear || 2026,
+      phone: s.phone || '',
+    });
+    setIsManualModalOpen(true);
+  };
+
+  // Bulk Add Selected Students to Placement Drive
+  const handleBulkAddToDrive = async () => {
+    if (!targetDriveId || selectedIds.length === 0) return;
+    try {
+      setEnrollingToDrive(true);
+      const res = await tpoService.bulkAddToDrive({
+        studentIds: selectedIds,
+        opportunityId: targetDriveId,
+      });
+      showToast(res.message || `Enrolled ${selectedIds.length} candidate(s) to drive`);
+      setIsAddToDriveModalOpen(false);
+      setSelectedIds([]);
+      setTargetDriveId('');
+      fetchStudents();
+    } catch (err) {
+      showToast(err?.response?.data?.error?.message || 'Failed to enroll students in drive', 'error');
+    } finally {
+      setEnrollingToDrive(false);
+    }
+  };
+
+  // Download Bulk Import Validation Error Report CSV
+  const handleDownloadErrorReport = () => {
+    if (!previewResult || !previewResult.preview) return;
+    const invalidRows = previewResult.preview.filter((r) => !r.isValid);
+    if (invalidRows.length === 0) return;
+
+    const headers = ['Row', 'Roll No', 'Name', 'Email', 'CGPA', 'Errors'];
+    const rows = invalidRows.map((r) => [
+      r.rowNumber,
+      `"${r.rollNo || ''}"`,
+      `"${r.name || ''}"`,
+      `"${r.email || ''}"`,
+      r.cgpa || 0,
+      `"${(r.errors || []).join('; ')}"`,
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `import_validation_errors_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // Export Selected as CSV
@@ -517,6 +617,59 @@ export default function TpoStudents() {
             </div>
           </div>
         </div>
+
+        {/* Second Row: Max Backlogs, Batch Year, and Applied-to Drive */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-800/60">
+          <div>
+            <input
+              type="number"
+              min="0"
+              placeholder="Max Backlogs allowed (e.g. 0)"
+              value={maxBacklogsFilter}
+              onChange={(e) => {
+                setMaxBacklogsFilter(e.target.value);
+                setPagination((p) => ({ ...p, page: 1 }));
+              }}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500/50"
+            />
+          </div>
+
+          <div>
+            <select
+              value={yearFilter}
+              onChange={(e) => {
+                setYearFilter(e.target.value);
+                setPagination((p) => ({ ...p, page: 1 }));
+              }}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-emerald-500/50"
+            >
+              <option value="all">All Batch Years</option>
+              <option value="2024">2024</option>
+              <option value="2025">2025</option>
+              <option value="2026">2026</option>
+              <option value="2027">2027</option>
+              <option value="2028">2028</option>
+            </select>
+          </div>
+
+          <div>
+            <select
+              value={appliedDriveFilter}
+              onChange={(e) => {
+                setAppliedDriveFilter(e.target.value);
+                setPagination((p) => ({ ...p, page: 1 }));
+              }}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-emerald-500/50"
+            >
+              <option value="all">Applied to Drive (All)</option>
+              {availableDrives.map((d) => (
+                <option key={d._id || d.id} value={d._id || d.id}>
+                  {d.companyName} — {d.title}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
       </div>
 
       {/* Bulk Action Bar (when rows selected) */}
@@ -543,6 +696,20 @@ export default function TpoStudents() {
             >
               <ShieldAlert className="w-3.5 h-3.5" />
               Reject with Reason
+            </button>
+            <button
+              onClick={() => navigate(`/tpo/announcements?action=compose&segment=custom&count=${selectedIds.length}`)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs transition"
+            >
+              <MessageSquare className="w-3.5 h-3.5 text-blue-400" />
+              Message
+            </button>
+            <button
+              onClick={() => setIsAddToDriveModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs transition"
+            >
+              <Briefcase className="w-3.5 h-3.5 text-amber-400" />
+              Add to Drive
             </button>
             <button
               onClick={handleExportSelectedCSV}
@@ -732,12 +899,21 @@ export default function TpoStudents() {
                       )}
 
                       <td className="py-3 px-4 text-right">
-                        <button
-                          onClick={() => handleOpenDrawer(student.id)}
-                          className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold text-[11px] transition"
-                        >
-                          View Drawer &rarr;
-                        </button>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => handleOpenEditStudent(student)}
+                            className="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition"
+                            title="Edit Student Profile"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleOpenDrawer(student.id)}
+                            className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold text-[11px] transition"
+                          >
+                            Drawer &rarr;
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -1030,16 +1206,28 @@ export default function TpoStudents() {
                   </table>
                 </div>
 
-                <div className="flex items-center justify-between pt-2">
-                  <button
-                    onClick={() => {
-                      setImportFile(null);
-                      setPreviewResult(null);
-                    }}
-                    className="text-xs text-slate-400 hover:text-white"
-                  >
-                    Reset
-                  </button>
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        setImportFile(null);
+                        setPreviewResult(null);
+                      }}
+                      className="text-xs text-slate-400 hover:text-white"
+                    >
+                      Reset
+                    </button>
+                    {previewResult.invalidCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={handleDownloadErrorReport}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-950/60 border border-red-800 text-red-300 font-semibold text-xs hover:bg-red-900/60 transition"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        Download Error Report ({previewResult.invalidCount} invalid)
+                      </button>
+                    )}
+                  </div>
                   <button
                     onClick={handleCommitImport}
                     disabled={committingImport || previewResult.validCount === 0}
@@ -1065,8 +1253,16 @@ export default function TpoStudents() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <h3 className="text-base font-bold text-white">Add Single Student</h3>
-              <button onClick={() => setIsManualModalOpen(false)} className="text-slate-400 hover:text-white">
+              <h3 className="text-base font-bold text-white">
+                {editStudentId ? 'Edit Student Profile' : 'Add Single Student'}
+              </h3>
+              <button
+                onClick={() => {
+                  setIsManualModalOpen(false);
+                  setEditStudentId(null);
+                }}
+                className="text-slate-400 hover:text-white"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -1119,7 +1315,7 @@ export default function TpoStudents() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-4 gap-3">
                 <div>
                   <label className="text-slate-400 font-semibold block mb-1">Branch</label>
                   <select
@@ -1132,6 +1328,7 @@ export default function TpoStudents() {
                     <option value="Electronics & Communication">ECE</option>
                     <option value="Mechanical Engineering">Mech</option>
                     <option value="Electrical & Electronics">EEE</option>
+                    <option value="Civil Engineering">Civil</option>
                   </select>
                 </div>
                 <div>
@@ -1156,12 +1353,37 @@ export default function TpoStudents() {
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white"
                   />
                 </div>
+                <div>
+                  <label className="text-slate-400 font-semibold block mb-1">Batch Year</label>
+                  <input
+                    type="number"
+                    min="2020"
+                    max="2035"
+                    value={manualForm.graduationYear}
+                    onChange={(e) => setManualForm({ ...manualForm, graduationYear: parseInt(e.target.value, 10) || 2026 })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-slate-400 font-semibold block mb-1">Phone Number (Optional)</label>
+                <input
+                  type="text"
+                  placeholder="+91 9876543210"
+                  value={manualForm.phone}
+                  onChange={(e) => setManualForm({ ...manualForm, phone: e.target.value })}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white"
+                />
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
                 <button
                   type="button"
-                  onClick={() => setIsManualModalOpen(false)}
+                  onClick={() => {
+                    setIsManualModalOpen(false);
+                    setEditStudentId(null);
+                  }}
                   className="px-4 py-2 rounded-xl text-slate-400 hover:text-white"
                 >
                   Cancel
@@ -1170,7 +1392,7 @@ export default function TpoStudents() {
                   type="submit"
                   className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold"
                 >
-                  Create Student
+                  {editStudentId ? 'Save Changes' : 'Create Student'}
                 </button>
               </div>
             </form>
@@ -1214,6 +1436,62 @@ export default function TpoStudents() {
                 className="px-4 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs"
               >
                 Confirm Rejection
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Add Selected to Placement Drive Modal */}
+      {isAddToDriveModalOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setIsAddToDriveModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <Briefcase className="w-4 h-4 text-emerald-400" />
+                Add {selectedIds.length} Student(s) to Drive
+              </h3>
+              <button onClick={() => setIsAddToDriveModalOpen(false)} className="text-slate-400 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="text-xs text-slate-400">
+              Select an open campus placement drive to enroll the selected candidates directly into Round 1.
+            </p>
+            <div>
+              <label className="text-[11px] font-semibold text-slate-400 block mb-1">Target Placement Drive</label>
+              <select
+                value={targetDriveId}
+                onChange={(e) => setTargetDriveId(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500/50"
+              >
+                <option value="">Choose a drive...</option>
+                {availableDrives.map((d) => (
+                  <option key={d._id || d.id} value={d._id || d.id}>
+                    {d.companyName} — {d.title} ({d.status})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                onClick={() => setIsAddToDriveModalOpen(false)}
+                className="px-3 py-1.5 rounded-xl text-slate-400 text-xs"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBulkAddToDrive}
+                disabled={!targetDriveId || enrollingToDrive}
+                className="px-4 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs disabled:opacity-50 transition"
+              >
+                {enrollingToDrive ? 'Enrolling...' : 'Confirm Enrollment'}
               </button>
             </div>
           </div>

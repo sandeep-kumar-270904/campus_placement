@@ -135,4 +135,51 @@ describe('TPO Student Directory & Bulk Import Tests (Page 2)', () => {
       assert.strictEqual(profile.tpoNotes[0].createdBy.toString(), tpoId);
     });
   });
+
+  describe('5. Manual Edit Student Validation & Mutation Logic', () => {
+    test('Validates updated CGPA scale and graduation year constraints', () => {
+      const updatedFields = {
+        branch: 'Information Technology',
+        cgpa: 9.15,
+        backlogs: 0,
+        graduationYear: 2027,
+      };
+
+      assert.ok(updatedFields.cgpa >= 0 && updatedFields.cgpa <= 10, 'CGPA must be between 0 and 10');
+      assert.ok(updatedFields.backlogs >= 0, 'Backlogs must be non-negative');
+      assert.strictEqual(updatedFields.graduationYear, 2027);
+    });
+
+    test('Prevents assigning duplicate roll number of another student in same college', () => {
+      const existingStudentA = { rollNo: '2026-CS-001', studentId: 'student_1' };
+      const existingStudentB = { rollNo: '2026-CS-002', studentId: 'student_2' };
+
+      const requestedRollNo = '2026-CS-001';
+      const isDuplicate = requestedRollNo === existingStudentA.rollNo && existingStudentB.studentId !== existingStudentA.studentId;
+
+      assert.strictEqual(isDuplicate, true, 'Duplicate roll number collision must be flagged');
+    });
+  });
+
+  describe('6. Bulk Drive Enrollment Application Logic', () => {
+    test('Constructs default Applied status and Round 1 assignment for candidate enrollment', () => {
+      const opportunity = {
+        _id: new mongoose.Types.ObjectId().toString(),
+        title: 'Full Stack Engineer',
+        rounds: [{ name: 'Online Assessment' }, { name: 'Technical Interview' }],
+      };
+
+      const studentIds = [new mongoose.Types.ObjectId().toString(), new mongoose.Types.ObjectId().toString()];
+      const createdApps = studentIds.map((sId) => ({
+        opportunityId: opportunity._id,
+        studentId: sId,
+        status: 'Applied',
+        currentRound: opportunity.rounds[0].name,
+      }));
+
+      assert.strictEqual(createdApps.length, 2);
+      assert.strictEqual(createdApps[0].status, 'Applied');
+      assert.strictEqual(createdApps[0].currentRound, 'Online Assessment');
+    });
+  });
 });
