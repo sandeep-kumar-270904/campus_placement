@@ -28,7 +28,13 @@ function getReportBuffer(jobId) {
   return bufferCache.get(jobId);
 }
 
+function clearReportBufferCache() {
+  bufferCache.clear();
+}
+
 module.exports = {
   storeReportBuffer,
   getReportBuffer,
+  clearReportBufferCache,
 };
+

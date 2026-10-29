@@ -12,6 +12,12 @@ const {
   generateFairnessReport,
   exportFairnessReportToCsv,
 } = require('../services/policyEngine/placementPolicyEngine');
+const {
+  grantOverrideSchema,
+  revokeOverrideSchema,
+  submitExceptionSchema,
+  previewSimulationSchema,
+} = require('../validations/placementPolicyValidation');
 
 /**
  * @desc    Get placement policy configuration for tenant college
@@ -103,12 +109,19 @@ exports.updatePolicy = async (req, res) => {
  */
 exports.previewSimulation = async (req, res) => {
   try {
-    const collegeId = req.tenant?.collegeId || req.user?.collegeId;
-    const { opportunityId, proposedPolicy } = req.body;
-
-    if (!opportunityId) {
-      return res.status(400).json({ error: { message: 'opportunityId is required for impact simulation.' } });
+    const parseResult = previewSimulationSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: parseResult.error.issues[0]?.message || 'Invalid preview simulation payload.',
+          details: parseResult.error.issues,
+        },
+      });
     }
+
+    const collegeId = req.tenant?.collegeId || req.user?.collegeId;
+    const { opportunityId, proposedPolicy } = parseResult.data;
 
     const simulation = await simulatePolicyImpact({
       collegeId,
@@ -176,20 +189,19 @@ exports.getOverrides = async (req, res) => {
  */
 exports.grantOverride = async (req, res) => {
   try {
-    const collegeId = req.tenant?.collegeId || req.user?.collegeId;
-    const { studentId, opportunityId, policyType, mandatoryReason, expiresAt } = req.body;
-
-    if (!studentId) {
-      return res.status(400).json({ error: { message: 'studentId is required.' } });
-    }
-    if (!policyType) {
-      return res.status(400).json({ error: { message: 'policyType is required.' } });
-    }
-    if (!mandatoryReason || mandatoryReason.trim().length < 5) {
+    const parseResult = grantOverrideSchema.safeParse(req.body);
+    if (!parseResult.success) {
       return res.status(400).json({
-        error: { message: 'A mandatory justification of at least 5 characters is required to grant an override.' },
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: parseResult.error.issues[0]?.message || 'Invalid override payload.',
+          details: parseResult.error.issues,
+        },
       });
     }
+
+    const collegeId = req.tenant?.collegeId || req.user?.collegeId;
+    const { studentId, opportunityId, policyType, mandatoryReason, expiresAt } = parseResult.data;
 
     const approverId = req.user?._id || req.user?.id;
 
@@ -318,18 +330,20 @@ exports.getExceptions = async (req, res) => {
  */
 exports.submitException = async (req, res) => {
   try {
-    const collegeId = req.tenant?.collegeId || req.user?.collegeId;
-    const studentId = req.user?._id || req.user?.id;
-    const { opportunityId, policyType, justification, documents } = req.body;
-
-    if (!opportunityId) {
-      return res.status(400).json({ error: { message: 'opportunityId is required.' } });
-    }
-    if (!justification || justification.trim().length < 10) {
+    const parseResult = submitExceptionSchema.safeParse(req.body);
+    if (!parseResult.success) {
       return res.status(400).json({
-        error: { message: 'A written justification of at least 10 characters is required for your appeal.' },
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: parseResult.error.issues[0]?.message || 'Invalid exception appeal payload.',
+          details: parseResult.error.issues,
+        },
       });
     }
+
+    const collegeId = req.tenant?.collegeId || req.user?.collegeId;
+    const studentId = req.user?._id || req.user?.id;
+    const { opportunityId, policyType, justification, documents } = parseResult.data;
 
     // Check if an existing pending request is already filed
     const existing = await PolicyExceptionRequest.findOne({

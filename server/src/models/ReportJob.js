@@ -56,6 +56,14 @@ const reportJobSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    fileBase64: {
+      type: String,
+      default: '',
+    },
+    contentType: {
+      type: String,
+      default: '',
+    },
     rowCount: {
       type: Number,
       default: 0,

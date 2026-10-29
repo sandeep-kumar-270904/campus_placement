@@ -2,6 +2,10 @@ const Opportunity = require('../models/Opportunity');
 const StudentProfile = require('../models/StudentProfile');
 const Application = require('../models/Application');
 const { logAuditAction } = require('../utils/auditLogger');
+const {
+  createOpportunitySchema,
+  applyOpportunitySchema,
+} = require('../validations/opportunityValidation');
 
 // @desc    Get all opportunities (Students see Open, TPOs see all)
 // @route   GET /api/opportunities
@@ -26,17 +30,34 @@ exports.getOpportunities = async (req, res) => {
 // @route   POST /api/opportunities
 exports.createOpportunity = async (req, res) => {
   try {
+    const parseResult = createOpportunitySchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid opportunity payload',
+          details: parseResult.error.issues,
+        },
+      });
+    }
+
     const {
       title,
       companyName,
       companyLogo,
       type,
+      jobType,
       location,
       salary,
+      ctc,
       description,
       eligibilityRules,
       deadline,
-    } = req.body;
+      rounds,
+      requiredDocuments,
+      bondDetails,
+      status,
+    } = parseResult.data;
 
     const collegeId = req.tenant?.collegeId || req.user.collegeId;
 
@@ -45,12 +66,18 @@ exports.createOpportunity = async (req, res) => {
       title,
       companyName,
       companyLogo: companyLogo || '',
-      type,
+      type: type || 'Job',
+      jobType: jobType || 'Full-time',
       location,
       salary,
+      ctc: ctc || undefined,
       description,
       eligibilityRules: eligibilityRules || {},
       deadline,
+      rounds: rounds || [],
+      requiredDocuments: requiredDocuments || [],
+      bondDetails: bondDetails || '',
+      status: status || 'Open',
       createdBy: req.user.userId || req.user.id,
     });
 
@@ -78,6 +105,17 @@ exports.createOpportunity = async (req, res) => {
 // @route   POST /api/opportunities/:id/apply
 exports.applyToOpportunity = async (req, res) => {
   try {
+    const parseResult = applyOpportunitySchema.safeParse(req.body || {});
+    if (!parseResult.success) {
+      return res.status(400).json({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid application payload',
+          details: parseResult.error.issues,
+        },
+      });
+    }
+
     const opportunityId = req.params.id;
     const studentId = req.user.userId || req.user.id;
 

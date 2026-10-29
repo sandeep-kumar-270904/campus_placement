@@ -7,6 +7,10 @@ const { generatePdfReportBuffer } = require('../services/reports/pdfReportGenera
 const { generateXlsxReportBuffer } = require('../services/reports/xlsxReportGenerator');
 const { storeReportBuffer, getReportBuffer } = require('../services/reports/reportBufferCache');
 const { compileWeeklyDigestData, buildWeeklyDigestHtml } = require('../services/reports/weeklyDigestService');
+const {
+  initiateReportJobSchema,
+  updateReportSettingsSchema,
+} = require('../validations/reportJobValidation');
 const xlsx = require('xlsx');
 
 const TEMPLATE_NAMES = {
@@ -25,8 +29,19 @@ const TEMPLATE_NAMES = {
  */
 exports.initiateReportJob = async (req, res) => {
   try {
+    const parseResult = initiateReportJobSchema.safeParse(req.body || {});
+    if (!parseResult.success) {
+      return res.status(400).json({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: parseResult.error.issues[0]?.message || 'Invalid report job payload.',
+          details: parseResult.error.issues,
+        },
+      });
+    }
+
     const collegeId = req.tenant?.collegeId || req.user?.collegeId;
-    const { templateId = 'nirf-placement-report', format = 'xlsx', filters = {} } = req.body;
+    const { templateId, format, filters } = parseResult.data;
 
     const jobId = crypto.randomUUID();
     const college = collegeId ? await College.findById(collegeId).lean() : null;
@@ -120,7 +135,7 @@ exports.initiateReportJob = async (req, res) => {
         // Store buffer in streaming cache
         storeReportBuffer(jobId, { buffer, contentType, fileName });
 
-        // Update Job completion
+        // Update Job completion with base64 file buffer for serverless persistence
         await ReportJob.updateOne(
           { jobId },
           {
@@ -129,6 +144,8 @@ exports.initiateReportJob = async (req, res) => {
             downloadUrl: `/api/tpo/reports/download/${jobId}`,
             fileName,
             fileSize: buffer.length,
+            fileBase64: buffer.toString('base64'),
+            contentType,
             rowCount: reportResult.rows?.length || 0,
             completedAt: new Date(),
           }
@@ -224,13 +241,26 @@ exports.downloadReportFile = async (req, res) => {
       return res.send(cached.buffer);
     }
 
-    // Fallback: check job record
+    // Fallback: check job record in database (handles serverless cold starts / container switches)
     const job = await ReportJob.findOne({ jobId }).lean();
     if (!job || job.status !== 'completed') {
       return res.status(404).json({ error: { message: 'Report not available or still processing.' } });
     }
 
-    // Regenerate on demand if cache expired
+    if (job.fileBase64) {
+      const buffer = Buffer.from(job.fileBase64, 'base64');
+      const contentType = job.contentType || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      const fileName = job.fileName || 'report.xlsx';
+
+      // Re-populate in-memory cache for fast subsequent downloads
+      storeReportBuffer(jobId, { buffer, contentType, fileName });
+
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      return res.send(buffer);
+    }
+
+    // Regenerate on demand if both in-memory cache and fileBase64 are absent
     const collegeId = job.collegeId;
     const stats = await reportEngine.generateNirfNaacStats(collegeId, job.filters);
     const buffer = generateXlsxReportBuffer({
@@ -318,12 +348,23 @@ exports.updateReportSettings = async (req, res) => {
       return res.status(400).json({ error: { message: 'College ID required.' } });
     }
 
-    const { headerTitle, logoUrl, signatories, customDisclaimer } = req.body;
+    const parseResult = updateReportSettingsSchema.safeParse(req.body || {});
+    if (!parseResult.success) {
+      return res.status(400).json({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: parseResult.error.issues[0]?.message || 'Invalid settings payload.',
+          details: parseResult.error.issues,
+        },
+      });
+    }
+
+    const { headerTitle, logoUrl, signatories, customDisclaimer } = parseResult.data;
     const update = {};
     if (headerTitle) update['reportSettings.headerTitle'] = headerTitle;
     if (logoUrl !== undefined) update['reportSettings.logoUrl'] = logoUrl;
     if (signatories) update['reportSettings.signatories'] = signatories;
-    if (customDisclaimer) update['reportSettings.customDisclaimer'] = customDisclaimer;
+    if (customDisclaimer !== undefined) update['reportSettings.customDisclaimer'] = customDisclaimer;
 
     const college = await College.findByIdAndUpdate(collegeId, { $set: update }, { new: true }).lean();
 

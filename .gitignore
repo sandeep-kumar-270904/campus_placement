@@ -16,7 +16,7 @@ client/.env
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-storage/
+/storage/
 server/storage/private_vault/
 
 # Production build artifacts

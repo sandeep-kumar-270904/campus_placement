@@ -1,18 +1,34 @@
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const crypto = require('crypto');
 const IStorageService = require('./IStorageService');
 
 class LocalStorageProvider extends IStorageService {
   constructor(config = {}) {
     super();
-    this.baseDir = config.baseDir || path.join(__dirname, '../../../storage/private_vault');
-    this.secret = config.secret || process.env.STORAGE_SIGNING_SECRET || process.env.JWT_SECRET || 'dev_private_vault_secret_2026';
+    const isServerless = Boolean(
+      process.env.VERCEL || process.env.VERCEL_ENV || process.env.AWS_LAMBDA_FUNCTION_NAME
+    );
+    this.baseDir =
+      config.baseDir ||
+      (isServerless
+        ? path.join(os.tmpdir(), 'placeearly_vault')
+        : path.join(__dirname, '../../../storage/private_vault'));
+    this.secret =
+      config.secret ||
+      process.env.STORAGE_SIGNING_SECRET ||
+      process.env.JWT_SECRET ||
+      'dev_private_vault_secret_2026';
     this.baseUrl = config.baseUrl || process.env.VITE_API_URL || '/api';
 
     // Ensure base private directory exists
-    if (!fs.existsSync(this.baseDir)) {
-      fs.mkdirSync(this.baseDir, { recursive: true });
+    try {
+      if (!fs.existsSync(this.baseDir)) {
+        fs.mkdirSync(this.baseDir, { recursive: true });
+      }
+    } catch (err) {
+      console.warn(`[LocalStorageProvider] Warning: could not initialize storage directory ${this.baseDir}:`, err.message);
     }
   }
 
