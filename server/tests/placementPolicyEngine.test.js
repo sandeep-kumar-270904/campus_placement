@@ -584,4 +584,196 @@ describe('Placement Policy Engine & Governance Tests', () => {
       assert.ok(csv.includes('"Non-Binary","<5","<5","<5","Suppressed (n<5)","Suppressed","Suppressed","Suppressed (n<5)"'));
     });
   });
+
+  describe('11. Combined Multi-Policy Interactions & Matrix Scenarios', () => {
+    test('Simultaneously evaluates and returns all matching blocking reasons when multiple policies are breached', async () => {
+      const combinedPolicy = {
+        oneStudentOneOffer: { enabled: true },
+        priorityUnplaced: { enabled: true, blockPlacedStudents: true },
+        tierEligibility: { enabled: true, upgradeOnly: true, tiers: PlacementPolicy.DEFAULT_TIERS },
+        maxConcurrentApplications: { enabled: true, maxActive: 2 },
+      };
+
+      const placedStudent = {
+        _id: student1Id,
+        user: student1Id,
+        isPlaced: true,
+        placedDetails: { companyName: 'TCS', ctc: 5.0 },
+      };
+
+      // Student has 1 placed offer in Standard tier (5 LPA), and 2 other active applications
+      const applications = [
+        {
+          _id: new mongoose.Types.ObjectId(),
+          opportunityId: { companyName: 'TCS', title: 'Developer' },
+          status: 'Placed',
+          offer: { status: 'Accepted', ctc: 5.0 },
+        },
+        {
+          _id: new mongoose.Types.ObjectId(),
+          opportunityId: { companyName: 'Wipro', title: 'Analyst' },
+          status: 'Technical Round',
+        },
+        {
+          _id: new mongoose.Types.ObjectId(),
+          opportunityId: { companyName: 'Infosys', title: 'Specialist' },
+          status: 'Applied',
+        },
+      ];
+
+      // Target drive is Standard tier (4.5 LPA)
+      const targetOpportunity = {
+        _id: drive1Id,
+        title: 'Associate Engineer',
+        companyName: 'Cognizant',
+        ctc: { fixed: 4.5 },
+      };
+
+      const result = await evaluateStudentPolicy({
+        collegeId,
+        studentId: student1Id,
+        opportunity: targetOpportunity,
+        studentProfile: placedStudent,
+        applications,
+        policy: combinedPolicy,
+      });
+
+      assert.strictEqual(result.isAllowed, false);
+      const policyTypes = result.blockingReasons.map((r) => r.policyType);
+
+      // Must identify concurrent limit (3 active >= 2), unplaced priority, one-student-one-offer, AND tier not upgrade
+      assert.ok(policyTypes.includes('max_concurrent_apps'));
+      assert.ok(policyTypes.includes('priority_unplaced'));
+      assert.ok(policyTypes.includes('one_student_one_offer'));
+      assert.ok(policyTypes.includes('tier_eligibility'));
+      assert.strictEqual(result.blockingReasons.length, 4);
+    });
+
+    test('Selective policy override unblocks targeted policy while keeping remaining policies enforced', async () => {
+      const policy = {
+        oneStudentOneOffer: { enabled: true },
+        maxConcurrentApplications: { enabled: true, maxActive: 1 },
+      };
+
+      const placedStudent = {
+        _id: student1Id,
+        user: student1Id,
+        isPlaced: true,
+        placedDetails: { companyName: 'Accenture', ctc: 6.5 },
+      };
+
+      const applications = [
+        {
+          _id: new mongoose.Types.ObjectId(),
+          opportunityId: { companyName: 'Accenture' },
+          status: 'Placed',
+          offer: { status: 'Accepted', ctc: 6.5 },
+        },
+        {
+          _id: new mongoose.Types.ObjectId(),
+          opportunityId: { companyName: 'Oracle' },
+          status: 'In Review',
+        },
+      ];
+
+      const targetOpportunity = {
+        _id: drive1Id,
+        title: 'Cloud Engineer',
+        companyName: 'Microsoft',
+        ctc: { fixed: 25.0 },
+      };
+
+      // TPO grants override ONLY for one_student_one_offer, NOT for max_concurrent_apps
+      const specificOverride = {
+        _id: new mongoose.Types.ObjectId(),
+        policyType: 'one_student_one_offer',
+        mandatoryReason: 'Special exemption granted by placement committee',
+        approvedBy: { firstName: 'TPO', lastName: 'Head' },
+      };
+
+      const result = await evaluateStudentPolicy({
+        collegeId,
+        studentId: student1Id,
+        opportunity: targetOpportunity,
+        studentProfile: placedStudent,
+        applications,
+        policy,
+        activeOverride: specificOverride,
+      });
+
+      assert.strictEqual(result.isAllowed, false);
+      const policyTypes = result.blockingReasons.map((r) => r.policyType);
+
+      // one_student_one_offer was bypassed by override, but max_concurrent_apps remains blocked!
+      assert.strictEqual(policyTypes.includes('one_student_one_offer'), false);
+      assert.ok(policyTypes.includes('max_concurrent_apps'));
+    });
+
+    test('Dream Cap allows applying to Core drive even with existing Dream offer when unlimited core is active', async () => {
+      const policy = {
+        dreamCap: {
+          enabled: true,
+          maxDreamOffers: 1,
+          dreamThresholdCtc: 15.0,
+          allowUnlimitedCore: true,
+        },
+        oneStudentOneOffer: { enabled: false }, // Dream cap standalone
+      };
+
+      const studentProfile = {
+        _id: student1Id,
+        user: student1Id,
+        isPlaced: false,
+      };
+
+      // Student has 1 Dream offer (18 LPA)
+      const applications = [
+        {
+          _id: new mongoose.Types.ObjectId(),
+          opportunityId: { companyName: 'Goldman Sachs' },
+          status: 'Offer Extended',
+          offer: { status: 'Pending', ctc: 18.0 },
+        },
+      ];
+
+      // Target drive is Core (8.5 LPA)
+      const coreDrive = {
+        _id: drive1Id,
+        title: 'Core Java Engineer',
+        companyName: 'Morgan Stanley',
+        ctc: { fixed: 8.5 },
+      };
+
+      const resultCore = await evaluateStudentPolicy({
+        collegeId,
+        studentId: student1Id,
+        opportunity: coreDrive,
+        studentProfile,
+        applications,
+        policy,
+      });
+
+      assert.strictEqual(resultCore.isAllowed, true);
+
+      // Target drive is another Dream drive (22 LPA) -> should be blocked!
+      const dreamDrive = {
+        _id: drive2Id,
+        title: 'AI Systems Engineer',
+        companyName: 'NVIDIA',
+        ctc: { fixed: 22.0 },
+      };
+
+      const resultDream = await evaluateStudentPolicy({
+        collegeId,
+        studentId: student1Id,
+        opportunity: dreamDrive,
+        studentProfile,
+        applications,
+        policy,
+      });
+
+      assert.strictEqual(resultDream.isAllowed, false);
+      assert.strictEqual(resultDream.blockingReasons[0].policyType, 'dream_cap');
+    });
+  });
 });

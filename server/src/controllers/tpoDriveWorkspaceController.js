@@ -390,6 +390,113 @@ exports.extendOffer = async (req, res) => {
       return res.status(404).json({ error: { message: 'Application not found.' } });
     }
 
+    // Institutional Placement Policy Enforcement in Offer Flow
+    const { getCollegePlacementPolicy, getOpportunityCtc, determineTier } = require('../services/policyEngine/placementPolicyEngine');
+    const policy = await getCollegePlacementPolicy(application.collegeId || collegeId);
+    const PolicyOverride = require('../models/PolicyOverride');
+
+    const offeredCtc = parseFloat(ctc) || (drive?.ctc?.fixed + drive?.ctc?.variable) || 0;
+
+    // Check One-Student-One-Offer policy
+    if (policy.oneStudentOneOffer?.enabled && !req.body.bypassPolicyWarning) {
+      const existingAccepted = await Application.findOne({
+        collegeId: application.collegeId || collegeId,
+        studentId: application.studentId,
+        _id: { $ne: application._id },
+        $or: [{ 'offer.status': 'Accepted' }, { status: 'Placed' }],
+      }).populate('opportunityId');
+
+      if (existingAccepted) {
+        const hasOverride = await PolicyOverride.findOne({
+          collegeId: application.collegeId || collegeId,
+          studentId: application.studentId,
+          isActive: true,
+          policyType: { $in: ['all', 'one_student_one_offer'] },
+        });
+
+        if (!hasOverride) {
+          return res.status(400).json({
+            error: {
+              code: 'POLICY_OFFER_BLOCKED',
+              message: `Candidate has already accepted an offer with ${existingAccepted.opportunityId?.companyName || 'another employer'} under One-Student-One-Offer policy. A policy override is required to extend an additional offer.`,
+              requiresOverride: true,
+            },
+          });
+        }
+      }
+    }
+
+    // Check Dream Cap policy
+    if (policy.dreamCap?.enabled && !req.body.bypassPolicyWarning) {
+      const dreamThreshold = policy.dreamCap.dreamThresholdCtc || 15.0;
+      if (offeredCtc >= dreamThreshold) {
+        const dreamOffers = await Application.find({
+          collegeId: application.collegeId || collegeId,
+          studentId: application.studentId,
+          _id: { $ne: application._id },
+          'offer.status': { $in: ['Pending', 'Accepted'] },
+          'offer.ctc': { $gte: dreamThreshold },
+        });
+
+        if (dreamOffers.length >= (policy.dreamCap.maxDreamOffers || 1)) {
+          const hasOverride = await PolicyOverride.findOne({
+            collegeId: application.collegeId || collegeId,
+            studentId: application.studentId,
+            isActive: true,
+            policyType: { $in: ['all', 'dream_cap'] },
+          });
+
+          if (!hasOverride) {
+            return res.status(400).json({
+              error: {
+                code: 'POLICY_DREAM_CAP_EXCEEDED',
+                message: `Candidate has already received ${dreamOffers.length} Dream tier offer(s), reaching the institutional Dream cap. A policy override is required.`,
+                requiresOverride: true,
+              },
+            });
+          }
+        }
+      }
+    }
+
+    // Check Tier-Based Progression policy
+    if (policy.tierEligibility?.enabled && policy.tierEligibility.upgradeOnly && !req.body.bypassPolicyWarning) {
+      const existingAccepted = await Application.find({
+        collegeId: application.collegeId || collegeId,
+        studentId: application.studentId,
+        _id: { $ne: application._id },
+        $or: [{ 'offer.status': 'Accepted' }, { status: 'Placed' }],
+      }).populate('opportunityId');
+
+      if (existingAccepted.length > 0) {
+        let highestAcceptedTier = { order: 0, name: 'None' };
+        for (const acc of existingAccepted) {
+          const accCtc = acc.offer?.ctc || getOpportunityCtc(acc.opportunityId) || 0;
+          const t = determineTier(accCtc, policy.tierEligibility.tiers);
+          if (t.order > highestAcceptedTier.order) highestAcceptedTier = t;
+        }
+        const offeredTier = determineTier(offeredCtc, policy.tierEligibility.tiers);
+
+        if (offeredTier.order <= highestAcceptedTier.order) {
+          const hasOverride = await PolicyOverride.findOne({
+            collegeId: application.collegeId || collegeId,
+            studentId: application.studentId,
+            isActive: true,
+            policyType: { $in: ['all', 'tier_eligibility'] },
+          });
+          if (!hasOverride) {
+            return res.status(400).json({
+              error: {
+                code: 'POLICY_TIER_NOT_UPGRADE',
+                message: `Candidate already holds an accepted offer in ${highestAcceptedTier.name} tier. Extending an offer in ${offeredTier.name} tier is not an upgrade under tier policy. A policy override is required.`,
+                requiresOverride: true,
+              },
+            });
+          }
+        }
+      }
+    }
+
     application.status = 'Offer Extended';
     application.currentRound = 'Final Placement Offer';
     application.offer = {
@@ -543,6 +650,45 @@ exports.reviewProposedOffer = async (req, res) => {
                 error: {
                   code: 'POLICY_DREAM_CAP_EXCEEDED',
                   message: `Candidate has already received ${dreamOffers.length} Dream tier offer(s), reaching the institutional Dream cap. A policy override is required.`,
+                  requiresOverride: true,
+                },
+              });
+            }
+          }
+        }
+      }
+
+      // Check Tier-Based Progression policy
+      if (policy.tierEligibility?.enabled && policy.tierEligibility.upgradeOnly && !req.body.bypassPolicyWarning) {
+        const existingAccepted = await Application.find({
+          collegeId: application.collegeId,
+          studentId: application.studentId,
+          _id: { $ne: application._id },
+          $or: [{ 'offer.status': 'Accepted' }, { status: 'Placed' }],
+        }).populate('opportunityId');
+
+        if (existingAccepted.length > 0) {
+          let highestAcceptedTier = { order: 0, name: 'None' };
+          for (const acc of existingAccepted) {
+            const accCtc = acc.offer?.ctc || getOpportunityCtc(acc.opportunityId) || 0;
+            const t = determineTier(accCtc, policy.tierEligibility.tiers);
+            if (t.order > highestAcceptedTier.order) highestAcceptedTier = t;
+          }
+          const offeredCtc = application.offer.ctc || getOpportunityCtc(application.opportunityId) || 0;
+          const offeredTier = determineTier(offeredCtc, policy.tierEligibility.tiers);
+
+          if (offeredTier.order <= highestAcceptedTier.order) {
+            const hasOverride = await PolicyOverride.findOne({
+              collegeId: application.collegeId,
+              studentId: application.studentId,
+              isActive: true,
+              policyType: { $in: ['all', 'tier_eligibility'] },
+            });
+            if (!hasOverride) {
+              return res.status(400).json({
+                error: {
+                  code: 'POLICY_TIER_NOT_UPGRADE',
+                  message: `Candidate already holds an accepted offer in ${highestAcceptedTier.name} tier. Extending an offer in ${offeredTier.name} tier is not an upgrade under tier policy. A policy override is required.`,
                   requiresOverride: true,
                 },
               });
