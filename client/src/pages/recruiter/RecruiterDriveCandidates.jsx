@@ -22,6 +22,8 @@ import {
   Sparkles,
   Award,
 } from 'lucide-react';
+import aiService from '../../services/aiService';
+import AiBadge from '../../components/ai/AiBadge';
 
 export default function RecruiterDriveCandidates() {
   const { driveId } = useParams();
@@ -52,6 +54,8 @@ export default function RecruiterDriveCandidates() {
     comments: '',
     visibleToStudent: true,
   });
+  const [isPolishingFeedback, setIsPolishingFeedback] = useState(false);
+  const [isAiFeedbackRefined, setIsAiFeedbackRefined] = useState(false);
 
   const [offerModalApp, setOfferModalApp] = useState(null);
   const [offerForm, setOfferForm] = useState({
@@ -62,6 +66,39 @@ export default function RecruiterDriveCandidates() {
   });
 
   const [actionLoading, setActionLoading] = useState(false);
+
+  const handleAiPolishFeedback = async () => {
+    const rawNotes = [feedbackForm.strengths, feedbackForm.gaps, feedbackForm.comments]
+      .filter(Boolean)
+      .join('\n');
+    if (!rawNotes.trim()) {
+      setError('Please enter some notes in strengths, gaps, or internal comments first for AI to synthesize.');
+      return;
+    }
+    setIsPolishingFeedback(true);
+    setError('');
+    try {
+      const res = await aiService.summarizeFeedback({
+        applicationId: feedbackModalApp?._id,
+        rawNotes,
+        rating: feedbackForm.rating,
+      });
+      if (res?.summary) {
+        setFeedbackForm((prev) => ({
+          ...prev,
+          strengths: (res.summary.keyStrengths || []).join('; ') || prev.strengths,
+          gaps: (res.summary.areasForImprovement || []).join('; ') || prev.gaps,
+          comments: res.summary.summaryParagraph || prev.comments,
+        }));
+        setIsAiFeedbackRefined(true);
+      }
+    } catch (err) {
+      console.error('Failed to polish feedback:', err);
+      setError(err.response?.data?.error?.message || 'Failed to synthesize feedback with AI.');
+    } finally {
+      setIsPolishingFeedback(false);
+    }
+  };
 
   useEffect(() => {
     loadData();
@@ -658,6 +695,22 @@ export default function RecruiterDriveCandidates() {
                   <option value={1}>1 - Below Expectations (No Hire)</option>
                 </select>
               </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-slate-300">Candidate Evaluation</span>
+                {isAiFeedbackRefined && <AiBadge text="AI Refined" />}
+              </div>
+              <button
+                type="button"
+                onClick={handleAiPolishFeedback}
+                disabled={isPolishingFeedback}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 transition disabled:opacity-50 cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                <span>{isPolishingFeedback ? 'Synthesizing...' : 'AI Polish / Synthesize'}</span>
+              </button>
             </div>
 
             <div className="text-xs">

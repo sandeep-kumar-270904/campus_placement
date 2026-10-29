@@ -32,6 +32,8 @@ import {
   ThumbsDown,
 } from 'lucide-react';
 import tpoService from '../../services/tpoService';
+import aiService from '../../services/aiService';
+import AiBadge from '../../components/ai/AiBadge';
 import TpoFeedbackApprovalModal from '../../components/tpo/TpoFeedbackApprovalModal';
 
 const KANBAN_STAGES = [
@@ -71,6 +73,41 @@ export default function TpoDriveWorkspace() {
     comments: '',
     visibleToStudent: false,
   });
+  const [isPolishingFeedback, setIsPolishingFeedback] = useState(false);
+  const [isAiFeedbackRefined, setIsAiFeedbackRefined] = useState(false);
+
+  const handleAiPolishFeedback = async () => {
+    const rawNotes = [feedbackForm.strengths, feedbackForm.gaps, feedbackForm.comments]
+      .filter(Boolean)
+      .join('\n');
+    if (!rawNotes.trim()) {
+      showToast('Please enter strengths, gaps, or notes for AI to synthesize.');
+      return;
+    }
+    setIsPolishingFeedback(true);
+    try {
+      const res = await aiService.summarizeFeedback({
+        applicationId: feedbackModalApp?.id || feedbackModalApp?._id,
+        rawNotes,
+        rating: feedbackForm.rating,
+      });
+      if (res?.summary) {
+        setFeedbackForm((prev) => ({
+          ...prev,
+          strengths: (res.summary.keyStrengths || []).join('; ') || prev.strengths,
+          gaps: (res.summary.areasForImprovement || []).join('; ') || prev.gaps,
+          comments: res.summary.summaryParagraph || prev.comments,
+        }));
+        setIsAiFeedbackRefined(true);
+        showToast('Feedback refined with AI. Review before saving.');
+      }
+    } catch (err) {
+      console.error('Failed to polish feedback:', err);
+      showToast(err.response?.data?.error?.message || 'Failed to polish feedback with AI.');
+    } finally {
+      setIsPolishingFeedback(false);
+    }
+  };
 
   // Offer Extension Modal
   const [offerModalApp, setOfferModalApp] = useState(null);
@@ -1120,6 +1157,22 @@ export default function TpoDriveWorkspace() {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold text-slate-300">Scorecard Critique</span>
+                  {isAiFeedbackRefined && <AiBadge text="AI Refined" />}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAiPolishFeedback}
+                  disabled={isPolishingFeedback}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 transition disabled:opacity-50 cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>{isPolishingFeedback ? 'Synthesizing...' : 'AI Polish Notes'}</span>
+                </button>
               </div>
 
               <div>

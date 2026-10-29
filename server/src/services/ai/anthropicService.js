@@ -80,7 +80,11 @@ function scrubPii(text = '') {
  * Wraps untrusted user/resume/JD inputs in strict XML boundaries with anti-tamper instructions
  */
 function wrapUntrustedData(content, dataType = 'external_document') {
-  const sanitized = scrubPii(content);
+  const scrubbed = scrubPii(content);
+  // Neutralize closing tag breakout and tag spoofing attempts
+  const sanitized = String(scrubbed)
+    .replace(/<\/untrusted_content_data>/gi, '&lt;/untrusted_content_data&gt;')
+    .replace(/<untrusted_content_data[^>]*>/gi, '&lt;untrusted_content_data&gt;');
   return `<untrusted_content_data type="${dataType}">\n${sanitized}\n</untrusted_content_data>`;
 }
 

@@ -443,6 +443,23 @@ export default function TpoDrives() {
             {/* Step 1: Company & Job Scope */}
             {wizardStep === 1 && (
               <div className="space-y-4 text-xs">
+                <div className="p-3 rounded-xl bg-indigo-950/40 border border-indigo-800/40 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                    <div>
+                      <p className="text-white font-bold text-[11px]">Have a raw Job Description or email from HR?</p>
+                      <p className="text-slate-400 text-[10px]">AI will extract and prefill role, CTC breakdown, rounds, and eligibility criteria.</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsJdParserOpen(true)}
+                    className="flex-shrink-0 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[11px] transition cursor-pointer"
+                  >
+                    AI Prefill
+                  </button>
+                </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-slate-400 font-semibold block mb-1">Company Name *</label>
