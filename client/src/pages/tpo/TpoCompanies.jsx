@@ -17,6 +17,10 @@ import {
   Edit,
   ChevronRight,
   TrendingUp,
+  UserPlus,
+  Copy,
+  Check,
+  Send,
 } from 'lucide-react';
 import tpoService from '../../services/tpoService';
 
@@ -31,6 +35,19 @@ export default function TpoCompanies() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Invite Recruiter State
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteForm, setInviteForm] = useState({
+    email: '',
+    firstName: 'Campus',
+    lastName: 'Recruiter',
+    companyName: '',
+    companyId: '',
+  });
+  const [inviteSaving, setInviteSaving] = useState(false);
+  const [inviteResult, setInviteResult] = useState(null);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   // Pagination & Filters
   const [page, setPage] = useState(1);
@@ -206,6 +223,61 @@ export default function TpoCompanies() {
     }
   };
 
+  const handleOpenInvite = (company = null) => {
+    setInviteResult(null);
+    setCopiedLink(false);
+    if (company) {
+      const primaryContact =
+        company.contactPersons?.find((c) => c.isPrimary) || company.contactPersons?.[0];
+      setInviteForm({
+        email: primaryContact?.email || '',
+        firstName: primaryContact?.name ? primaryContact.name.split(' ')[0] : 'Campus',
+        lastName: primaryContact?.name ? primaryContact.name.split(' ').slice(1).join(' ') : 'Recruiter',
+        companyName: company.name,
+        companyId: company._id,
+      });
+    } else {
+      setInviteForm({
+        email: '',
+        firstName: 'Campus',
+        lastName: 'Recruiter',
+        companyName: '',
+        companyId: '',
+      });
+    }
+    setShowInviteModal(true);
+  };
+
+  const handleSendInvite = async (e) => {
+    e.preventDefault();
+    try {
+      setInviteSaving(true);
+      const res = await tpoService.inviteRecruiter({
+        email: inviteForm.email,
+        firstName: inviteForm.firstName,
+        lastName: inviteForm.lastName,
+        companyId: inviteForm.companyId || undefined,
+        companyName: inviteForm.companyName || undefined,
+      });
+      setInviteResult(res);
+      fetchCompanies();
+    } catch (err) {
+      alert(err.response?.data?.error?.message || 'Failed to send recruiter invite.');
+    } finally {
+      setInviteSaving(false);
+    }
+  };
+
+  const handleCopyInviteLink = () => {
+    if (!inviteResult?.inviteUrl && !inviteResult?.inviteToken) return;
+    const url =
+      inviteResult.inviteUrl ||
+      `${window.location.origin}/recruiter/accept-invite?token=${inviteResult.inviteToken}`;
+    navigator.clipboard.writeText(url);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2500);
+  };
+
   const getTierBadge = (tier) => {
     switch (tier) {
       case 'Super Dream':
@@ -251,13 +323,22 @@ export default function TpoCompanies() {
           </p>
         </div>
 
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-sm font-bold shadow-lg shadow-emerald-500/20 transition-all self-start md:self-auto"
-        >
-          <Plus className="w-4 h-4 stroke-[2.5]" />
-          Add Recruiter / Company
-        </button>
+        <div className="flex items-center gap-2.5 self-start md:self-auto">
+          <button
+            onClick={() => handleOpenInvite(null)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold shadow-lg shadow-purple-600/20 transition-all cursor-pointer"
+          >
+            <UserPlus className="w-4 h-4 stroke-[2.5]" />
+            Invite Recruiter
+          </button>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-sm font-bold shadow-lg shadow-emerald-500/20 transition-all cursor-pointer"
+          >
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            Add Partner Company
+          </button>
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -516,16 +597,27 @@ export default function TpoCompanies() {
 
                 {/* Card Footer Actions */}
                 <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
-                  <button
-                    onClick={() => {
-                      setSelectedCompany(company);
-                      setShowReminderModal(true);
-                    }}
-                    className="text-xs text-slate-400 hover:text-white flex items-center gap-1 transition-colors"
-                  >
-                    <Clock className="w-3.5 h-3.5 text-emerald-400" />
-                    Set Reminder
-                  </button>
+                  <div className="flex items-center gap-2.5">
+                    <button
+                      onClick={() => {
+                        setSelectedCompany(company);
+                        setShowReminderModal(true);
+                      }}
+                      className="text-xs text-slate-400 hover:text-white flex items-center gap-1 transition-colors"
+                      title="Set reminder"
+                    >
+                      <Clock className="w-3.5 h-3.5 text-emerald-400" />
+                      Reminder
+                    </button>
+                    <button
+                      onClick={() => handleOpenInvite(company)}
+                      className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1 font-semibold transition-colors"
+                      title="Invite recruiter to access dedicated corporate portal"
+                    >
+                      <UserPlus className="w-3.5 h-3.5" />
+                      Invite Portal
+                    </button>
+                  </div>
 
                   <button
                     onClick={() => {
@@ -831,9 +923,18 @@ export default function TpoCompanies() {
 
               {/* Contacts section */}
               <div className="mt-6">
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
-                  Recruiter Contact Directory
-                </h4>
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    Recruiter Contact Directory
+                  </h4>
+                  <button
+                    onClick={() => handleOpenInvite(selectedCompany)}
+                    className="text-xs text-purple-400 hover:text-purple-300 font-semibold flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <UserPlus className="w-3.5 h-3.5" />
+                    Invite Recruiter
+                  </button>
+                </div>
                 {selectedCompany.contactPersons?.length > 0 ? (
                   <div className="space-y-2">
                     {selectedCompany.contactPersons.map((contact, idx) => (
@@ -975,6 +1076,158 @@ export default function TpoCompanies() {
                 Close Drawer
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Invite Recruiter Modal */}
+      {showInviteModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <UserPlus className="w-4 h-4 text-purple-400" />
+                  Invite Corporate Recruiter
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Send email invitation to access the dedicated Recruiter Portal
+                </p>
+              </div>
+              <button
+                onClick={() => setShowInviteModal(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+
+            {inviteResult ? (
+              <div className="space-y-4">
+                <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 text-center">
+                  <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
+                  <h4 className="text-sm font-bold text-white">Invitation Issued Successfully!</h4>
+                  <p className="text-xs text-slate-300 mt-1">
+                    An activation invitation was prepared for{' '}
+                    <strong className="text-white">{inviteForm.email}</strong>
+                  </p>
+                </div>
+
+                <div className="bg-slate-950 border border-slate-800 rounded-xl p-3">
+                  <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                    Direct Activation URL:
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      readOnly
+                      value={
+                        inviteResult.inviteUrl ||
+                        `${window.location.origin}/recruiter/accept-invite?token=${inviteResult.inviteToken}`
+                      }
+                      className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono truncate"
+                    />
+                    <button
+                      onClick={handleCopyInviteLink}
+                      className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-1.5 transition"
+                    >
+                      {copiedLink ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copiedLink ? 'Copied' : 'Copy'}
+                    </button>
+                  </div>
+                  <span className="text-[11px] text-slate-500 mt-1.5 block">
+                    Share this one-time link with the recruiter to set their password.
+                  </span>
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <button
+                    onClick={() => setShowInviteModal(false)}
+                    className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition"
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleSendInvite} className="space-y-3.5">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Recruiter Corporate Email *
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="recruiter@company.com"
+                    value={inviteForm.email}
+                    onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      First Name
+                    </label>
+                    <input
+                      type="text"
+                      value={inviteForm.firstName}
+                      onChange={(e) => setInviteForm({ ...inviteForm, firstName: e.target.value })}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-purple-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      Last Name
+                    </label>
+                    <input
+                      type="text"
+                      value={inviteForm.lastName}
+                      onChange={(e) => setInviteForm({ ...inviteForm, lastName: e.target.value })}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-purple-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Company Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Google India, Microsoft"
+                    value={inviteForm.companyName}
+                    onChange={(e) => setInviteForm({ ...inviteForm, companyName: e.target.value })}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+
+                <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-3 text-xs text-purple-300">
+                  <p>
+                    Recruiter will only have access to their company's drives, candidates, shortlisted resumes, slot scheduling, and feedback scorecards.
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => setShowInviteModal(false)}
+                    className="px-4 py-2 rounded-xl text-slate-400 hover:text-white text-xs font-semibold"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={inviteSaving}
+                    className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-purple-600/20 disabled:opacity-50"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    {inviteSaving ? 'Generating...' : 'Issue Invite'}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

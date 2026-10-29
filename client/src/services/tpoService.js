@@ -82,6 +82,10 @@ const tpoService = {
     const res = await api.post(`/tpo/drives/${id}/duplicate`);
     return res.data;
   },
+  reviewProposedJd: async (driveId, data) => {
+    const res = await api.patch(`/tpo/drives/${driveId}/review-proposed-jd`, data);
+    return res.data;
+  },
 
   // 5. Drive Workspace
   getDriveWorkspace: async (id) => {
@@ -108,6 +112,10 @@ const tpoService = {
   },
   extendOffer: async (id, appId, offerData) => {
     const res = await api.post(`/tpo/drives/${id}/applicants/${appId}/offer`, offerData);
+    return res.data;
+  },
+  reviewProposedOffer: async (appId, data) => {
+    const res = await api.patch(`/tpo/applications/${appId}/review-proposed-offer`, data);
     return res.data;
   },
 
@@ -148,6 +156,10 @@ const tpoService = {
   },
   setCompanyReminder: async (id, reminder) => {
     const res = await api.post(`/tpo/companies/${id}/reminder`, reminder);
+    return res.data;
+  },
+  inviteRecruiter: async (data) => {
+    const res = await api.post('/auth/invite-recruiter', data);
     return res.data;
   },
 

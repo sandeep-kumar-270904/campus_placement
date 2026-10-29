@@ -25,6 +25,11 @@ import {
   Send,
   MessageSquare,
   Sparkles,
+  UserPlus,
+  Copy,
+  Check,
+  ThumbsUp,
+  ThumbsDown,
 } from 'lucide-react';
 import tpoService from '../../services/tpoService';
 import TpoFeedbackApprovalModal from '../../components/tpo/TpoFeedbackApprovalModal';
@@ -84,6 +89,24 @@ export default function TpoDriveWorkspace() {
 
   // AI Feedback Approval Modal
   const [reviewFeedbackData, setReviewFeedbackData] = useState(null);
+
+  // JD Review State
+  const [jdReviewRemarks, setJdReviewRemarks] = useState('');
+  const [jdReviewLoading, setJdReviewLoading] = useState(false);
+
+  // Recruiter Proposed Offer Review Modal
+  const [reviewOfferModalApp, setReviewOfferModalApp] = useState(null);
+  const [reviewOfferRemarks, setReviewOfferRemarks] = useState('');
+  const [reviewOfferBypassWarning, setReviewOfferBypassWarning] = useState(false);
+  const [reviewOfferLoading, setReviewOfferLoading] = useState(false);
+
+  // Invite Drive Recruiter Modal
+  const [inviteRecruiterModalOpen, setInviteRecruiterModalOpen] = useState(false);
+  const [inviteRecruiterEmail, setInviteRecruiterEmail] = useState('');
+  const [inviteRecruiterName, setInviteRecruiterName] = useState('');
+  const [inviteRecruiterResult, setInviteRecruiterResult] = useState(null);
+  const [inviteRecruiterLoading, setInviteRecruiterLoading] = useState(false);
+  const [copiedDriveInviteLink, setCopiedDriveInviteLink] = useState(false);
 
   // Toast
   const [toast, setToast] = useState(null);
@@ -230,6 +253,87 @@ export default function TpoDriveWorkspace() {
     }
   };
 
+  // Review Recruiter Proposed JD Changes
+  const handleReviewProposedJd = async (decision) => {
+    try {
+      setJdReviewLoading(true);
+      await tpoService.reviewProposedJd(id, {
+        decision,
+        tpoRemarks: jdReviewRemarks,
+      });
+      showToast(`Recruiter JD revisions ${decision.toLowerCase()} successfully!`);
+      setJdReviewRemarks('');
+      fetchWorkspace();
+    } catch (err) {
+      showToast(err.response?.data?.error?.message || 'Failed to review JD revisions', 'error');
+    } finally {
+      setJdReviewLoading(false);
+    }
+  };
+
+  // Review Recruiter Proposed Offer
+  const handleReviewProposedOffer = async (decision) => {
+    if (!reviewOfferModalApp) return;
+    try {
+      setReviewOfferLoading(true);
+      await tpoService.reviewProposedOffer(reviewOfferModalApp.id, {
+        decision,
+        tpoRemarks: reviewOfferRemarks,
+        bypassPolicyWarning: reviewOfferBypassWarning,
+      });
+      showToast(
+        decision === 'Approved'
+          ? '🎉 Recruiter offer approved and formally extended to student!'
+          : 'Offer proposal rejected and recruiter notified.'
+      );
+      setReviewOfferModalApp(null);
+      setReviewOfferRemarks('');
+      setReviewOfferBypassWarning(false);
+      fetchWorkspace();
+    } catch (err) {
+      const errData = err.response?.data?.error;
+      if (errData?.requiresOverride) {
+        setReviewOfferBypassWarning(true);
+      }
+      showToast(errData?.message || 'Failed to process offer review', 'error');
+    } finally {
+      setReviewOfferLoading(false);
+    }
+  };
+
+  // Invite Recruiter to this Drive
+  const handleInviteDriveRecruiter = async (e) => {
+    e.preventDefault();
+    try {
+      setInviteRecruiterLoading(true);
+      const res = await tpoService.inviteRecruiter({
+        email: inviteRecruiterEmail,
+        firstName: inviteRecruiterName.split(' ')[0] || 'Recruiter',
+        lastName: inviteRecruiterName.split(' ').slice(1).join(' ') || '',
+        companyId: drive.companyId || undefined,
+        companyName: drive.companyName,
+        driveIds: [drive.id || drive._id],
+      });
+      setInviteRecruiterResult(res);
+      showToast('Recruiter invitation issued and linked to this drive!');
+      fetchWorkspace();
+    } catch (err) {
+      showToast(err.response?.data?.error?.message || 'Failed to invite recruiter', 'error');
+    } finally {
+      setInviteRecruiterLoading(false);
+    }
+  };
+
+  const handleCopyDriveInviteLink = () => {
+    if (!inviteRecruiterResult?.inviteUrl && !inviteRecruiterResult?.inviteToken) return;
+    const url =
+      inviteRecruiterResult.inviteUrl ||
+      `${window.location.origin}/recruiter/accept-invite?token=${inviteRecruiterResult.inviteToken}`;
+    navigator.clipboard.writeText(url);
+    setCopiedDriveInviteLink(true);
+    setTimeout(() => setCopiedDriveInviteLink(false), 2500);
+  };
+
   if (loading) {
     return <div className="py-24 text-center text-xs text-slate-400">Loading drive recruitment workspace...</div>;
   }
@@ -307,8 +411,95 @@ export default function TpoDriveWorkspace() {
             <Calendar className="w-3.5 h-3.5 text-blue-400" />
             Schedule
           </button>
+          <button
+            onClick={() => {
+              setInviteRecruiterResult(null);
+              setCopiedDriveInviteLink(false);
+              setInviteRecruiterEmail('');
+              setInviteRecruiterName('');
+              setInviteRecruiterModalOpen(true);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs transition shadow-sm cursor-pointer"
+          >
+            <UserPlus className="w-3.5 h-3.5" />
+            Invite Recruiter
+          </button>
         </div>
       </div>
+
+      {/* Proposed JD Revisions Banner */}
+      {drive?.proposedJd?.status === 'Pending_Approval' && (
+        <div className="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 shadow-xl space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
+              <div>
+                <h3 className="text-sm font-bold text-white">
+                  Corporate Recruiter Proposed Job Description Revisions
+                </h3>
+                <p className="text-xs text-amber-300/80">
+                  The recruiter submitted revised compensation, criteria, or rounds for placement cell review and endorsement.
+                </p>
+              </div>
+            </div>
+            <span className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 font-bold text-[11px] uppercase tracking-wider shrink-0">
+              Pending TPO Endorsement
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-950/60 p-3.5 rounded-xl border border-amber-500/20 text-xs text-slate-300">
+            <div>
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">Proposed Title</span>
+              <span className="font-semibold text-white">{drive.proposedJd.title || drive.title}</span>
+            </div>
+            <div>
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">Proposed CTC & Salary</span>
+              <span className="font-semibold text-emerald-400">
+                {drive.proposedJd.salary || (drive.proposedJd.ctc?.total ? `${drive.proposedJd.ctc.total / 100000} LPA` : drive.salary)}
+              </span>
+            </div>
+            <div>
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">Min CGPA & Backlogs</span>
+              <span className="font-semibold text-white">
+                CGPA &gt;= {drive.proposedJd.eligibilityRules?.minCgpa ?? drive.eligibilityRules?.minCgpa ?? 'N/A'}, Max Backlogs: {drive.proposedJd.eligibilityRules?.maxBacklogs ?? drive.eligibilityRules?.maxBacklogs ?? 0}
+              </span>
+            </div>
+          </div>
+
+          {drive.proposedJd.description && (
+            <div className="bg-slate-950/40 p-3 rounded-xl border border-slate-800 text-xs text-slate-300">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Proposed Job Summary:</span>
+              <p className="line-clamp-2">{drive.proposedJd.description}</p>
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
+            <input
+              type="text"
+              placeholder="Add TPO endorsement remarks or feedback (optional)..."
+              value={jdReviewRemarks}
+              onChange={(e) => setJdReviewRemarks(e.target.value)}
+              className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-400"
+            />
+            <div className="flex items-center gap-2">
+              <button
+                disabled={jdReviewLoading}
+                onClick={() => handleReviewProposedJd('Rejected')}
+                className="px-3.5 py-1.5 rounded-xl border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-300 text-xs font-bold transition disabled:opacity-50 cursor-pointer"
+              >
+                Reject Revisions
+              </button>
+              <button
+                disabled={jdReviewLoading}
+                onClick={() => handleReviewProposedJd('Approved')}
+                className="px-4 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold shadow-lg shadow-emerald-500/20 transition disabled:opacity-50 cursor-pointer"
+              >
+                {jdReviewLoading ? 'Processing...' : 'Approve & Apply to Drive'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 8 Workspace Tabs */}
       <div className="flex items-center gap-1 overflow-x-auto pb-1 border-b border-slate-800 scrollbar-none text-xs">
@@ -407,6 +598,27 @@ export default function TpoDriveWorkspace() {
                               <span>{candidate.branch.slice(0, 3)}</span>
                               <span>{candidate.currentRound}</span>
                             </div>
+
+                            {candidate.offer?.status === 'Proposed_By_Recruiter' && (
+                              <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/30 text-[10px] text-purple-300 space-y-1">
+                                <div className="flex items-center justify-between font-bold">
+                                  <span>Recruiter Offer</span>
+                                  <span className="font-mono text-emerald-400">
+                                    {candidate.offer.ctc ? `${candidate.offer.ctc > 1000 ? candidate.offer.ctc / 100000 : candidate.offer.ctc} LPA` : 'Pending'}
+                                  </span>
+                                </div>
+                                <button
+                                  onClick={() => {
+                                    setReviewOfferModalApp(candidate);
+                                    setReviewOfferRemarks('');
+                                    setReviewOfferBypassWarning(false);
+                                  }}
+                                  className="w-full py-1 rounded bg-purple-600 hover:bg-purple-500 text-white font-bold text-[10px] transition text-center cursor-pointer"
+                                >
+                                  Review Proposal
+                                </button>
+                              </div>
+                            )}
 
                             {/* Card Actions */}
                             <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between">
@@ -751,14 +963,27 @@ export default function TpoDriveWorkspace() {
                               ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
                               : a.offer?.status === 'Declined'
                               ? 'bg-red-500/10 text-red-400 border border-red-500/30'
+                              : a.offer?.status === 'Proposed_By_Recruiter'
+                              ? 'bg-purple-500/10 text-purple-400 border border-purple-500/30'
                               : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
                           }`}
                         >
-                          {a.offer?.status}
+                          {a.offer?.status === 'Proposed_By_Recruiter' ? 'Pending TPO Endorsement' : a.offer?.status}
                         </span>
                       </td>
                       <td className="p-3 text-right">
-                        {a.offer?.offerLetterUrl ? (
+                        {a.offer?.status === 'Proposed_By_Recruiter' ? (
+                          <button
+                            onClick={() => {
+                              setReviewOfferModalApp(a);
+                              setReviewOfferRemarks('');
+                              setReviewOfferBypassWarning(false);
+                            }}
+                            className="px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-[10px] transition cursor-pointer"
+                          >
+                            Review Proposal
+                          </button>
+                        ) : a.offer?.offerLetterUrl ? (
                           <a href={a.offer.offerLetterUrl} target="_blank" rel="noreferrer" className="text-emerald-400 hover:underline">
                             Download Letter &rarr;
                           </a>
@@ -1057,6 +1282,278 @@ export default function TpoDriveWorkspace() {
             fetchWorkspace();
           }}
         />
+      )}
+
+      {/* Review Recruiter Proposed Offer Modal */}
+      {reviewOfferModalApp && (
+        <div
+          className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setReviewOfferModalApp(null)}
+        >
+          <div
+            className="w-full max-w-lg bg-slate-900 border border-purple-500/30 rounded-3xl p-6 shadow-2xl space-y-4 text-xs"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <Award className="w-5 h-5 text-purple-400" />
+                <div>
+                  <h3 className="text-base font-bold text-white">
+                    Endorse Recruiter Offer Proposal
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    Candidate: <strong className="text-white">{reviewOfferModalApp.studentName}</strong> ({reviewOfferModalApp.rollNo})
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setReviewOfferModalApp(null)}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400 font-semibold">Proposed Role</span>
+                <span className="font-bold text-white">
+                  {reviewOfferModalApp.offer?.role || drive.title}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400 font-semibold">Total Proposed CTC</span>
+                <span className="font-mono font-bold text-emerald-400 text-sm">
+                  {reviewOfferModalApp.offer?.ctc ? `${reviewOfferModalApp.offer.ctc > 1000 ? reviewOfferModalApp.offer.ctc / 100000 : reviewOfferModalApp.offer.ctc} LPA` : 'N/A'}
+                </span>
+              </div>
+              {reviewOfferModalApp.offer?.fixedCtc > 0 && (
+                <div className="flex items-center justify-between text-[11px] text-slate-400">
+                  <span>Fixed CTC Component</span>
+                  <span>{reviewOfferModalApp.offer.fixedCtc > 1000 ? reviewOfferModalApp.offer.fixedCtc / 100000 : reviewOfferModalApp.offer.fixedCtc} LPA</span>
+                </div>
+              )}
+              {reviewOfferModalApp.offer?.variableCtc > 0 && (
+                <div className="flex items-center justify-between text-[11px] text-slate-400">
+                  <span>Variable / Performance Component</span>
+                  <span>{reviewOfferModalApp.offer.variableCtc > 1000 ? reviewOfferModalApp.offer.variableCtc / 100000 : reviewOfferModalApp.offer.variableCtc} LPA</span>
+                </div>
+              )}
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400 font-semibold">Proposed Joining Date</span>
+                <span className="font-mono text-slate-300">
+                  {reviewOfferModalApp.offer?.joiningDate
+                    ? new Date(reviewOfferModalApp.offer.joiningDate).toLocaleDateString()
+                    : 'To be determined'}
+                </span>
+              </div>
+              {reviewOfferModalApp.offer?.remarks && (
+                <div className="pt-2 border-t border-slate-850">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                    Recruiter Remarks:
+                  </span>
+                  <p className="text-slate-300 italic">
+                    "{reviewOfferModalApp.offer.remarks}"
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {reviewOfferBypassWarning && (
+              <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl space-y-2">
+                <div className="flex items-center gap-2 text-amber-300 font-bold text-xs">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>Institutional Placement Policy Warning Flagged</span>
+                </div>
+                <p className="text-[11px] text-amber-200/90 leading-relaxed">
+                  Extending this offer might conflict with One-Student-One-Offer or Dream Cap thresholds. Check the box below if you have institutional authorization to override.
+                </p>
+                <label className="flex items-center gap-2 text-xs text-white font-semibold cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={reviewOfferBypassWarning}
+                    onChange={(e) => setReviewOfferBypassWarning(e.target.checked)}
+                    className="rounded border-slate-700 bg-slate-800 text-purple-600 focus:ring-purple-500"
+                  />
+                  <span>Authorize Placement Cell Policy Override</span>
+                </label>
+              </div>
+            )}
+
+            <div>
+              <label className="text-slate-400 font-semibold block mb-1">
+                TPO Endorsement Remarks / Conditions
+              </label>
+              <textarea
+                rows={2}
+                placeholder="Optional endorsement note recorded in audit log..."
+                value={reviewOfferRemarks}
+                onChange={(e) => setReviewOfferRemarks(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:border-purple-500 text-xs"
+              />
+            </div>
+
+            <div className="flex items-center justify-between pt-3 border-t border-slate-800">
+              <button
+                type="button"
+                disabled={reviewOfferLoading}
+                onClick={() => handleReviewProposedOffer('Rejected')}
+                className="px-4 py-2 rounded-xl border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-300 font-bold transition disabled:opacity-50 cursor-pointer"
+              >
+                Reject Proposal
+              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setReviewOfferModalApp(null)}
+                  className="px-3 py-1.5 text-slate-400 hover:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={reviewOfferLoading}
+                  onClick={() => handleReviewProposedOffer('Approved')}
+                  className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold transition shadow-lg shadow-purple-600/20 disabled:opacity-50 cursor-pointer"
+                >
+                  {reviewOfferLoading ? 'Endorsing...' : 'Approve & Extend Offer'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Invite Drive Recruiter Modal */}
+      {inviteRecruiterModalOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setInviteRecruiterModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4 text-xs"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <UserPlus className="w-5 h-5 text-purple-400" />
+                <div>
+                  <h3 className="text-base font-bold text-white">
+                    Invite Recruiter to this Drive
+                  </h3>
+                  <p className="text-[11px] text-slate-400">{drive.companyName} • {drive.title}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setInviteRecruiterModalOpen(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {inviteRecruiterResult ? (
+              <div className="space-y-4">
+                <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 text-center">
+                  <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
+                  <h4 className="text-sm font-bold text-white">Invitation Issued Successfully!</h4>
+                  <p className="text-xs text-slate-300 mt-1">
+                    Recruiter is authorized to access and manage candidates for this drive.
+                  </p>
+                </div>
+
+                <div className="bg-slate-950 border border-slate-800 rounded-xl p-3">
+                  <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                    Direct Activation URL:
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      readOnly
+                      value={
+                        inviteRecruiterResult.inviteUrl ||
+                        `${window.location.origin}/recruiter/accept-invite?token=${inviteRecruiterResult.inviteToken}`
+                      }
+                      className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono truncate"
+                    />
+                    <button
+                      onClick={handleCopyDriveInviteLink}
+                      className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-1.5 transition"
+                    >
+                      {copiedDriveInviteLink ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copiedDriveInviteLink ? 'Copied' : 'Copy'}
+                    </button>
+                  </div>
+                  <span className="text-[11px] text-slate-500 mt-1.5 block">
+                    Recruiter can set their password and start reviewing candidates immediately.
+                  </span>
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <button
+                    onClick={() => setInviteRecruiterModalOpen(false)}
+                    className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition"
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleInviteDriveRecruiter} className="space-y-3.5">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Recruiter Corporate Email *
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="recruiter@company.com"
+                    value={inviteRecruiterEmail}
+                    onChange={(e) => setInviteRecruiterEmail(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Recruiter Full Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Jane Doe"
+                    value={inviteRecruiterName}
+                    onChange={(e) => setInviteRecruiterName(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+
+                <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-3 text-xs text-purple-300">
+                  <p>
+                    Invited recruiter will be granted scoped authority over <strong>{drive.title}</strong>, candidate shortlists, interview schedule slots, and feedback entry.
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => setInviteRecruiterModalOpen(false)}
+                    className="px-4 py-2 rounded-xl text-slate-400 hover:text-white text-xs font-semibold"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={inviteRecruiterLoading}
+                    className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-purple-600/20 disabled:opacity-50 cursor-pointer"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    {inviteRecruiterLoading ? 'Issuing...' : 'Send Invitation'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
