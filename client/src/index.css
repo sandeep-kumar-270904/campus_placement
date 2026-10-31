@@ -1,42 +1,148 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-display: 'Outfit', 'Plus Jakarta Sans', sans-serif;
-  
-  --color-mongo-bg: #FDFFF5;
-  --color-mongo-dark: #001E2B;
-  --color-mongo-green: #00ED64;
-  --color-mongo-green-dark: #00684A;
-  --color-mongo-gray: #D0D4CF;
-  --color-mongo-text: #061621;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* PLACEearly Dark-First Semantic Color Tokens */
+  --color-brand-primary: #10b981;
+  --color-brand-primary-hover: #059669;
+  --color-brand-primary-light: rgba(16, 185, 129, 0.12);
+
+  --color-brand-success: #10b981;
+  --color-brand-warning: #f59e0b;
+  --color-brand-danger: #ef4444;
+  --color-brand-info: #0ea5e9;
+  --color-brand-ai: #8b5cf6;
 }
 
-/* Light & Dark Theme Base */
+/* ==============================================================================
+   DESIGN TOKENS & SYSTEM VARIABLES
+   ============================================================================== */
 :root {
   color-scheme: dark;
-}
 
-html.dark {
-  color-scheme: dark;
-  background-color: #020617;
-  color: #f8fafc;
+  /* Dark-First Default Layer Tokens */
+  --bg-app: #030712;               /* Deepest background */
+  --bg-surface: #0b1120;           /* Default card/panel surface */
+  --bg-surface-raised: #111c34;    /* Raised element (hover, active card) */
+  --bg-surface-overlay: #1e293b;   /* Highest elevation (modals, dropdowns) */
+  --bg-hover: rgba(255, 255, 255, 0.05);
+  --bg-active: rgba(255, 255, 255, 0.08);
+
+  /* Border Tokens */
+  --border-subtle: #1e293b;
+  --border-default: #334155;
+  --border-strong: #475569;
+  --border-accent: rgba(16, 185, 129, 0.35);
+
+  /* Text Hierarchy */
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-inverted: #030712;
+
+  /* Elevation Shadows */
+  --shadow-surface: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+  --shadow-modal: 0 25px 50px -12px rgba(0, 0, 0, 0.85);
+  --shadow-glow-emerald: 0 0 20px -3px rgba(16, 185, 129, 0.3);
+  --shadow-glow-purple: 0 0 20px -3px rgba(139, 92, 246, 0.3);
 }
 
 html.light {
   color-scheme: light;
-  background-color: #f8fafc;
-  color: #0f172a;
+  --bg-app: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-surface-raised: #f1f5f9;
+  --bg-surface-overlay: #ffffff;
+  --bg-hover: rgba(0, 0, 0, 0.04);
+  --bg-active: rgba(0, 0, 0, 0.07);
+
+  --border-subtle: #e2e8f0;
+  --border-default: #cbd5e1;
+  --border-strong: #94a3b8;
+  --border-accent: rgba(16, 185, 129, 0.5);
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-inverted: #ffffff;
+
+  --shadow-surface: 0 4px 15px -2px rgba(0, 0, 0, 0.06);
+  --shadow-modal: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+}
+
+html.dark {
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+}
+
+html.light {
+  background-color: var(--bg-app);
+  color: var(--text-primary);
 }
 
 body {
   font-family: var(--font-sans);
+  background-color: var(--bg-app);
+  color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
+/* ==============================================================================
+   ELEVATION & GLASSMORPHISM SURFACES
+   ============================================================================== */
+.bg-app-base {
+  background-color: var(--bg-app);
+}
+
+.bg-surface-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+}
+
+.bg-surface-raised {
+  background-color: var(--bg-surface-raised);
+}
+
+.bg-surface-overlay {
+  background-color: var(--bg-surface-overlay);
+}
+
+.glass-panel {
+  background: rgba(11, 17, 32, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+}
+
+.glass-card {
+  background: rgba(17, 28, 52, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-subtle);
+}
+
+/* Glow effects */
+.glow-emerald {
+  box-shadow: 0 0 25px -4px rgba(16, 185, 129, 0.35);
+}
+
+.glow-purple {
+  box-shadow: 0 0 25px -4px rgba(139, 92, 246, 0.35);
+}
+
+.glow-amber {
+  box-shadow: 0 0 25px -4px rgba(245, 158, 11, 0.35);
+}
+
+/* ==============================================================================
+   ACCESSIBILITY & FOCUS MANAGEMENT
+   ============================================================================== */
 /* WCAG 2.1 AA Compliant Keyboard Focus Rings */
 :focus-visible {
   outline: 2px solid #10b981 !important;
@@ -59,5 +165,26 @@ body {
 /* High Contrast Selection */
 ::selection {
   background: #10b981;
-  color: #020617;
+  color: #030712;
+}
+
+/* ==============================================================================
+   CUSTOM DARK SCROLLBAR
+   ============================================================================== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-app);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
 }

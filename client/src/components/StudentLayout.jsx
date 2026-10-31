@@ -25,8 +25,10 @@ import {
   TrendingUp,
   GraduationCap,
   Compass,
+  Search,
 } from 'lucide-react';
 import NotificationCenter from './NotificationCenter';
+import { CommandPalette } from './ui/CommandPalette';
 
 const ALL_NAV_ITEMS = [
   { path: '/student/dashboard', translationKey: 'dashboard', label: 'Today Hub', icon: LayoutDashboard },
@@ -58,6 +60,7 @@ export default function StudentLayout() {
   );
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -154,6 +157,23 @@ export default function StudentLayout() {
           </Link>
         </div>
 
+        {/* Quick Search Shortcut */}
+        <div className="px-3 pb-2">
+          <button
+            type="button"
+            onClick={() => setPaletteOpen(true)}
+            className="w-full flex items-center justify-between bg-slate-950/60 border border-slate-800 hover:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-400 cursor-pointer transition shadow-inner group"
+          >
+            <div className="flex items-center gap-2">
+              <Search className="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400 transition-colors" />
+              <span>Jump to...</span>
+            </div>
+            <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-slate-900 border border-slate-700/80 rounded text-slate-400">
+              Ctrl+K
+            </kbd>
+          </button>
+        </div>
+
         {/* Nav Links */}
         <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
@@ -208,6 +228,9 @@ export default function StudentLayout() {
       <main className="flex-1 min-w-0 flex flex-col overflow-y-auto min-h-screen">
         <Outlet />
       </main>
+
+      {/* Global Command Palette */}
+      <CommandPalette isOpen={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </div>
   );
 }

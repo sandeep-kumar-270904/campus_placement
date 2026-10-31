@@ -31,6 +31,7 @@ import tpoService from '../services/tpoService';
 import NotificationCenter from './NotificationCenter';
 import ThemeToggle from './common/ThemeToggle';
 import LanguageSelector from './common/LanguageSelector';
+import { CommandPalette } from './ui/CommandPalette';
 
 const ALL_NAV_ITEMS = [
   { path: '/tpo/dashboard', label: 'Command Center', icon: LayoutDashboard },
@@ -66,6 +67,7 @@ export default function TpoLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [badges, setBadges] = useState({ pendingVerifications: 0, activeDrives: 0 });
   const [quickActionOpen, setQuickActionOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -124,21 +126,21 @@ export default function TpoLayout() {
             </div>
           </div>
 
-          {/* Center: Search / Quick indicator */}
+          {/* Center: Search / Command Palette shortcut */}
           <div className="hidden lg:flex items-center flex-1 max-w-md mx-4">
-            <div className="relative w-full">
-              <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search students, roll numbers, companies, drives..."
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && e.target.value.trim()) {
-                    navigate(`/tpo/students?q=${encodeURIComponent(e.target.value.trim())}`);
-                  }
-                }}
-                className="w-full bg-slate-950/60 border border-slate-800 rounded-xl pl-10 pr-4 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500/50 transition"
-              />
-            </div>
+            <button
+              type="button"
+              onClick={() => setPaletteOpen(true)}
+              className="w-full flex items-center justify-between bg-slate-950/70 border border-slate-800 hover:border-slate-700 rounded-xl px-3.5 py-1.5 text-xs text-slate-400 cursor-pointer transition shadow-inner group"
+            >
+              <div className="flex items-center gap-2">
+                <Search className="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400 transition-colors" />
+                <span>Search drives, students, policies...</span>
+              </div>
+              <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-slate-900 border border-slate-700/80 rounded text-slate-400">
+                Ctrl+K
+              </kbd>
+            </button>
           </div>
 
           {/* Right: Actions, Badges, Profile & Logout */}
@@ -341,6 +343,9 @@ export default function TpoLayout() {
           <Outlet />
         </main>
       </div>
+
+      {/* Global Command Palette */}
+      <CommandPalette isOpen={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </div>
   );
 }

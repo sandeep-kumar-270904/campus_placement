@@ -23,6 +23,8 @@ server/storage/private_vault/
 dist/
 dist-ssr/
 *.local
+test-results/
+tests/e2e/reports/
 
 # Editor & OS files
 .DS_Store

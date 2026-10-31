@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { TenantProvider } from './context/TenantContext';
+import { ToastProvider } from './components/ui/Toast';
 import ProtectedRoute from './components/ProtectedRoute';
 import { PageSkeletonLoader } from './components/common/SkeletonLoader';
 import OfflineBanner from './components/common/OfflineBanner';
@@ -75,6 +76,7 @@ const SuperAdminDashboard = lazy(() => import('./pages/SuperAdminDashboard'));
 const CollegeSettings = lazy(() => import('./pages/CollegeSettings'));
 const AdminAuditLog = lazy(() => import('./pages/admin/AdminAuditLog'));
 const SessionManagement = lazy(() => import('./pages/settings/SessionManagement'));
+const Styleguide = lazy(() => import('./pages/Styleguide'));
 
 function Unauthorized() {
   return (
@@ -106,18 +108,20 @@ function App() {
   return (
     <AuthProvider>
       <TenantProvider>
-        <Router>
-          <div className="min-h-screen font-sans bg-slate-950 text-slate-100 flex flex-col">
-            {/* Real-Time Connectivity Banner */}
-            <OfflineBanner />
+        <ToastProvider>
+          <Router>
+            <div className="min-h-screen font-sans bg-slate-950 text-slate-100 flex flex-col">
+              {/* Real-Time Connectivity Banner */}
+              <OfflineBanner />
 
-            {/* PWA Installation Drawer / Pill */}
-            <PwaInstallPrompt />
+              {/* PWA Installation Drawer / Pill */}
+              <PwaInstallPrompt />
 
-            <Suspense fallback={<PageSkeletonLoader />}>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/for-students" element={<ForStudents />} />
+              <Suspense fallback={<PageSkeletonLoader />}>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/styleguide" element={<Styleguide />} />
+                  <Route path="/for-students" element={<ForStudents />} />
                 <Route path="/for-colleges" element={<ForColleges />} />
                 <Route path="/how-it-works" element={<HowItWorks />} />
                 <Route path="/job-platforms" element={<JobPlatforms />} />
@@ -223,8 +227,9 @@ function App() {
             </Suspense>
           </div>
         </Router>
-      </TenantProvider>
-    </AuthProvider>
+      </ToastProvider>
+    </TenantProvider>
+  </AuthProvider>
   );
 }
 
