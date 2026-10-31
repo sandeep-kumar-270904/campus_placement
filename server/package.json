@@ -5,7 +5,11 @@
   "main": "src/index.js",
   "scripts": {
     "test": "node --test tests/**/*.test.js",
+    "test:coverage": "node --test --experimental-test-coverage tests/**/*.test.js",
     "seed:recruiter": "node src/seeds/seedRecruiter.js",
+    "seed:production": "node scripts/seedProductionDemo.js",
+    "db:backup": "node scripts/backupDatabase.js",
+    "db:restore": "node scripts/restoreDatabase.js",
     "dev": "nodemon src/index.js",
     "start": "node src/index.js"
   },
@@ -17,6 +21,7 @@
     "@anthropic-ai/sdk": "^1.1.0",
     "@aws-sdk/client-s3": "^3.1156.0",
     "@aws-sdk/s3-request-presigner": "^3.1156.0",
+    "@sentry/node": "^11.10.0",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",

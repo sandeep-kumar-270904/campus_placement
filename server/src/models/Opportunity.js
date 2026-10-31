@@ -152,6 +152,8 @@ const opportunitySchema = new mongoose.Schema({
 opportunitySchema.index({ collegeId: 1, status: 1, deadline: 1 });
 opportunitySchema.index({ collegeId: 1, createdAt: -1 });
 opportunitySchema.index({ collegeId: 1, companyName: 1 });
+opportunitySchema.index({ collegeId: 1, invitedRecruiterIds: 1 });
+opportunitySchema.index({ collegeId: 1, tier: 1 });
 
 // Apply tenant plugin
 opportunitySchema.plugin(tenantPlugin, { required: true });

@@ -317,6 +317,7 @@ studentProfileSchema.index({ collegeId: 1, rollNo: 1 }, { unique: true });
 studentProfileSchema.index({ collegeId: 1, user: 1 }, { unique: true });
 studentProfileSchema.index({ collegeId: 1, branch: 1 });
 studentProfileSchema.index({ collegeId: 1, isVerifiedByTPO: 1 });
+studentProfileSchema.index({ collegeId: 1, cgpa: -1 });
 studentProfileSchema.index({ 'verificationRecord.verificationCode': 1 });
 
 // Apply tenant plugin

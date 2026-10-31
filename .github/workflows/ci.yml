@@ -1,4 +1,4 @@
-name: PLACEearly CI/CD Pipeline
+name: PLACEearly Enterprise CI/CD Pipeline
 
 on:
   push:
@@ -6,52 +6,165 @@ on:
   pull_request:
     branches: [ main, master ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  backend-test:
-    name: Backend Test Suite
+  # ----------------------------------------------------------------------------
+  # 1. Code Quality & Linting
+  # ----------------------------------------------------------------------------
+  lint-and-typecheck:
+    name: Lint & Code Style Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Client Dependencies
+        working-directory: client
+        run: npm ci
+
+      - name: Run Client Linter (ESLint)
+        working-directory: client
+        run: npm run lint
+
+  # ----------------------------------------------------------------------------
+  # 2. Server Test Suite & Coverage Thresholds
+  # ----------------------------------------------------------------------------
+  backend-test-suite:
+    name: Server Unit, Policy Engine & Integration Tests
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: server
     steps:
-      - name: Checkout Code
+      - name: Checkout Codebase
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js Runtime
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: 'npm'
           cache-dependency-path: server/package-lock.json
 
-      - name: Install Backend Dependencies
+      - name: Install Server Dependencies
         run: npm ci
 
-      - name: Run Eligibility Engine Unit Tests
-        run: npm test
+      - name: Run Full Server Test Suite with Coverage
+        run: npm run test:coverage
+        env:
+          NODE_ENV: test
+          JWT_SECRET: placeearly_super_secure_jwt_secret_key_2026
+          JWT_REFRESH_SECRET: placeearly_super_secure_refresh_secret_key_2026
+          SLOW_QUERY_THRESHOLD_MS: 100
 
-  frontend-quality:
-    name: Frontend Lint & Production Build
+  # ----------------------------------------------------------------------------
+  # 3. Client Production Build & PWA Validation
+  # ----------------------------------------------------------------------------
+  frontend-production-build:
+    name: Client Production Build & Bundle Audit
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: client
     steps:
-      - name: Checkout Code
+      - name: Checkout Codebase
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js Runtime
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: 'npm'
           cache-dependency-path: client/package-lock.json
 
-      - name: Install Frontend Dependencies
+      - name: Install Client Dependencies
         run: npm ci
 
-      - name: Run Code Linter
-        run: npm run lint
-
-      - name: Run Production Build
+      - name: Compile Production Vite Bundle
         run: npm run build
+
+      - name: Verify Web App Manifest & Service Worker Assets
+        run: |
+          test -f dist/manifest.webmanifest || exit 1
+          test -f dist/sw.js || exit 1
+
+  # ----------------------------------------------------------------------------
+  # 4. Dependency Vulnerability Audit
+  # ----------------------------------------------------------------------------
+  dependency-security-audit:
+    name: Dependency Vulnerability & Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Audit Server Dependencies
+        working-directory: server
+        run: npm audit --audit-level=high
+
+      - name: Audit Client Dependencies
+        working-directory: client
+        run: npm audit --audit-level=high
+
+  # ----------------------------------------------------------------------------
+  # 5. Playwright E2E Smoke Tests
+  # ----------------------------------------------------------------------------
+  playwright-e2e-smoke:
+    name: Playwright End-to-End Smoke Suite
+    needs: [ backend-test-suite, frontend-production-build ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Root Dependencies
+        run: npm ci || npm install
+
+      - name: Install Client Dependencies
+        working-directory: client
+        run: npm ci
+
+      - name: Install Server Dependencies
+        working-directory: server
+        run: npm ci
+
+      - name: Install Playwright Chromium Browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Build Frontend for Preview
+        working-directory: client
+        run: npm run build
+
+      - name: Launch Preview Server and Run Playwright Tests
+        run: |
+          npx playwright test --project=chromium
+        env:
+          CI: true
+          NODE_ENV: test
+
+      - name: Upload Playwright Test Artifacts on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: tests/e2e/reports/
+          retention-days: 7

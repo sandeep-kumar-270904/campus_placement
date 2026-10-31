@@ -4,14 +4,32 @@ const cors = require('cors');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
-const { tenantContextMiddleware } = require('./middleware/tenantContext');
-const { noSqlSanitizer, xssSanitizer } = require('./middleware/securityMiddleware');
+const { validateEnv } = require('./config/envValidation');
 
 dotenv.config();
 
+// Fail-fast startup configuration validation
+validateEnv();
+
+const { requestIdMiddleware } = require('./middleware/requestIdMiddleware');
+const { initSentry, captureException } = require('./config/sentry');
+const { slowQueryPlugin } = require('./plugins/slowQueryPlugin');
+const logger = require('./utils/logger');
+const { tenantContextMiddleware } = require('./middleware/tenantContext');
+const { noSqlSanitizer, xssSanitizer } = require('./middleware/securityMiddleware');
+
 const app = express();
 
+// Initialize Sentry monitoring if configured
+initSentry(app);
+
+// Register slow query profiler plugin across Mongoose schemas
+mongoose.plugin(slowQueryPlugin);
+
 app.set('trust proxy', 1);
+
+// Attach Request ID and structured HTTP access logger
+app.use(requestIdMiddleware);
 
 // Security Headers via Helmet
 app.use(
@@ -74,9 +92,14 @@ const externalOutcomeRoutes = require('./routes/externalOutcomeRoutes');
 const placementPolicyRoutes = require('./routes/placementPolicyRoutes');
 const resourceRoutes = require('./routes/resourceRoutes');
 const auditLogRoutes = require('./routes/auditLogRoutes');
+const healthRoutes = require('./routes/healthRoutes');
 
 // Initialize event-driven notification subscribers
 require('./services/notifications');
+
+// Health Probes & Monitoring
+app.use('/healthz', healthRoutes);
+app.use('/api/health', healthRoutes);
 
 // Basic Health Route
 app.get('/', (req, res) => {
@@ -105,14 +128,21 @@ app.use('/api/tpo/policies', placementPolicyRoutes);
 app.use('/api/admin/audit-logs', auditLogRoutes);
 app.use('/api/audit-logs', auditLogRoutes);
 
-// Central Error Handler
+// Central Error Handler with Sentry & Structured Logging
 app.use((err, req, res, next) => {
-  console.error('Unhandled API Error:', err);
+  captureException(err, { requestId: req.id, url: req.originalUrl, method: req.method });
+  logger.error(`Unhandled API Error: ${err.message}`, {
+    requestId: req.id,
+    url: req.originalUrl,
+    method: req.method,
+    error: err,
+  });
   const status = err.status || 500;
   res.status(status).json({
     error: {
       code: err.code || 'SERVER_ERROR',
       message: err.message || 'An unexpected internal server error occurred',
+      requestId: req.id,
     },
   });
 });
@@ -121,14 +151,16 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/placeearly';
 
-mongoose
-  .connect(MONGO_URI)
-  .then(() => {
-    console.log('Connected to MongoDB');
-  })
-  .catch((err) => {
-    console.warn('MongoDB connection failed (offline/pending). Server running in resilient mode.', err.message);
-  });
+if (process.env.NODE_ENV !== 'test') {
+  mongoose
+    .connect(MONGO_URI, { serverSelectionTimeoutMS: 2000 })
+    .then(() => {
+      logger.info('Connected to MongoDB database');
+    })
+    .catch((err) => {
+      logger.warn('MongoDB connection failed (offline/pending). Server running in resilient mode.', { error: err.message });
+    });
+}
 
 if (require.main === module) {
   app.listen(PORT, () => {

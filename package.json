@@ -12,10 +12,19 @@
     "dev:client": "npm --prefix client run dev",
     "start:server": "npm --prefix server start",
     "seed:recruiter": "npm --prefix server run seed:recruiter",
+    "seed:production": "npm --prefix server run seed:production",
+    "db:backup": "npm --prefix server run db:backup",
+    "db:restore": "npm --prefix server run db:restore",
     "test": "npm --prefix server test",
+    "test:coverage": "npm --prefix server run test:coverage",
     "test:server": "npm --prefix server test",
     "test:all": "npm --prefix server test",
+    "test:e2e": "playwright test",
+    "test:smoke": "playwright test --project=chromium",
     "build:client": "npm --prefix client run build",
     "lint:client": "npm --prefix client run lint"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1"
   }
 }

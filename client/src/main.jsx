@@ -8,9 +8,11 @@ import { NetworkProvider } from './context/NetworkContext';
 import { I18nProvider } from './context/I18nContext';
 import { ToastProvider } from './context/ToastContext';
 import { registerServiceWorker } from './services/pwaService';
+import { initClientSentry } from './services/sentry';
 
-// Initialize PWA service worker and offline shell
+// Initialize PWA service worker and monitoring
 registerServiceWorker();
+initClientSentry();
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

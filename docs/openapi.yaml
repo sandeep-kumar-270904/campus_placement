@@ -1,0 +1,317 @@
+openapi: 3.0.3
+info:
+  title: PLACEearly - Multi-Tenant Campus Placement Operating System API
+  description: |
+    Enterprise REST API for PLACEearly, the multi-tenant placement operating system.
+    Supports cryptographic Ed25519 academic seals, per-college policy engines,
+    Anthropic Claude AI matching, recruiter portals, and automated compliance reporting.
+  version: 1.0.0
+  contact:
+    name: PLACEearly Engineering Team
+    email: engineering@placeearly.com
+servers:
+  - url: http://localhost:5001
+    description: Local Development Server
+  - url: https://api.placeearly.com
+    description: Production API Server
+
+security:
+  - bearerAuth: []
+  - tenantHeader: []
+
+paths:
+  /healthz:
+    get:
+      summary: Health & Observability Probe
+      description: Returns real-time health checks for MongoDB database connectivity, memory usage, and process uptime.
+      security: []
+      responses:
+        '200':
+          description: System is healthy and operational.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheck'
+        '503':
+          description: System is degraded (e.g. database unreachable).
+
+  /api/auth/login:
+    post:
+      summary: Authenticate User
+      description: Issues 15-minute JWT access token and sets httpOnly rotating refresh token cookie.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Authentication successful.
+        '400':
+          description: Missing email or password.
+        '401':
+          description: Invalid email or password credentials.
+
+  /api/auth/refresh:
+    post:
+      summary: Rotate Access & Refresh Tokens
+      description: Consumes valid refreshToken cookie, validates family token reuse, and issues a new access token.
+      responses:
+        '200':
+          description: Tokens refreshed successfully.
+        '401':
+          description: Refresh token invalid, expired, or reused.
+
+  /api/opportunities:
+    get:
+      summary: List Placement Drives
+      description: Retrieves open, upcoming, and closed recruitment drives scoped to the authenticated student's college.
+      parameters:
+        - name: tier
+          in: query
+          schema:
+            type: string
+            enum: [Standard, Core, Dream, Super Dream]
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of opportunities.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Opportunity'
+
+  /api/opportunities/{id}/apply:
+    post:
+      summary: Apply for a Placement Drive
+      description: Evaluates institutional placement policy engine (One-Offer, Dream Cap, Tier limits, Blackout dates) before creating an application record.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                statement:
+                  type: string
+                  maxLength: 1000
+      responses:
+        '201':
+          description: Application successfully submitted.
+        '400':
+          description: Blocked by placement policy rules or ineligible.
+
+  /api/verify/{code}:
+    get:
+      summary: Public Verification of Cryptographic Academic Seal
+      description: Publicly validates an Ed25519 digitally signed academic seal using the institution's public key fingerprint.
+      security: []
+      parameters:
+        - name: code
+          in: path
+          required: true
+          description: Unique verification code or roll number
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Authentic, tamper-free academic verification record.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerificationRecord'
+        '400':
+          description: Tampered, invalid, or expired seal.
+
+  /api/tpo/drives:
+    post:
+      summary: Create New Placement Drive (TPO)
+      description: Creates a new institutional placement drive with CTC tiers, recruitment rounds, and eligibility criteria.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOpportunityInput'
+      responses:
+        '201':
+          description: Drive created successfully.
+        '400':
+          description: Validation error in drive parameters.
+        '403':
+          description: Forbidden for non-TPO roles.
+
+  /api/tpo/policies/overrides:
+    post:
+      summary: Grant TPO Policy Override
+      description: Approves an exception for a student blocked by policy rules with mandatory justification and immutable audit logging.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [studentId, opportunityId, policyName, reason]
+              properties:
+                studentId:
+                  type: string
+                opportunityId:
+                  type: string
+                policyName:
+                  type: string
+                  enum: [one_student_one_offer, dream_cap, tier_eligibility, max_concurrent_apps, blackout_dates, all]
+                reason:
+                  type: string
+                  minLength: 5
+      responses:
+        '201':
+          description: Override granted and logged.
+        '400':
+          description: Mandatory justification missing.
+
+  /api/recruiter/drives:
+    get:
+      summary: List Recruiter Drives
+      description: Returns recruitment drives strictly assigned to the authenticated recruiter's company.
+      responses:
+        '200':
+          description: Recruiter's drives and shortlists.
+        '403':
+          description: Forbidden for students or unauthorized companies.
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    tenantHeader:
+      type: apiKey
+      name: X-College-Id
+      in: header
+
+  schemas:
+    HealthCheck:
+      type: object
+      properties:
+        status:
+          type: string
+          example: healthy
+        uptimeSeconds:
+          type: integer
+          example: 1845
+        timestamp:
+          type: string
+          format: date-time
+        checks:
+          type: object
+          properties:
+            database:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: connected
+            memory:
+              type: object
+
+    Opportunity:
+      type: object
+      properties:
+        _id:
+          type: string
+        title:
+          type: string
+          example: Software Development Engineer
+        companyName:
+          type: string
+          example: Google India
+        tier:
+          type: string
+          enum: [Standard, Core, Dream, Super Dream]
+        ctc:
+          type: object
+          properties:
+            fixed:
+              type: number
+              example: 2600000
+            variable:
+              type: number
+              example: 1600000
+            lpaString:
+              type: string
+              example: 42.0 LPA
+        status:
+          type: string
+          enum: [Draft, Open, Closed, In Progress, Completed, Archived]
+
+    CreateOpportunityInput:
+      type: object
+      required: [companyName, title, ctc]
+      properties:
+        companyName:
+          type: string
+          minLength: 2
+        title:
+          type: string
+          minLength: 2
+        tier:
+          type: string
+          enum: [Standard, Core, Dream, Super Dream]
+        ctc:
+          type: object
+          properties:
+            fixed:
+              type: number
+              minimum: 0
+            variable:
+              type: number
+              minimum: 0
+            lpaString:
+              type: string
+
+    VerificationRecord:
+      type: object
+      properties:
+        status:
+          type: string
+          example: Approved
+        verifiedAt:
+          type: string
+          format: date-time
+        verificationCode:
+          type: string
+          example: TIET-21CS001-A79B
+        digitalSeal:
+          type: string
+          description: Ed25519 digital signature
+        certificateHash:
+          type: string
+          description: SHA-256 canonical hash of academic record
+        publicKeyFingerprint:
+          type: string
+          description: Fingerprint of signing key
