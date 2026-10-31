@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Compass,
   Search,
@@ -15,6 +16,7 @@ import {
   Layers,
   CheckCircle2,
   Bookmark,
+  Building2,
 } from 'lucide-react';
 import { LEARNING_PLATFORMS_DATA } from '../../data/learningPlatformsData';
 import { JOB_PLATFORMS_DATA } from '../../data/jobPlatformsData';
@@ -169,10 +171,18 @@ export default function StudentResources() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            to="/career-pages"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition shadow-sm"
+          >
+            <Building2 className="w-3.5 h-3.5" />
+            <span>MNC & PBC Career Portals</span>
+          </Link>
+
           <button
             onClick={() => setActiveTab('bookmarks')}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold border transition ${
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold border transition cursor-pointer ${
               activeTab === 'bookmarks'
                 ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-sm shadow-amber-500/20'
                 : 'bg-slate-900 border-slate-800 text-slate-300 hover:text-white'

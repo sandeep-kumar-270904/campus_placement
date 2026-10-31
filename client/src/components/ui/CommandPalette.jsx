@@ -78,6 +78,7 @@ export function CommandPalette({ isOpen: controlledIsOpen, onClose: controlledOn
     
     // --- Student Views ---
     { id: 'student-dash', title: 'Student Dashboard', category: 'Student Hub', path: '/student', icon: GraduationCap },
+    { id: 'company-careers', title: 'Top MNC & PBC Career Portals (Google, Amazon, Flipkart, Cred, Walmart)', category: 'Career Hub', path: '/career-pages', icon: Building2 },
     { id: 'student-opps', title: 'Opportunity Hub & Drives', category: 'Student Hub', path: '/student/opportunities', icon: Briefcase },
     { id: 'student-apps', title: 'My Applications & Offers', category: 'Student Hub', path: '/student/applications', icon: FileText },
     { id: 'student-resources', title: 'Preparation Resources (55+ Platforms)', category: 'Student Hub', path: '/student/resources', icon: BookOpen },

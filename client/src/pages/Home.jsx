@@ -28,6 +28,10 @@ const Home = () => {
                 Learning
                 <span className="bg-blue-100 text-blue-800 text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded">Hub</span>
               </Link>
+              <Link to="/career-pages" className="text-[15px] font-medium text-mongo-text hover:text-mongo-green-dark transition-colors flex items-center gap-1.5">
+                MNC Careers
+                <span className="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded">Portals</span>
+              </Link>
             </div>
           </div>
           <div className="flex items-center gap-6">

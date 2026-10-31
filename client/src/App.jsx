@@ -24,6 +24,7 @@ const PublicPortfolio = lazy(() => import('./pages/PublicPortfolio'));
 const PublicVerify = lazy(() => import('./pages/PublicVerify'));
 const JobPlatforms = lazy(() => import('./pages/JobPlatforms'));
 const LearningPlatforms = lazy(() => import('./pages/LearningPlatforms'));
+const CompanyCareers = lazy(() => import('./pages/CompanyCareers'));
 const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/auth/ResetPassword'));
 
@@ -126,6 +127,8 @@ function App() {
                 <Route path="/how-it-works" element={<HowItWorks />} />
                 <Route path="/job-platforms" element={<JobPlatforms />} />
                 <Route path="/learning-platforms" element={<LearningPlatforms />} />
+                <Route path="/career-pages" element={<CompanyCareers />} />
+                <Route path="/companies/careers" element={<CompanyCareers />} />
                 <Route path="/verify/:code" element={<PublicVerify />} />
                 <Route path="/portfolio/:rollNo" element={<PublicPortfolio />} />
                 <Route path="/portfolio/id/:id" element={<PublicPortfolio />} />
@@ -182,6 +185,7 @@ function App() {
                     <Route path="internships" element={<StudentInternships />} />
                     <Route path="outcomes" element={<StudentOutcomes />} />
                     <Route path="resources" element={<StudentResources />} />
+                    <Route path="career-pages" element={<CompanyCareers />} />
                   </Route>
                 </Route>
 

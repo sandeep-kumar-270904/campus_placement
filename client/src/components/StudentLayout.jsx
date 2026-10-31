@@ -26,6 +26,7 @@ import {
   GraduationCap,
   Compass,
   Search,
+  Building2,
 } from 'lucide-react';
 import NotificationCenter from './NotificationCenter';
 import { CommandPalette } from './ui/CommandPalette';
@@ -41,6 +42,7 @@ const ALL_NAV_ITEMS = [
   { path: '/student/interview-experiences', translationKey: 'interviewExperiences', label: 'Interview Debriefs', icon: MessageSquareText, featureFlag: 'interviewExperiences' },
   { path: '/student/internships', translationKey: 'internships', label: 'Internships & PPO', icon: TrendingUp, featureFlag: 'internshipPpo' },
   { path: '/student/outcomes', translationKey: 'outcomes', label: 'Off-Campus & Outcomes', icon: GraduationCap, featureFlag: 'offCampusHigherStudies' },
+  { path: '/career-pages', label: 'MNC & PBC Careers', icon: Building2 },
   { path: '/student/resources', translationKey: 'resources', label: 'Career Resources (90+)', icon: Compass, featureFlag: 'consolidatedResources' },
   { path: '/student/documents', translationKey: 'documents', label: 'Documents & NOC', icon: FolderLock },
   { path: '/student/privacy', translationKey: 'privacy', label: 'Data & Privacy', icon: ShieldAlert },
