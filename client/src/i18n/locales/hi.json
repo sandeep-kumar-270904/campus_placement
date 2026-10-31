@@ -1,0 +1,51 @@
+{
+  "nav": {
+    "dashboard": "आज का हब (Today Hub)",
+    "opportunities": "प्लेसमेंट ड्राइव्स",
+    "applications": "मेरे आवेदन",
+    "profile": "प्रोफ़ाइल बिल्डर",
+    "interviews": "साक्षात्कार कैलेंडर",
+    "mockInterview": "एआई मॉक इंटरव्यू",
+    "alumni": "एलुमनाई नेटवर्क",
+    "interviewExperiences": "साक्षात्कार अनुभव",
+    "internships": "इंटर्नशिप और पीपीओ",
+    "outcomes": "ऑफ-कैंपस परिणाम",
+    "resources": "कैरियर संसाधन (Resources)",
+    "documents": "दस्तावेज़ और एनओसी",
+    "privacy": "डेटा और गोपनीयता",
+    "settings": "सेटिंग्स"
+  },
+  "common": {
+    "appName": "प्लेसअर्ली (PLACEearly)",
+    "installApp": "ऐप इंस्टॉल करें",
+    "lowBandwidth": "लो-बैंडविड्थ मोड",
+    "offlineNotice": "आप वर्तमान में ऑफ़लाइन हैं। पुनः कनेक्ट होने पर परिवर्तन सिंक हो जाएंगे।",
+    "applyNow": "अभी आवेदन करें",
+    "viewDetails": "विवरण देखें",
+    "search": "खोजें...",
+    "filter": "फ़िल्टर",
+    "save": "परिवर्तन सहेजें",
+    "cancel": "रद्द करें",
+    "close": "बंद करें",
+    "status": "स्थिति",
+    "loading": "लोड हो रहा है..."
+  },
+  "dashboard": {
+    "welcome": "वापसी पर स्वागत है",
+    "subheading": "यहाँ आज के लिए आपका भर्ती अवलोकन है।",
+    "verifiedAcademics": "सत्यापित शैक्षणिक रिकॉर्ड",
+    "placedStatus": "प्लेसमेंट स्थिति",
+    "activeApplications": "सक्रिय आवेदन",
+    "upcomingInterviews": "आगामी साक्षात्कार",
+    "urgentActionRequired": "कार्रवाई आवश्यक"
+  },
+  "opportunities": {
+    "heading": "कैंपस प्लेसमेंट के अवसर",
+    "subheading": "आपकी शाखा और शैक्षणिक मानदंडों से मेल खाने वाले सत्यापित कैंपस ड्राइव।",
+    "checkResume": "मेरा बायोडाटा जांचें",
+    "applied": "आवेदन किया गया",
+    "notEligible": "पात्र नहीं",
+    "policyBlocked": "नीति द्वारा आवेदन अवरुद्ध",
+    "appealException": "नीति छूट के लिए अपील करें"
+  }
+}

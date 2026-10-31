@@ -1,0 +1,50 @@
+{
+  "name": "PLACEearly — Campus Placement Operating System",
+  "short_name": "PLACEearly",
+  "description": "High-performance campus placement operating system for universities, students, and corporate recruiters.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#10b981",
+  "orientation": "any",
+  "lang": "en",
+  "categories": ["education", "business", "productivity"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "48x48 72x72 96x96 128x128 192x192 256x256 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Today Hub",
+      "short_name": "Dashboard",
+      "description": "Check interviews, application status, and announcements",
+      "url": "/student/dashboard",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Placement Drives",
+      "short_name": "Opportunities",
+      "description": "Browse active campus recruitment drives and apply",
+      "url": "/student/opportunities",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "TPO Command Center",
+      "short_name": "TPO Desk",
+      "description": "Manage recruitment pipeline and candidate verifications",
+      "url": "/tpo/dashboard",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    }
+  ]
+}

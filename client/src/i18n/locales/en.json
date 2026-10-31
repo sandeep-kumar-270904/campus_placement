@@ -1,0 +1,51 @@
+{
+  "nav": {
+    "dashboard": "Today Hub",
+    "opportunities": "Placement Drives",
+    "applications": "My Applications",
+    "profile": "Profile Builder",
+    "interviews": "Interview Calendar",
+    "mockInterview": "AI Mock Interviewer",
+    "alumni": "Alumni Network",
+    "interviewExperiences": "Interview Debriefs",
+    "internships": "Internships & PPO",
+    "outcomes": "Off-Campus Outcomes",
+    "resources": "Career Resources",
+    "documents": "Documents & NOC",
+    "privacy": "Data & Privacy",
+    "settings": "Settings"
+  },
+  "common": {
+    "appName": "PLACEearly",
+    "installApp": "Install App",
+    "lowBandwidth": "Low-Bandwidth Mode",
+    "offlineNotice": "You are currently offline. Changes will sync when reconnected.",
+    "applyNow": "Apply Now",
+    "viewDetails": "View Details",
+    "search": "Search...",
+    "filter": "Filter",
+    "save": "Save Changes",
+    "cancel": "Cancel",
+    "close": "Close",
+    "status": "Status",
+    "loading": "Loading..."
+  },
+  "dashboard": {
+    "welcome": "Welcome back",
+    "subheading": "Here is your recruitment pipeline overview for today.",
+    "verifiedAcademics": "Verified Academics",
+    "placedStatus": "Placement Status",
+    "activeApplications": "Active Applications",
+    "upcomingInterviews": "Upcoming Interviews",
+    "urgentActionRequired": "Action Required"
+  },
+  "opportunities": {
+    "heading": "Campus Placement Opportunities",
+    "subheading": "Verified campus drives matching your branch and academic criteria.",
+    "checkResume": "Check my resume",
+    "applied": "Applied",
+    "notEligible": "Not Eligible",
+    "policyBlocked": "Application Blocked by Policy",
+    "appealException": "Appeal for Policy Exception"
+  }
+}

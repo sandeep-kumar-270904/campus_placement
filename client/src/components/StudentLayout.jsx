@@ -2,6 +2,9 @@ import React, { useContext, useState } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { useTenant } from '../context/TenantContext';
+import { useTranslation } from '../context/I18nContext';
+import ThemeToggle from './common/ThemeToggle';
+import LanguageSelector from './common/LanguageSelector';
 import {
   LayoutDashboard,
   Briefcase,
@@ -26,26 +29,27 @@ import {
 import NotificationCenter from './NotificationCenter';
 
 const ALL_NAV_ITEMS = [
-  { path: '/student/dashboard', label: 'Today Hub', icon: LayoutDashboard },
-  { path: '/student/opportunities', label: 'Opportunities', icon: Briefcase },
-  { path: '/student/applications', label: 'My Applications', icon: FileText },
-  { path: '/student/profile', label: 'Profile Builder', icon: User },
-  { path: '/student/interviews', label: 'Interview Calendar', icon: Calendar },
-  { path: '/student/mock-interview', label: 'AI Mock Interviewer', icon: Sparkles, featureFlag: 'atsMatcher' },
-  { path: '/student/alumni', label: 'Alumni Network', icon: Users, featureFlag: 'alumniNetwork' },
-  { path: '/student/interview-experiences', label: 'Interview Debriefs', icon: MessageSquareText, featureFlag: 'interviewExperiences' },
-  { path: '/student/internships', label: 'Internships & PPO', icon: TrendingUp, featureFlag: 'internshipPpo' },
-  { path: '/student/outcomes', label: 'Off-Campus & Outcomes', icon: GraduationCap, featureFlag: 'offCampusHigherStudies' },
-  { path: '/student/resources', label: 'Career Resources (90+)', icon: Compass, featureFlag: 'consolidatedResources' },
-  { path: '/student/documents', label: 'Documents & NOC', icon: FolderLock },
-  { path: '/student/privacy', label: 'Data & Privacy', icon: ShieldAlert },
-  { path: '/student/notifications/preferences', label: 'Notification Settings', icon: Bell },
-  { path: '/settings/sessions', label: 'Active Sessions', icon: FolderLock },
+  { path: '/student/dashboard', translationKey: 'dashboard', label: 'Today Hub', icon: LayoutDashboard },
+  { path: '/student/opportunities', translationKey: 'opportunities', label: 'Opportunities', icon: Briefcase },
+  { path: '/student/applications', translationKey: 'applications', label: 'My Applications', icon: FileText },
+  { path: '/student/profile', translationKey: 'profile', label: 'Profile Builder', icon: User },
+  { path: '/student/interviews', translationKey: 'interviews', label: 'Interview Calendar', icon: Calendar },
+  { path: '/student/mock-interview', translationKey: 'mockInterview', label: 'AI Mock Interviewer', icon: Sparkles, featureFlag: 'atsMatcher' },
+  { path: '/student/alumni', translationKey: 'alumni', label: 'Alumni Network', icon: Users, featureFlag: 'alumniNetwork' },
+  { path: '/student/interview-experiences', translationKey: 'interviewExperiences', label: 'Interview Debriefs', icon: MessageSquareText, featureFlag: 'interviewExperiences' },
+  { path: '/student/internships', translationKey: 'internships', label: 'Internships & PPO', icon: TrendingUp, featureFlag: 'internshipPpo' },
+  { path: '/student/outcomes', translationKey: 'outcomes', label: 'Off-Campus & Outcomes', icon: GraduationCap, featureFlag: 'offCampusHigherStudies' },
+  { path: '/student/resources', translationKey: 'resources', label: 'Career Resources (90+)', icon: Compass, featureFlag: 'consolidatedResources' },
+  { path: '/student/documents', translationKey: 'documents', label: 'Documents & NOC', icon: FolderLock },
+  { path: '/student/privacy', translationKey: 'privacy', label: 'Data & Privacy', icon: ShieldAlert },
+  { path: '/student/notifications/preferences', translationKey: 'settings', label: 'Notification Settings', icon: Bell },
+  { path: '/settings/sessions', translationKey: 'settings', label: 'Active Sessions', icon: FolderLock },
 ];
 
 export default function StudentLayout() {
   const { user, logout } = useContext(AuthContext);
   const { branding, college, isFeatureEnabled } = useTenant();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -61,7 +65,7 @@ export default function StudentLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col md:flex-row">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col md:flex-row transition-colors">
       {/* Mobile Top Navigation */}
       <header className="md:hidden flex items-center justify-between px-4 py-3 bg-slate-900 border-b border-slate-800 sticky top-0 z-40">
         <div className="flex items-center gap-3">
@@ -78,6 +82,8 @@ export default function StudentLayout() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <LanguageSelector />
           <NotificationCenter />
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -120,6 +126,7 @@ export default function StudentLayout() {
           <button
             onClick={() => setMobileMenuOpen(false)}
             className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+            aria-label="Close sidebar"
           >
             <X className="w-5 h-5" />
           </button>
@@ -152,6 +159,8 @@ export default function StudentLayout() {
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path || (item.path !== '/student/dashboard' && location.pathname.startsWith(item.path));
+            const translatedLabel = item.translationKey ? t(`nav.${item.translationKey}`, item.label) : item.label;
+
             return (
               <NavLink
                 key={item.path}
@@ -165,7 +174,7 @@ export default function StudentLayout() {
               >
                 <div className="flex items-center gap-2.5">
                   <Icon className={`w-4 h-4 ${isActive ? 'text-emerald-400' : 'text-slate-400'}`} />
-                  <span>{item.label}</span>
+                  <span>{translatedLabel}</span>
                 </div>
                 {isActive && <ChevronRight className="w-3.5 h-3.5 text-emerald-400" />}
               </NavLink>
@@ -175,13 +184,19 @@ export default function StudentLayout() {
 
         {/* Footer Actions */}
         <div className="p-3 border-t border-slate-800 space-y-2">
+          {/* Theme & Language Bar */}
+          <div className="flex items-center justify-between px-2 py-1">
+            <LanguageSelector />
+            <ThemeToggle />
+          </div>
+
           <div className="hidden md:flex items-center justify-between px-2 py-1">
-            <span className="text-[11px] text-slate-400 font-medium">In-App Notifications</span>
+            <span className="text-[11px] text-slate-400 font-medium">Notifications</span>
             <NotificationCenter />
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-950/40 border border-red-900/30 transition"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-950/40 border border-red-900/30 transition cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>Sign Out</span>

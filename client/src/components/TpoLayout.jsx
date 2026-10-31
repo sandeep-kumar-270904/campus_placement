@@ -29,6 +29,8 @@ import {
 } from 'lucide-react';
 import tpoService from '../services/tpoService';
 import NotificationCenter from './NotificationCenter';
+import ThemeToggle from './common/ThemeToggle';
+import LanguageSelector from './common/LanguageSelector';
 
 const ALL_NAV_ITEMS = [
   { path: '/tpo/dashboard', label: 'Command Center', icon: LayoutDashboard },
@@ -201,6 +203,12 @@ export default function TpoLayout() {
                 </span>
               </button>
             )}
+
+            {/* Language & Theme Controls */}
+            <div className="hidden sm:flex items-center gap-1.5">
+              <LanguageSelector />
+              <ThemeToggle />
+            </div>
 
             {/* Notification Center */}
             <NotificationCenter isDark={true} preferencesLink="/tpo/settings" />
